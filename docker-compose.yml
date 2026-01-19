@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: school_management_db
       POSTGRES_USER: developer
-      POSTGRES_PASSWORD: v9G#8rTq!zP4sW2u@Lk7mXc$1Bf6N0y
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5434:5432"
     volumes:
