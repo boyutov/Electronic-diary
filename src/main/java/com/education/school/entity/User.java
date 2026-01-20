@@ -21,7 +21,7 @@ public class User implements UserDetails {
 
     private String firstName;
     private String secondName;
-    private String lastName;
+    private String thirdName;
     private String email;
     private Integer role_id;
     private String password;
