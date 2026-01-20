@@ -1,0 +1,2 @@
+ALTER TABLE students
+    ALTER COLUMN user_id TYPE BIGINT;
