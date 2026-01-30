@@ -81,6 +81,11 @@ input {
     border: 1px solid #cbd5f5;
 }
 
+.stacked-form {
+    display: grid;
+    gap: 10px;
+}
+
 .notice {
     background: #fef9c3;
     color: #854d0e;
