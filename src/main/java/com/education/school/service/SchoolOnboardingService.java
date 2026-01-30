@@ -59,6 +59,7 @@ public class SchoolOnboardingService {
 
         School school = schoolRepository.findAll()
                 .stream()
+                .filter(entry -> entry.getAccessPasswordHash() != null)
                 .filter(entry -> passwordEncoder.matches(request.schoolPassword(), entry.getAccessPasswordHash()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Invalid school password"));
