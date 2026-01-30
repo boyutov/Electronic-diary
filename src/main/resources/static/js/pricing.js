@@ -37,7 +37,7 @@ form.addEventListener("submit", async (event) => {
         }
 
         const data = await response.json();
-        setResult(`Готово! ID школы: ${data.schoolId}. Пароль администратора: ${data.generatedPassword}`);
+        setResult(`Готово! ID школы: ${data.schoolId}. Пароль для входа: ${data.generatedPassword}`);
     } catch (error) {
         setResult(error.message, true);
     } finally {

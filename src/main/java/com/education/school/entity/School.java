@@ -32,6 +32,9 @@ public class School {
     @Column(name = "contact_phone")
     private String contactPhone;
 
+    @Column(name = "access_password_hash", nullable = false)
+    private String accessPasswordHash;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 

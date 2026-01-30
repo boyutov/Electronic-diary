@@ -2,6 +2,7 @@ package com.education.school.controller;
 
 import com.education.school.dto.PurchaseRequest;
 import com.education.school.dto.PurchaseResponse;
+import com.education.school.dto.SchoolRegistrationRequest;
 import com.education.school.service.SchoolOnboardingService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -23,5 +24,10 @@ public class PurchaseController {
     @PostMapping
     public ResponseEntity<PurchaseResponse> purchase(@Valid @RequestBody PurchaseRequest request) {
         return ResponseEntity.ok(schoolOnboardingService.createSchoolAccount(request));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<PurchaseResponse> register(@Valid @RequestBody SchoolRegistrationRequest request) {
+        return ResponseEntity.ok(schoolOnboardingService.completeSchoolRegistration(request));
     }
 }

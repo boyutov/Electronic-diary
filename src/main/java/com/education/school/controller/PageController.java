@@ -20,4 +20,9 @@ public class PageController {
     public String pricing() {
         return "pricing";
     }
+
+    @GetMapping("/login")
+    public String login() {
+        return "login";
+    }
 }
