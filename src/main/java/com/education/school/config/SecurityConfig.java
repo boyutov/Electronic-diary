@@ -22,13 +22,18 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
-                .httpBasic(Customizer.withDefaults())
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/admin", true)
+                        .permitAll()
+                )
+                .logout(logout -> logout.logoutUrl("/logout"))
                 .authorizeHttpRequests(auth -> auth
                         // разрешаем главную страницу и статику (если будет)
                         .requestMatchers(
-                                "/", "/index", "/about", "/pricing", "/login", "/error",
+                                "/", "/index", "/about", "/pricing", "/login", "/activate", "/error",
                                 "/css/**", "/js/**", "/images/**", "/webjars/**"
                         ).permitAll()
 

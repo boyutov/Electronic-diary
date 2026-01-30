@@ -26,6 +26,11 @@ public class PageController {
         return "login";
     }
 
+    @GetMapping("/activate")
+    public String activate() {
+        return "activate";
+    }
+
     @GetMapping("/admin")
     public String admin() {
         return "admin";

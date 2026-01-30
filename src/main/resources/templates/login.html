@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Вход для школы</title>
+    <title>Вход в школу</title>
     <link rel="stylesheet" href="/css/site.css">
 </head>
 <body>
@@ -16,33 +16,21 @@
 </header>
 <main>
     <section class="card">
-        <span class="badge">Вход для школы</span>
-        <h2>Активируйте аккаунт школы</h2>
-        <p>Введите пароль из письма/чека и заполните данные администратора.</p>
-        <form id="login-form">
-            <label for="schoolPassword">Пароль школы</label>
-            <input id="schoolPassword" name="schoolPassword" type="password" required>
+        <span class="badge">Вход</span>
+        <h2>Войти в школу</h2>
+        <form method="post" action="/login">
+            <label for="username">Email администратора</label>
+            <input id="username" name="username" type="email" required>
 
-            <label for="firstName">Имя</label>
-            <input id="firstName" name="firstName" required>
+            <label for="password">Пароль</label>
+            <input id="password" name="password" type="password" required>
 
-            <label for="secondName">Фамилия</label>
-            <input id="secondName" name="secondName" required>
-
-            <label for="thirdName">Отчество (необязательно)</label>
-            <input id="thirdName" name="thirdName">
-
-            <label for="lastName">Доп. фамилия (необязательно)</label>
-            <input id="lastName" name="lastName">
-
-            <label for="email">Email администратора</label>
-            <input id="email" name="email" type="email" required>
-
-            <button class="button" type="submit">Создать администратора</button>
+            <button class="button" type="submit">Войти</button>
         </form>
-        <div id="login-result" class="result" hidden></div>
+        <div class="notice">
+            Если вы только что зарегистрировали школу, сначала пройдите <a href="/activate">активацию</a>.
+        </div>
     </section>
 </main>
-<script src="/js/login.js"></script>
 </body>
 </html>
