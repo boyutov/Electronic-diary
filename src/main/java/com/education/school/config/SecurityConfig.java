@@ -39,6 +39,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/students", "/api/purchase", "/api/purchase/register")
                         .permitAll()
 
+                        .requestMatchers("/api/**").hasAuthority("ADMIN")
+
                         // всё остальное — под авторизацией
                         .anyRequest().authenticated()
                 );

@@ -35,12 +35,12 @@ loginForm.addEventListener("submit", async (event) => {
             body: JSON.stringify(payload)
         });
 
+        const data = await response.json();
         if (!response.ok) {
-            throw new Error("Не удалось активировать аккаунт школы.");
+            throw new Error(data.message || "Не удалось активировать аккаунт школы.");
         }
 
-        const data = await response.json();
-        showLoginResult(`Готово! Аккаунт школы ${data.schoolId} активирован. ID администратора: ${data.adminUserId}`);
+        showLoginResult("Готово! Аккаунт школы активирован, администратор создан.");
     } catch (error) {
         showLoginResult(error.message, true);
     } finally {

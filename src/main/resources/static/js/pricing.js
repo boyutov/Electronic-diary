@@ -32,12 +32,12 @@ form.addEventListener("submit", async (event) => {
             body: JSON.stringify(payload)
         });
 
+        const data = await response.json();
         if (!response.ok) {
-            throw new Error("Ошибка при создании аккаунта школы.");
+            throw new Error(data.message || "Ошибка при создании аккаунта школы.");
         }
 
-        const data = await response.json();
-        setResult(`Готово! ID школы: ${data.schoolId}. Пароль для входа: ${data.generatedPassword}`);
+        setResult(`Готово! Пароль для входа: ${data.generatedPassword}`);
     } catch (error) {
         setResult(error.message, true);
     } finally {
