@@ -14,7 +14,7 @@ public class Mark {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
