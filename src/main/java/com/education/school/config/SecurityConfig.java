@@ -44,7 +44,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/students", "/api/purchase", "/api/purchase/register")
                         .permitAll()
 
-                        .requestMatchers("/api/**", "/admin").hasAuthority("ADMIN")
+                        .requestMatchers("/admin", "/api/admin/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api/director/**").hasAnyAuthority("ADMIN", "DIRECTOR")
+                        .requestMatchers("/api/teacher/**").hasAnyAuthority("ADMIN", "TEACHER")
+                        .requestMatchers("/api/parent/**").hasAnyAuthority("ADMIN", "PARENT")
+                        .requestMatchers("/api/student/**").hasAnyAuthority("ADMIN", "STUDENT")
+                        .requestMatchers("/api/**").authenticated()
 
                         // всё остальное — под авторизацией
                         .anyRequest().authenticated()

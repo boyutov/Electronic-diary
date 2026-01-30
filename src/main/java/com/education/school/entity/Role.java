@@ -24,7 +24,7 @@ public class Role implements GrantedAuthority {
     @OneToMany(mappedBy = "role")
     private Set<User> users = new HashSet<>();
 
-    @OneToMany(mappedBy = "role")
+    @OneToMany(mappedBy = "role", fetch = FetchType.EAGER)
     private Set<Permission> permissions = new HashSet<>();
 
     @Override

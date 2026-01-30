@@ -8,6 +8,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @Setter
 @Getter
@@ -54,7 +57,11 @@ public class User implements UserDetails {
         if (role == null) {
             return List.of();
         }
-        return List.of(role);
+        Stream<GrantedAuthority> roleAuthority = Stream.of(new SimpleGrantedAuthority(role.getAuthority()));
+        Stream<GrantedAuthority> permissionAuthorities = role.getPermissions().stream()
+                .map(permission -> new SimpleGrantedAuthority(permission.getName()));
+        return Stream.concat(roleAuthority, permissionAuthorities)
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     @Override
