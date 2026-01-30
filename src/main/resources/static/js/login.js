@@ -40,7 +40,10 @@ loginForm.addEventListener("submit", async (event) => {
             throw new Error(data.message || "Не удалось активировать аккаунт школы.");
         }
 
-        showLoginResult("Готово! Аккаунт школы активирован, администратор создан.");
+        showLoginResult("Готово! Аккаунт школы активирован, администратор создан. Переходим в панель...");
+        setTimeout(() => {
+            window.location.href = "/admin";
+        }, 1200);
     } catch (error) {
         showLoginResult(error.message, true);
     } finally {
