@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Прайс</title>
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<header>
+    <h1>Electronic Diary</h1>
+    <nav>
+        <a href="/">Главная</a>
+        <a href="/about">О проекте</a>
+    </nav>
+</header>
+<main>
+    <section class="card">
+        <span class="badge">Прайс</span>
+        <h2>План “Бесплатный старт”</h2>
+        <p>На этапе запуска мы предоставляем полный доступ бесплатно.</p>
+        <ul>
+            <li>Управление пользователями и ролями</li>
+            <li>Электронный журнал и расписание</li>
+            <li>Родительский кабинет</li>
+        </ul>
+    </section>
+    <section class="card">
+        <h3>Создать аккаунт школы</h3>
+        <p>После покупки мы генерируем пароль для администратора школы.</p>
+        <form id="purchase-form">
+            <label for="schoolName">Название школы</label>
+            <input id="schoolName" name="schoolName" required>
+
+            <label for="contactEmail">Email администратора</label>
+            <input id="contactEmail" name="contactEmail" type="email" required>
+
+            <label for="contactPhone">Телефон (необязательно)</label>
+            <input id="contactPhone" name="contactPhone" type="tel">
+
+            <button class="button" type="submit">Получить доступ</button>
+        </form>
+        <div id="purchase-result" class="result" hidden></div>
+        <div class="notice">
+            После первого входа рекомендуем сменить пароль администратору школы.
+        </div>
+    </section>
+</main>
+<script src="/js/pricing.js"></script>
+</body>
+</html>
