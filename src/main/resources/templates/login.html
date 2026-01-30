@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход в школу</title>
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<header>
+    <h1>Electronic Diary</h1>
+    <nav>
+        <a href="/">Главная</a>
+        <a href="/about">О проекте</a>
+        <a href="/pricing">Прайс</a>
+    </nav>
+</header>
+<main>
+    <section class="card">
+        <span class="badge">Вход</span>
+        <h2>Войти в школу</h2>
+        <form method="post" action="/login">
+            <label for="username">Email администратора</label>
+            <input id="username" name="username" type="email" required>
+
+            <label for="password">Пароль</label>
+            <input id="password" name="password" type="password" required>
+
+            <button class="button" type="submit">Войти</button>
+        </form>
+        <div class="notice">
+            Если вы только что зарегистрировали школу, сначала пройдите <a href="/activate">активацию</a>.
+        </div>
+    </section>
+</main>
+</body>
+</html>

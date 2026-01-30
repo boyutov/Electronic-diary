@@ -22,13 +22,18 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
-                .httpBasic(Customizer.withDefaults())
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/admin", true)
+                        .permitAll()
+                )
+                .logout(logout -> logout.logoutUrl("/logout"))
                 .authorizeHttpRequests(auth -> auth
                         // разрешаем главную страницу и статику (если будет)
                         .requestMatchers(
-                                "/", "/index", "/error",
+                                "/", "/index", "/about", "/pricing", "/login", "/activate", "/error",
                                 "/css/**", "/js/**", "/images/**", "/webjars/**"
                         ).permitAll()
 
@@ -36,7 +41,10 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
                         // пример: разрешаем конкретный POST (если нужно)
-                        .requestMatchers(HttpMethod.POST, "/api/students").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/students", "/api/purchase", "/api/purchase/register")
+                        .permitAll()
+
+                        .requestMatchers("/api/**", "/admin").hasAuthority("ADMIN")
 
                         // всё остальное — под авторизацией
                         .anyRequest().authenticated()
