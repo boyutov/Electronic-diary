@@ -10,8 +10,8 @@ import java.util.Set;
 @Setter
 @Getter
 @Entity
-@Table(name = "students")
-public class Student {
+@Table(name = "teachers")
+public class Teacher {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,16 +21,22 @@ public class Student {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "curator", nullable = false)
-    private User curator;
+    @Column(columnDefinition = "TEXT")
+    private String bio;
 
-    @Column(nullable = false)
-    private Integer age;
+    @Column(name = "has_office")
+    private Boolean hasOffice;
+
+    private String office;
+
+    @Column(name = "has_group")
+    private Boolean hasGroup;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id")
     private GroupEntity group;
+
+    private String phone;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "deleted_by_admin_user_id")
@@ -40,11 +46,14 @@ public class Student {
     @JoinColumn(name = "created_by_admin_user_id")
     private User createdByAdminUser;
 
-    private String email;
+    @ManyToMany
+    @JoinTable(
+        name = "teacher_discipline",
+        joinColumns = @JoinColumn(name = "teacher_id"),
+        inverseJoinColumns = @JoinColumn(name = "discipline_id")
+    )
+    private Set<Discipline> disciplines = new HashSet<>();
 
-    @ManyToMany(mappedBy = "students")
-    private Set<Parent> parents = new HashSet<>();
-
-    @ManyToMany(mappedBy = "students")
+    @OneToMany(mappedBy = "teacher")
     private Set<Course> courses = new HashSet<>();
 }
