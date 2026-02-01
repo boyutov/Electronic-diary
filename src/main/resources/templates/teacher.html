@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель учителя</title>
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<header>
+    <h1>Electronic Diary</h1>
+    <nav>
+        <a href="/">Главная</a>
+        <a href="/logout">Выйти</a>
+    </nav>
+</header>
+<main>
+    <section class="card">
+        <span class="badge">Учитель</span>
+        <h2>Панель учителя</h2>
+        <p>Просматривайте расписание, новости, голосования и отмечайте оценки/опоздания.</p>
+    </section>
+    <section class="grid">
+        <div class="card">
+            <h3>Расписание</h3>
+            <p>Ваши уроки на неделю.</p>
+        </div>
+        <div class="card">
+            <h3>Оценки и опоздания</h3>
+            <form class="stacked-form">
+                <label>Ученик</label>
+                <select>
+                    <option selected disabled>Список учеников группы</option>
+                </select>
+                <label>Предмет</label>
+                <select>
+                    <option selected disabled>Выберите предмет</option>
+                </select>
+                <label>Оценка (1-100)</label>
+                <input placeholder="95">
+                <label>Опоздание (минут)</label>
+                <input placeholder="5">
+                <button class="button" type="button">Сохранить</button>
+            </form>
+            <p class="notice">Создавать учеников можно только если вы куратор своей группы.</p>
+        </div>
+        <div class="card">
+            <h3>Добавить ученика в свою группу</h3>
+            <form class="stacked-form">
+                <label>Имя</label>
+                <input placeholder="Имя">
+                <label>Фамилия</label>
+                <input placeholder="Фамилия">
+                <label>Email</label>
+                <input type="email" placeholder="student@school.kz">
+                <button class="button" type="button">Создать ученика</button>
+            </form>
+        </div>
+        <div class="card">
+            <h3>Новости и голосования</h3>
+            <p>Следите за важными объявлениями и участвуй в опросах.</p>
+        </div>
+        <div class="card">
+            <h3>Жалобы</h3>
+            <form class="stacked-form">
+                <label>Жалоба</label>
+                <input placeholder="Опишите проблему">
+                <label>Анонимно</label>
+                <select>
+                    <option value="yes">Да</option>
+                    <option value="no" selected>Нет</option>
+                </select>
+                <button class="button" type="button">Отправить</button>
+            </form>
+        </div>
+    </section>
+</main>
+</body>
+</html>

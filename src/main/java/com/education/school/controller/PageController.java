@@ -90,4 +90,24 @@ public class PageController {
     public String adminPoll() {
         return "admin-poll";
     }
+
+    @GetMapping("/director")
+    public String director() {
+        return "director";
+    }
+
+    @GetMapping("/teacher")
+    public String teacher() {
+        return "teacher";
+    }
+
+    @GetMapping("/student")
+    public String student() {
+        return "student";
+    }
+
+    @GetMapping("/parent")
+    public String parent() {
+        return "parent";
+    }
 }

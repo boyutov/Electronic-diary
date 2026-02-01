@@ -15,6 +15,11 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private final RoleBasedSuccessHandler roleBasedSuccessHandler;
+
+    public SecurityConfig(RoleBasedSuccessHandler roleBasedSuccessHandler) {
+        this.roleBasedSuccessHandler = roleBasedSuccessHandler;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -26,7 +31,7 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/admin", true)
+                        .successHandler(roleBasedSuccessHandler)
                         .permitAll()
                 )
                 .logout(logout -> logout.logoutUrl("/logout"))
@@ -45,6 +50,10 @@ public class SecurityConfig {
                         .permitAll()
 
                         .requestMatchers("/admin", "/admin/**", "/api/admin/**").hasAuthority("ADMIN")
+                        .requestMatchers("/director", "/director/**").hasAnyAuthority("ADMIN", "DIRECTOR")
+                        .requestMatchers("/teacher", "/teacher/**").hasAnyAuthority("ADMIN", "TEACHER")
+                        .requestMatchers("/student", "/student/**").hasAnyAuthority("ADMIN", "STUDENT")
+                        .requestMatchers("/parent", "/parent/**").hasAnyAuthority("ADMIN", "PARENT")
                         .requestMatchers("/api/director/**").hasAnyAuthority("ADMIN", "DIRECTOR")
                         .requestMatchers("/api/teacher/**").hasAnyAuthority("ADMIN", "TEACHER")
                         .requestMatchers("/api/parent/**").hasAnyAuthority("ADMIN", "PARENT")

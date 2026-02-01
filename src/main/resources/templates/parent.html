@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель родителя</title>
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<header>
+    <h1>Electronic Diary</h1>
+    <nav>
+        <a href="/">Главная</a>
+        <a href="/logout">Выйти</a>
+    </nav>
+</header>
+<main>
+    <section class="card">
+        <span class="badge">Родитель</span>
+        <h2>Панель родителя</h2>
+        <p>Просматривайте оценки и расписание ребёнка, новости и голосования.</p>
+    </section>
+    <section class="grid">
+        <div class="card">
+            <h3>Оценки</h3>
+            <p>Список оценок по предметам.</p>
+        </div>
+        <div class="card">
+            <h3>Расписание</h3>
+            <p>Расписание уроков ребёнка.</p>
+        </div>
+        <div class="card">
+            <h3>Новости и голосования</h3>
+            <p>Следите за школьными объявлениями и участвуйте в опросах.</p>
+        </div>
+        <div class="card">
+            <h3>Жалоба</h3>
+            <form class="stacked-form">
+                <label>Жалоба</label>
+                <input placeholder="Опишите проблему">
+                <label>Анонимно</label>
+                <select>
+                    <option value="yes">Да</option>
+                    <option value="no" selected>Нет</option>
+                </select>
+                <button class="button" type="button">Отправить</button>
+            </form>
+        </div>
+    </section>
+</main>
+</body>
+</html>
