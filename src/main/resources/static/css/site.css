@@ -89,9 +89,25 @@ input {
     border: 1px solid #cbd5f5;
 }
 
+select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5f5;
+    background: #fff;
+}
+
 .stacked-form {
     display: grid;
     gap: 10px;
+}
+
+.conditional {
+    display: none;
+}
+
+.conditional.is-visible {
+    display: block;
 }
 
 .notice {

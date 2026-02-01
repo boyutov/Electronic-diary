@@ -18,12 +18,24 @@
         <span class="badge">Расписание</span>
         <h2>Добавить урок</h2>
         <form class="stacked-form">
-            <label>ID предмета</label>
-            <input placeholder="ID предмета" required>
-            <label>ID учителя</label>
-            <input placeholder="ID учителя" required>
-            <label>ID группы</label>
-            <input placeholder="ID группы" required>
+            <label>Предмет</label>
+            <select required>
+                <option selected disabled>Выберите предмет</option>
+                <option>Алгебра</option>
+                <option>История</option>
+            </select>
+            <label>Учитель</label>
+            <select required>
+                <option selected disabled>Выберите учителя</option>
+                <option>Азамат Кайратов</option>
+                <option>Мария Иванова</option>
+            </select>
+            <label>Группа</label>
+            <select required>
+                <option selected disabled>Выберите класс</option>
+                <option>8Г</option>
+                <option>10А</option>
+            </select>
             <label>День недели (1-7)</label>
             <input placeholder="1" required>
             <label>Номер урока (1-8)</label>
