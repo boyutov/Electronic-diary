@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Активация школы</title>
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<header>
+    <h1>Electronic Diary</h1>
+    <nav>
+        <a href="/">Главная</a>
+        <a href="/about">О проекте</a>
+        <a href="/pricing">Прайс</a>
+        <a href="/login">Вход</a>
+    </nav>
+</header>
+<main>
+    <section class="card">
+        <span class="badge">Активация</span>
+        <h2>Активируйте аккаунт школы</h2>
+        <p>Введите пароль из письма/чека и заполните данные администратора.</p>
+        <form id="activate-form">
+            <label for="schoolPassword">Пароль школы</label>
+            <input id="schoolPassword" name="schoolPassword" type="password" required>
+
+            <label for="firstName">Имя</label>
+            <input id="firstName" name="firstName" required>
+
+            <label for="secondName">Фамилия</label>
+            <input id="secondName" name="secondName" required>
+
+            <label for="thirdName">Отчество (необязательно)</label>
+            <input id="thirdName" name="thirdName">
+
+            <label for="email">Email администратора</label>
+            <input id="email" name="email" type="email" required>
+
+            <button class="button" type="submit">Создать администратора</button>
+        </form>
+        <div id="activate-result" class="result" hidden></div>
+    </section>
+</main>
+<script src="/js/activate.js"></script>
+</body>
+</html>

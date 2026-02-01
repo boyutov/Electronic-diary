@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Создать учителя</title>
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<header>
+    <h1>Electronic Diary</h1>
+    <nav>
+        <a href="/admin">Панель</a>
+        <a href="/">Главная</a>
+    </nav>
+</header>
+<main>
+    <section class="card">
+        <span class="badge">Учитель</span>
+        <h2>Создать учителя</h2>
+        <form class="stacked-form">
+            <label>Имя</label>
+            <input placeholder="Имя" required>
+            <label>Фамилия</label>
+            <input placeholder="Фамилия" required>
+            <label>Отчество</label>
+            <input placeholder="Отчество">
+            <label>Email</label>
+            <input type="email" placeholder="teacher@school.kz" required>
+            <label>Пароль</label>
+            <input type="password" placeholder="Пароль" required>
+            <label>Телефон</label>
+            <input placeholder="+7 700 000 00 00">
+            <label>Био</label>
+            <input placeholder="Краткая информация">
+            <label>Есть кабинет</label>
+            <select data-toggle-target="teacher-office">
+                <option value="no" selected>Нет</option>
+                <option value="yes">Да</option>
+            </select>
+            <div id="teacher-office" class="conditional">
+                <label>Кабинет</label>
+                <input placeholder="101">
+            </div>
+            <button class="button" type="button">Создать учителя</button>
+        </form>
+    </section>
+</main>
+<script src="/js/admin-forms.js"></script>
+</body>
+</html>

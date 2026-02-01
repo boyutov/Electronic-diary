@@ -10,27 +10,26 @@ import java.util.Set;
 @Setter
 @Getter
 @Entity
-@Table(name = "students")
-public class Student {
+@Table(name = "groups")
+public class GroupEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
-    private User user;
+    @Column(nullable = false)
+    private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "curator", nullable = false)
     private User curator;
 
-    @Column(nullable = false)
-    private Integer age;
+    @Column(name = "has_office")
+    private Boolean hasOffice;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id")
-    private GroupEntity group;
+    private String office;
+
+    private Integer course;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "deleted_by_admin_user_id")
@@ -40,11 +39,9 @@ public class Student {
     @JoinColumn(name = "created_by_admin_user_id")
     private User createdByAdminUser;
 
-    private String email;
+    @OneToMany(mappedBy = "group")
+    private Set<Student> students = new HashSet<>();
 
-    @ManyToMany(mappedBy = "students")
-    private Set<Parent> parents = new HashSet<>();
-
-    @ManyToMany(mappedBy = "students")
-    private Set<Course> courses = new HashSet<>();
+    @OneToMany(mappedBy = "group")
+    private Set<Teacher> teachers = new HashSet<>();
 }

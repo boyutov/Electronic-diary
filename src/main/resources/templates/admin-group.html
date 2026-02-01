@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Создать группу</title>
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<header>
+    <h1>Electronic Diary</h1>
+    <nav>
+        <a href="/admin">Панель</a>
+        <a href="/">Главная</a>
+    </nav>
+</header>
+<main>
+    <section class="card">
+        <span class="badge">Группа</span>
+        <h2>Создать группу/класс</h2>
+        <form class="stacked-form">
+            <label>Название</label>
+            <input placeholder="9Б" required>
+            <label>Куратор</label>
+            <select>
+                <option selected disabled>Список кураторов появится после добавления</option>
+            </select>
+            <label>Есть кабинет</label>
+            <select data-toggle-target="group-office">
+                <option value="no" selected>Нет</option>
+                <option value="yes">Да</option>
+            </select>
+            <div id="group-office" class="conditional">
+                <label>Кабинет</label>
+                <input placeholder="203">
+            </div>
+            <label>Курс (номер)</label>
+            <input placeholder="1">
+            <button class="button" type="button">Создать группу</button>
+        </form>
+    </section>
+</main>
+<script src="/js/admin-forms.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Создать голосование</title>
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<header>
+    <h1>Electronic Diary</h1>
+    <nav>
+        <a href="/admin">Панель</a>
+        <a href="/">Главная</a>
+    </nav>
+</header>
+<main>
+    <section class="card">
+        <span class="badge">Голосование</span>
+        <h2>Создать голосование</h2>
+        <form class="stacked-form">
+            <label>Заголовок</label>
+            <input placeholder="Выберите дату собрания" required>
+            <label>Описание</label>
+            <input placeholder="Краткое описание">
+            <label>Варианты (через запятую)</label>
+            <input placeholder="5 мая, 7 мая" required>
+            <label>Активно</label>
+            <select>
+                <option value="yes" selected>Да</option>
+                <option value="no">Нет</option>
+            </select>
+            <button class="button" type="button">Создать голосование</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>
