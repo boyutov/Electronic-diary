@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Создать ученика</title>
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<header>
+    <h1>Electronic Diary</h1>
+    <nav>
+        <a href="/admin">Панель</a>
+        <a href="/">Главная</a>
+    </nav>
+</header>
+<main>
+    <section class="card">
+        <span class="badge">Ученик</span>
+        <h2>Создать ученика</h2>
+        <form class="stacked-form">
+            <label>Имя</label>
+            <input placeholder="Имя" required>
+            <label>Фамилия</label>
+            <input placeholder="Фамилия" required>
+            <label>Отчество</label>
+            <input placeholder="Отчество">
+            <label>Email</label>
+            <input type="email" placeholder="student@school.kz" required>
+            <label>Пароль</label>
+            <input type="password" placeholder="Пароль" required>
+            <label>Возраст</label>
+            <input placeholder="15" required>
+            <label>Класс</label>
+            <select>
+                <option selected disabled>Выберите класс</option>
+                <option>10А</option>
+                <option>9Б</option>
+            </select>
+            <label>Куратор</label>
+            <select>
+                <option selected disabled>Выберите куратора</option>
+                <option>Айдана Садыкова</option>
+                <option>Тимур Сеитов</option>
+            </select>
+            <button class="button" type="button">Создать ученика</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

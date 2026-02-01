@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Создать новость</title>
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<header>
+    <h1>Electronic Diary</h1>
+    <nav>
+        <a href="/admin">Панель</a>
+        <a href="/">Главная</a>
+    </nav>
+</header>
+<main>
+    <section class="card">
+        <span class="badge">Новости</span>
+        <h2>Опубликовать новость</h2>
+        <form class="stacked-form">
+            <label>Заголовок</label>
+            <input placeholder="Новая неделя" required>
+            <label>Текст</label>
+            <input placeholder="Описание новости" required>
+            <label>Автор (учитель, опционально)</label>
+            <select>
+                <option selected>Без учителя</option>
+                <option>Азамат Кайратов</option>
+                <option>Мария Иванова</option>
+            </select>
+            <button class="button" type="button">Опубликовать</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>
