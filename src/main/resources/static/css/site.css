@@ -63,6 +63,14 @@ main {
     font-weight: 600;
 }
 
+.button + .button {
+    margin-left: 8px;
+}
+
+.button-link {
+    text-decoration: none;
+}
+
 .button:disabled {
     background: #93c5fd;
     cursor: not-allowed;

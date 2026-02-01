@@ -18,116 +18,58 @@
     <section class="card">
         <span class="badge">Панель администратора</span>
         <h2>Управление школой</h2>
-        <p>Заполните формы ниже, чтобы создавать пользователей, группы, предметы, расписание и контент.</p>
+        <p>Выберите, что нужно создать. Каждая форма откроется на отдельной странице.</p>
     </section>
     <section class="grid">
         <div class="card">
             <h3>Директор</h3>
-            <form class="stacked-form">
-                <label>Имя</label>
-                <input placeholder="Имя директора">
-                <label>Фамилия</label>
-                <input placeholder="Фамилия директора">
-                <label>Email</label>
-                <input type="email" placeholder="director@school.kz">
-                <button class="button" type="button">Создать директора</button>
-            </form>
+            <p>Создать пользователя с ролью директора.</p>
+            <a class="button" href="/admin/director">Создать директора</a>
         </div>
         <div class="card">
             <h3>Учитель</h3>
-            <form class="stacked-form">
-                <label>ФИО</label>
-                <input placeholder="ФИО учителя">
-                <label>Предмет</label>
-                <input placeholder="Математика">
-                <label>Телефон</label>
-                <input placeholder="+7 700 000 00 00">
-                <button class="button" type="button">Добавить учителя</button>
-            </form>
+            <p>Добавить преподавателя и связать с предметами.</p>
+            <a class="button" href="/admin/teacher">Создать учителя</a>
         </div>
         <div class="card">
             <h3>Ученик</h3>
-            <form class="stacked-form">
-                <label>ФИО</label>
-                <input placeholder="ФИО ученика">
-                <label>Класс</label>
-                <input placeholder="10А">
-                <label>Email родителя</label>
-                <input type="email" placeholder="parent@school.kz">
-                <button class="button" type="button">Добавить ученика</button>
-            </form>
+            <p>Добавить ученика и прикрепить к классу.</p>
+            <a class="button" href="/admin/student">Создать ученика</a>
         </div>
         <div class="card">
             <h3>Родитель</h3>
-            <form class="stacked-form">
-                <label>ФИО</label>
-                <input placeholder="ФИО родителя">
-                <label>Email</label>
-                <input type="email" placeholder="parent@school.kz">
-                <label>Телефон</label>
-                <input placeholder="+7 700 000 00 00">
-                <button class="button" type="button">Добавить родителя</button>
-            </form>
+            <p>Создать родителя и связать с учениками.</p>
+            <a class="button" href="/admin/parent">Создать родителя</a>
         </div>
         <div class="card">
             <h3>Группа/Класс</h3>
-            <form class="stacked-form">
-                <label>Название</label>
-                <input placeholder="9Б">
-                <label>Куратор</label>
-                <input placeholder="ФИО куратора">
-                <button class="button" type="button">Создать группу</button>
-            </form>
+            <p>Создать класс и назначить куратора.</p>
+            <a class="button" href="/admin/group">Создать группу</a>
         </div>
         <div class="card">
             <h3>Предмет</h3>
-            <form class="stacked-form">
-                <label>Название предмета</label>
-                <input placeholder="Физика">
-                <button class="button" type="button">Добавить предмет</button>
-            </form>
+            <p>Добавить новый учебный предмет.</p>
+            <a class="button" href="/admin/discipline">Создать предмет</a>
         </div>
         <div class="card">
             <h3>Курс</h3>
-            <form class="stacked-form">
-                <label>Название курса</label>
-                <input placeholder="Подготовка к ЕНТ">
-                <label>Преподаватель</label>
-                <input placeholder="ФИО учителя">
-                <button class="button" type="button">Создать курс</button>
-            </form>
+            <p>Создать курс и назначить учителя.</p>
+            <a class="button" href="/admin/course">Создать курс</a>
         </div>
         <div class="card">
             <h3>Расписание</h3>
-            <form class="stacked-form">
-                <label>Класс</label>
-                <input placeholder="8Г">
-                <label>День недели</label>
-                <input placeholder="Понедельник">
-                <label>Урок</label>
-                <input placeholder="Алгебра">
-                <button class="button" type="button">Добавить урок</button>
-            </form>
+            <p>Добавить занятия в расписание класса.</p>
+            <a class="button" href="/admin/schedule">Создать расписание</a>
         </div>
         <div class="card">
             <h3>Новости</h3>
-            <form class="stacked-form">
-                <label>Заголовок</label>
-                <input placeholder="Новая неделя">
-                <label>Текст</label>
-                <input placeholder="Описание новости">
-                <button class="button" type="button">Опубликовать новость</button>
-            </form>
+            <p>Опубликовать новость для школы.</p>
+            <a class="button" href="/admin/news">Создать новость</a>
         </div>
         <div class="card">
             <h3>Голосование</h3>
-            <form class="stacked-form">
-                <label>Вопрос</label>
-                <input placeholder="Выберите дату собрания">
-                <label>Варианты</label>
-                <input placeholder="Напр.: 5 мая, 7 мая">
-                <button class="button" type="button">Создать голосование</button>
-            </form>
+            <p>Создать опрос для школы.</p>
+            <a class="button" href="/admin/poll">Создать голосование</a>
         </div>
     </section>
 </main>
