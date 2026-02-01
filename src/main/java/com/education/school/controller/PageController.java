@@ -36,6 +36,11 @@ public class PageController {
         return "admin";
     }
 
+    @GetMapping("/admin/admin")
+    public String adminAdmin() {
+        return "admin-admin";
+    }
+
     @GetMapping("/admin/director")
     public String adminDirector() {
         return "admin-director";

@@ -17,7 +17,6 @@ activateForm.addEventListener("submit", async (event) => {
         firstName: activateForm.firstName.value.trim(),
         secondName: activateForm.secondName.value.trim(),
         thirdName: activateForm.thirdName.value.trim() || null,
-        lastName: activateForm.lastName.value.trim() || null,
         email: activateForm.email.value.trim()
     };
 

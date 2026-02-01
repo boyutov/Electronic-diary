@@ -8,7 +8,6 @@ public record SchoolRegistrationRequest(
         @NotBlank String firstName,
         @NotBlank String secondName,
         String thirdName,
-        String lastName,
         @Email @NotBlank String email
 ) {
 }

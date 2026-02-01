@@ -31,9 +31,6 @@ public class User implements UserDetails {
     @Column(name = "third_name")
     private String thirdName;
 
-    @Column(name = "last_name")
-    private String lastName;
-
     @Column(nullable = false)
     private String password;
 

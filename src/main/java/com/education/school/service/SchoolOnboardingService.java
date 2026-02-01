@@ -76,7 +76,6 @@ public class SchoolOnboardingService {
         adminUser.setFirstName(request.firstName());
         adminUser.setSecondName(request.secondName());
         adminUser.setThirdName(request.thirdName());
-        adminUser.setLastName(request.lastName());
         adminUser.setEmail(request.email());
         adminUser.setPassword(passwordEncoder.encode(request.schoolPassword()));
         adminUser.setRole(adminRole);
