@@ -1,46 +1,80 @@
-const form = document.getElementById("purchase-form");
-const result = document.getElementById("purchase-result");
+document.addEventListener("DOMContentLoaded", () => {
+    const studentsInput = document.getElementById("calc-students");
+    const durationSelect = document.getElementById("calc-duration");
+    const promoInput = document.getElementById("calc-promo");
+    const totalPriceElement = document.getElementById("total-price");
+    const purchaseForm = document.getElementById("purchase-form");
+    const resultDiv = document.getElementById("purchase-result");
 
-const setResult = (message, isError = false) => {
-    result.hidden = false;
-    result.style.background = isError ? "#fee2e2" : "#dcfce7";
-    result.style.color = isError ? "#991b1b" : "#166534";
-    result.textContent = message;
-};
+    function calculatePrice() {
+        const students = parseInt(studentsInput.value) || 0;
+        const duration = parseInt(durationSelect.value) || 0;
+        const promoCode = promoInput.value;
 
-form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    result.hidden = true;
-
-    const payload = {
-        schoolName: form.schoolName.value.trim(),
-        contactEmail: form.contactEmail.value.trim(),
-        contactPhone: form.contactPhone.value.trim() || null
-    };
-
-    if (!payload.schoolName || !payload.contactEmail) {
-        setResult("Пожалуйста, заполните название школы и email.", true);
-        return;
-    }
-
-    form.querySelector("button").disabled = true;
-
-    try {
-        const response = await fetch("/api/purchase", {
+        fetch("/api/purchase/calculate", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                schoolName: "Test", // Dummy data for validation
+                contactEmail: "test@test.com", // Dummy data
+                studentCount: students,
+                durationMonths: duration,
+                promoCode: promoCode
+            })
+        })
+        .then(response => response.json())
+        .then(price => {
+            totalPriceElement.textContent = `$${price.toFixed(2)}`;
         });
-
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.message || "Ошибка при создании аккаунта школы.");
-        }
-
-        setResult(`Готово! Пароль для входа: ${data.generatedPassword}`);
-    } catch (error) {
-        setResult(error.message, true);
-    } finally {
-        form.querySelector("button").disabled = false;
     }
+
+    studentsInput.addEventListener("input", calculatePrice);
+    durationSelect.addEventListener("change", calculatePrice);
+    promoInput.addEventListener("input", calculatePrice);
+
+    // Initial calculation
+    calculatePrice();
+
+    purchaseForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        
+        const data = {
+            schoolName: document.getElementById("schoolName").value,
+            contactEmail: document.getElementById("contactEmail").value,
+            contactPhone: document.getElementById("contactPhone").value,
+            studentCount: parseInt(studentsInput.value),
+            durationMonths: parseInt(durationSelect.value),
+            promoCode: promoInput.value
+        };
+
+        fetch("/api/purchase", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                return Promise.reject("Ошибка при покупке");
+            }
+        })
+        .then(data => {
+            resultDiv.hidden = false;
+            resultDiv.innerHTML = `
+                <p>Школа успешно создана!</p>
+                <p>ID школы: <strong>${data.schoolId}</strong></p>
+                <p>Временный пароль администратора: <strong>${data.adminPassword}</strong></p>
+                <p>Сохраните эти данные! Они нужны для активации.</p>
+            `;
+            purchaseForm.reset();
+        })
+        .catch(error => {
+            alert(error);
+        });
+    });
 });

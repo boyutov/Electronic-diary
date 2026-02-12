@@ -30,4 +30,14 @@ public class PurchaseController {
     public ResponseEntity<PurchaseResponse> register(@Valid @RequestBody SchoolRegistrationRequest request) {
         return ResponseEntity.ok(schoolOnboardingService.completeSchoolRegistration(request));
     }
+
+    @PostMapping("/calculate")
+    public ResponseEntity<Double> calculate(@RequestBody PurchaseRequest request) {
+        double price = schoolOnboardingService.calculatePrice(
+            request.studentCount() != null ? request.studentCount() : 0,
+            request.durationMonths() != null ? request.durationMonths() : 0,
+            request.promoCode()
+        );
+        return ResponseEntity.ok(price);
+    }
 }
