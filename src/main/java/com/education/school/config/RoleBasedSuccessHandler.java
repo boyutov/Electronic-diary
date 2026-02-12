@@ -20,28 +20,41 @@ public class RoleBasedSuccessHandler implements AuthenticationSuccessHandler {
             HttpServletResponse response,
             Authentication authentication
     ) throws IOException, ServletException {
+        
+        String schoolName = null;
+        Object details = authentication.getDetails();
+        if (details instanceof SchoolWebAuthenticationDetails) {
+            schoolName = ((SchoolWebAuthenticationDetails) details).getSchoolName();
+        }
+        
+        if (schoolName != null) {
+            request.getSession().setAttribute("currentSchool", schoolName);
+        }
+
+        String prefix = (schoolName != null && !schoolName.isEmpty()) ? "/" + schoolName.replaceAll("/", "") : "";
+
         Set<String> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toSet());
 
         if (roles.contains("ADMIN")) {
-            response.sendRedirect("/admin");
+            response.sendRedirect(prefix + "/admin");
             return;
         }
         if (roles.contains("DIRECTOR")) {
-            response.sendRedirect("/director");
+            response.sendRedirect(prefix + "/director");
             return;
         }
         if (roles.contains("TEACHER")) {
-            response.sendRedirect("/teacher");
+            response.sendRedirect(prefix + "/teacher");
             return;
         }
         if (roles.contains("PARENT")) {
-            response.sendRedirect("/parent");
+            response.sendRedirect(prefix + "/parent");
             return;
         }
         if (roles.contains("STUDENT")) {
-            response.sendRedirect("/student");
+            response.sendRedirect(prefix + "/student");
             return;
         }
         response.sendRedirect("/");

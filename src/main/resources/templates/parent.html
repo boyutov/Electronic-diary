@@ -10,42 +10,17 @@
     <h1>Electronic Diary</h1>
     <nav>
         <a href="/">Главная</a>
-        <a href="/logout">Выйти</a>
+        <form method="post" action="/logout" style="display: inline;">
+            <button type="submit" class="button-link" style="background: none; border: none; color: #e2e8f0; cursor: pointer; font-size: 1em; padding: 0; margin-left: 16px;">Выйти</button>
+        </form>
     </nav>
 </header>
 <main>
     <section class="card">
-        <span class="badge">Родитель</span>
         <h2>Панель родителя</h2>
-        <p>Просматривайте оценки и расписание ребёнка, новости и голосования.</p>
-    </section>
-    <section class="grid">
-        <div class="card">
-            <h3>Оценки</h3>
-            <p>Список оценок по предметам.</p>
-        </div>
-        <div class="card">
-            <h3>Расписание</h3>
-            <p>Расписание уроков ребёнка.</p>
-        </div>
-        <div class="card">
-            <h3>Новости и голосования</h3>
-            <p>Следите за школьными объявлениями и участвуйте в опросах.</p>
-        </div>
-        <div class="card">
-            <h3>Жалоба</h3>
-            <form class="stacked-form">
-                <label>Жалоба</label>
-                <input placeholder="Опишите проблему">
-                <label>Анонимно</label>
-                <select>
-                    <option value="yes">Да</option>
-                    <option value="no" selected>Нет</option>
-                </select>
-                <button class="button" type="button">Отправить</button>
-            </form>
-        </div>
+        <p>Добро пожаловать! Здесь будет информация для родителя.</p>
     </section>
 </main>
+<script src="/js/navigation.js"></script>
 </body>
 </html>

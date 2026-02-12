@@ -4,75 +4,47 @@
     <meta charset="UTF-8">
     <title>Панель учителя</title>
     <link rel="stylesheet" href="/css/site.css">
+    <style>
+        .panel { display: none; }
+        .panel.is-visible { display: block; }
+    </style>
 </head>
 <body>
 <header>
     <h1>Electronic Diary</h1>
     <nav>
         <a href="/">Главная</a>
-        <a href="/logout">Выйти</a>
+        <form method="post" action="/logout" style="display: inline;">
+            <button type="submit" class="button-link" style="background: none; border: none; color: #e2e8f0; cursor: pointer; font-size: 1em; padding: 0; margin-left: 16px;">Выйти</button>
+        </form>
     </nav>
 </header>
 <main>
-    <section class="card">
-        <span class="badge">Учитель</span>
-        <h2>Панель учителя</h2>
-        <p>Просматривайте расписание, новости, голосования и отмечайте оценки/опоздания.</p>
-    </section>
-    <section class="grid">
-        <div class="card">
-            <h3>Расписание</h3>
-            <p>Ваши уроки на неделю.</p>
-        </div>
-        <div class="card">
-            <h3>Оценки и опоздания</h3>
-            <form class="stacked-form">
-                <label>Ученик</label>
-                <select>
-                    <option selected disabled>Список учеников группы</option>
-                </select>
-                <label>Предмет</label>
-                <select>
-                    <option selected disabled>Выберите предмет</option>
-                </select>
-                <label>Оценка (1-100)</label>
-                <input placeholder="95">
-                <label>Опоздание (минут)</label>
-                <input placeholder="5">
-                <button class="button" type="button">Сохранить</button>
-            </form>
-            <p class="notice">Создавать учеников можно только если вы куратор своей группы.</p>
-        </div>
-        <div class="card">
-            <h3>Добавить ученика в свою группу</h3>
-            <form class="stacked-form">
-                <label>Имя</label>
-                <input placeholder="Имя">
-                <label>Фамилия</label>
-                <input placeholder="Фамилия">
-                <label>Email</label>
-                <input type="email" placeholder="student@school.kz">
-                <button class="button" type="button">Создать ученика</button>
-            </form>
-        </div>
-        <div class="card">
-            <h3>Новости и голосования</h3>
-            <p>Следите за важными объявлениями и участвуй в опросах.</p>
-        </div>
-        <div class="card">
-            <h3>Жалобы</h3>
-            <form class="stacked-form">
-                <label>Жалоба</label>
-                <input placeholder="Опишите проблему">
-                <label>Анонимно</label>
-                <select>
-                    <option value="yes">Да</option>
-                    <option value="no" selected>Нет</option>
-                </select>
-                <button class="button" type="button">Отправить</button>
-            </form>
-        </div>
-    </section>
+    <!-- Regular Teacher Panel -->
+    <div id="teacher-panel" class="panel is-visible">
+        <section class="card">
+            <h2>Панель учителя</h2>
+            <p>Добро пожаловать! Здесь будет информация для учителей, которые не являются кураторами.</p>
+        </section>
+    </div>
+
+    <!-- Curator Panel -->
+    <div id="curator-panel" class="panel">
+        <section class="card">
+            <h2>Панель куратора</h2>
+            <p>Вы являетесь куратором группы: <strong id="curator-group-name"></strong></p>
+            <a id="create-student-btn" class="button" href="#">Создать ученика</a>
+        </section>
+
+        <section class="card">
+            <h3>Ученики вашей группы</h3>
+            <div id="students-list">
+                <p>Загрузка списка учеников...</p>
+            </div>
+        </section>
+    </div>
 </main>
+<script src="/js/teacher.js"></script>
+<script src="/js/navigation.js"></script>
 </body>
 </html>

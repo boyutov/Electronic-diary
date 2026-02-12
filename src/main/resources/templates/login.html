@@ -19,7 +19,10 @@
         <span class="badge">Вход</span>
         <h2>Войти в школу</h2>
         <form method="post" action="/login">
-            <label for="username">Email администратора</label>
+            <label for="schoolName">Название школы</label>
+            <input id="schoolName" name="schoolName" required>
+
+            <label for="username">Email</label>
             <input id="username" name="username" type="email" required>
 
             <label for="password">Пароль</label>

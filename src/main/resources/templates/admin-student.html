@@ -29,18 +29,16 @@
             <label>Пароль</label>
             <input type="password" placeholder="Пароль" required>
             <label>Возраст</label>
-            <input placeholder="15" required>
+            <input type="number" placeholder="15" required>
             <label>Класс</label>
-            <select>
-                <option selected disabled>Список групп появится после добавления</option>
-            </select>
-            <label>Куратор</label>
-            <select>
-                <option selected disabled>Список кураторов появится после добавления</option>
+            <select name="group" required>
+                <option selected disabled>Загрузка...</option>
             </select>
             <button class="button" type="button">Создать ученика</button>
         </form>
     </section>
 </main>
+<script src="/js/admin-student.js"></script>
+<script src="/js/navigation.js"></script>
 </body>
 </html>

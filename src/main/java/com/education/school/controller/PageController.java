@@ -1,7 +1,10 @@
 package com.education.school.controller;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.context.WebApplicationContext;
 
 @Controller
 public class PageController {
@@ -31,83 +34,93 @@ public class PageController {
         return "activate";
     }
 
-    @GetMapping("/admin")
-    public String admin() {
+    @GetMapping("/{schoolName}/admin")
+    public String admin(@PathVariable String schoolName) {
         return "admin";
     }
 
-    @GetMapping("/admin/admin")
-    public String adminAdmin() {
+    @GetMapping("/{schoolName}/admin/admin")
+    public String adminAdmin(@PathVariable String schoolName) {
         return "admin-admin";
     }
 
-    @GetMapping("/admin/director")
-    public String adminDirector() {
+    @GetMapping("/{schoolName}/admin/director")
+    public String adminDirector(@PathVariable String schoolName) {
         return "admin-director";
     }
 
-    @GetMapping("/admin/teacher")
-    public String adminTeacher() {
+    @GetMapping("/{schoolName}/admin/teacher")
+    public String adminTeacher(@PathVariable String schoolName) {
         return "admin-teacher";
     }
 
-    @GetMapping("/admin/student")
-    public String adminStudent() {
+    @GetMapping("/{schoolName}/admin/student")
+    public String adminStudent(@PathVariable String schoolName) {
         return "admin-student";
     }
 
-    @GetMapping("/admin/parent")
-    public String adminParent() {
+    @GetMapping("/{schoolName}/curator/student")
+    public String curatorStudent(@PathVariable String schoolName) {
+        return "curator-student";
+    }
+
+    @GetMapping("/{schoolName}/admin/parent")
+    public String adminParent(@PathVariable String schoolName) {
         return "admin-parent";
     }
 
-    @GetMapping("/admin/group")
-    public String adminGroup() {
+    @GetMapping("/{schoolName}/admin/group")
+    public String adminGroup(@PathVariable String schoolName) {
         return "admin-group";
     }
 
-    @GetMapping("/admin/discipline")
-    public String adminDiscipline() {
+    @GetMapping("/{schoolName}/admin/discipline")
+    public String adminDiscipline(@PathVariable String schoolName) {
         return "admin-discipline";
     }
 
-    @GetMapping("/admin/course")
-    public String adminCourse() {
+    @GetMapping("/{schoolName}/admin/course")
+    public String adminCourse(@PathVariable String schoolName) {
         return "admin-course";
     }
 
-    @GetMapping("/admin/schedule")
-    public String adminSchedule() {
+    @GetMapping("/{schoolName}/admin/schedule")
+    public String adminSchedule(@PathVariable String schoolName) {
         return "admin-schedule";
     }
 
-    @GetMapping("/admin/news")
-    public String adminNews() {
+    @GetMapping("/{schoolName}/admin/news")
+    public String adminNews(@PathVariable String schoolName) {
         return "admin-news";
     }
 
-    @GetMapping("/admin/poll")
-    public String adminPoll() {
+    @GetMapping("/{schoolName}/admin/poll")
+    public String adminPoll(@PathVariable String schoolName) {
         return "admin-poll";
     }
 
-    @GetMapping("/director")
-    public String director() {
+    @GetMapping("/{schoolName}/director")
+    public String director(@PathVariable String schoolName) {
         return "director";
     }
 
-    @GetMapping("/teacher")
-    public String teacher() {
+    @GetMapping("/{schoolName}/teacher")
+    public String teacher(@PathVariable String schoolName) {
         return "teacher";
     }
 
-    @GetMapping("/student")
-    public String student() {
+    @GetMapping("/{schoolName}/student")
+    public String student(@PathVariable String schoolName) {
         return "student";
     }
 
-    @GetMapping("/parent")
-    public String parent() {
+    @GetMapping("/{schoolName}/parent")
+    public String parent(@PathVariable String schoolName) {
         return "parent";
+    }
+
+    @GetMapping("/{schoolName}/profile")
+    public String profile(@PathVariable String schoolName) {
+        return "profile";
     }
 }

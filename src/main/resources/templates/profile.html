@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Личный кабинет</title>
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<header>
+    <h1>Electronic Diary</h1>
+    <nav>
+        <a href="/">Главная</a>
+        <form method="post" action="/logout" style="display: inline;">
+            <button type="submit" class="button-link" style="background: none; border: none; color: #e2e8f0; cursor: pointer; font-size: 1em; padding: 0; margin-left: 16px;">Выйти</button>
+        </form>
+    </nav>
+</header>
+<main>
+    <section class="card">
+        <h2>Личный кабинет</h2>
+        <form class="stacked-form">
+            <label>Имя</label>
+            <input id="firstName" required>
+            <label>Фамилия</label>
+            <input id="secondName" required>
+            <label>Отчество</label>
+            <input id="thirdName">
+            <label>Email</label>
+            <input id="email" type="email" required>
+            <label>Новый пароль (оставьте пустым, если не хотите менять)</label>
+            <input id="newPassword" type="password">
+            <button class="button" type="button">Сохранить изменения</button>
+        </form>
+    </section>
+</main>
+<script src="/js/profile.js"></script>
+<script src="/js/navigation.js"></script>
+</body>
+</html>

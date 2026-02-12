@@ -22,15 +22,19 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, 
+                                           CustomAuthenticationProvider customAuthenticationProvider,
+                                           SchoolWebAuthenticationDetailsSource authenticationDetailsSource) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
+                .authenticationProvider(customAuthenticationProvider)
                 .formLogin(form -> form
                         .loginPage("/login")
+                        .authenticationDetailsSource(authenticationDetailsSource)
                         .successHandler(roleBasedSuccessHandler)
                         .permitAll()
                 )

@@ -47,4 +47,7 @@ public class Student {
 
     @ManyToMany(mappedBy = "students")
     private Set<Course> courses = new HashSet<>();
+
+    @OneToMany(mappedBy = "student")
+    private Set<Mark> marks = new HashSet<>();
 }

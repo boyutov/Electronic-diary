@@ -23,13 +23,15 @@
             <label>Текст</label>
             <input placeholder="Описание новости" required>
             <label>Автор (учитель, опционально)</label>
-            <select>
-                <option selected>Без учителя</option>
-                <option disabled>Список учителей появится после добавления</option>
+            <select name="teacher">
+                <option selected value="">Без учителя</option>
+                <option disabled>Загрузка...</option>
             </select>
             <button class="button" type="button">Опубликовать</button>
         </form>
     </section>
 </main>
+<script src="/js/admin-news.js"></script>
+<script src="/js/navigation.js"></script>
 </body>
 </html>

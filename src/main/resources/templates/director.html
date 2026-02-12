@@ -10,34 +10,17 @@
     <h1>Electronic Diary</h1>
     <nav>
         <a href="/">Главная</a>
-        <a href="/logout">Выйти</a>
+        <form method="post" action="/logout" style="display: inline;">
+            <button type="submit" class="button-link" style="background: none; border: none; color: #e2e8f0; cursor: pointer; font-size: 1em; padding: 0; margin-left: 16px;">Выйти</button>
+        </form>
     </nav>
 </header>
 <main>
     <section class="card">
-        <span class="badge">Директор</span>
         <h2>Панель директора</h2>
-        <p>Полный доступ к управлению школой, новостями, голосованиями и жалобами.</p>
-    </section>
-    <section class="grid">
-        <div class="card">
-            <h3>Управление школой</h3>
-            <p>Создавайте учителей, группы, предметы, курсы, расписание.</p>
-            <a class="button" href="/admin">Перейти к управлению</a>
-        </div>
-        <div class="card">
-            <h3>Жалобы</h3>
-            <p>Просматривайте и обрабатывайте жалобы пользователей.</p>
-        </div>
-        <div class="card">
-            <h3>Новости</h3>
-            <p>Создавайте и публикуйте новости школы.</p>
-        </div>
-        <div class="card">
-            <h3>Голосования</h3>
-            <p>Запускайте опросы для учеников и родителей.</p>
-        </div>
+        <p>Добро пожаловать! Здесь будет информация для директора.</p>
     </section>
 </main>
+<script src="/js/navigation.js"></script>
 </body>
 </html>

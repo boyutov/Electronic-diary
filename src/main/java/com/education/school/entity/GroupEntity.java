@@ -21,7 +21,7 @@ public class GroupEntity {
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "curator", nullable = false)
+    @JoinColumn(name = "curator")
     private User curator;
 
     @Column(name = "has_office")

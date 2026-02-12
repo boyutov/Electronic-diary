@@ -1,24 +1,19 @@
 package com.education.school.service;
 
-import java.security.SecureRandom;
+import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PasswordGenerator {
 
-    private static final String SYMBOLS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
-    private static final int DEFAULT_LENGTH = 10;
-    private final SecureRandom random = new SecureRandom();
-
     public String generate() {
-        return generate(DEFAULT_LENGTH);
+        return UUID.randomUUID().toString();
     }
 
     public String generate(int length) {
-        StringBuilder result = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            result.append(SYMBOLS.charAt(random.nextInt(SYMBOLS.length())));
-        }
-        return result.toString();
+        // Return a substring of a UUID to somewhat respect the length parameter,
+        // though it's not guaranteed to be the exact length.
+        String uuid = UUID.randomUUID().toString().replace("-", "");
+        return uuid.substring(0, Math.min(length, uuid.length()));
     }
 }

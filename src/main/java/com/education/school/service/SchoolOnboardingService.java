@@ -79,9 +79,15 @@ public class SchoolOnboardingService {
         adminUser.setEmail(request.email());
         adminUser.setPassword(passwordEncoder.encode(request.schoolPassword()));
         adminUser.setRole(adminRole);
+        
+        // Связываем пользователя со школой
+        adminUser.getSchools().add(school);
+        
         adminUser = userRepository.save(adminUser);
 
         school.setDirectorUser(adminUser);
+        school.getUsers().add(adminUser);
+
         schoolRepository.save(school);
 
         return new PurchaseResponse(school.getId(), adminUser.getId(), null);

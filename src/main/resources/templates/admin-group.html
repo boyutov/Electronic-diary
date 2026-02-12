@@ -20,10 +20,6 @@
         <form class="stacked-form">
             <label>Название</label>
             <input placeholder="9Б" required>
-            <label>Куратор</label>
-            <select>
-                <option selected disabled>Список кураторов появится после добавления</option>
-            </select>
             <label>Есть кабинет</label>
             <select data-toggle-target="group-office">
                 <option value="no" selected>Нет</option>
@@ -34,11 +30,13 @@
                 <input placeholder="203">
             </div>
             <label>Курс (номер)</label>
-            <input placeholder="1">
+            <input type="number" placeholder="1">
             <button class="button" type="button">Создать группу</button>
         </form>
     </section>
 </main>
 <script src="/js/admin-forms.js"></script>
+<script src="/js/admin-group.js"></script>
+<script src="/js/navigation.js"></script>
 </body>
 </html>
