@@ -26,6 +26,10 @@ public class PollService {
         return pollRepository.findAll();
     }
 
+    public Poll findById(Integer id) {
+        return pollRepository.findById(id).orElse(null);
+    }
+
     @Transactional
     public Poll create(PollRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -48,5 +52,35 @@ public class PollService {
         poll.getOptions().addAll(options);
 
         return pollRepository.save(poll);
+    }
+
+    @Transactional
+    public Poll update(Integer id, PollRequest request) {
+        Poll poll = pollRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Poll not found"));
+
+        poll.setTitle(request.title());
+        poll.setDescription(request.description());
+        poll.setActive(request.active());
+
+        // Simple update: clear old options and add new ones
+        // In a real app, you might want to preserve votes or handle updates more carefully
+        poll.getOptions().clear();
+
+        List<PollOption> options = request.options().stream().map(optionText -> {
+            PollOption pollOption = new PollOption();
+            pollOption.setOptionText(optionText);
+            pollOption.setPoll(poll);
+            return pollOption;
+        }).collect(Collectors.toList());
+
+        poll.getOptions().addAll(options);
+
+        return pollRepository.save(poll);
+    }
+
+    @Transactional
+    public void delete(Integer id) {
+        pollRepository.deleteById(id);
     }
 }

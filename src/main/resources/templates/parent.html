@@ -18,9 +18,57 @@
 <main>
     <section class="card">
         <h2>Панель родителя</h2>
-        <p>Добро пожаловать! Здесь будет информация для родителя.</p>
+        <p>Добро пожаловать! Здесь информация о ваших детях.</p>
     </section>
+
+    <div id="children-container">
+        <p>Загрузка данных...</p>
+    </div>
 </main>
 <script src="/js/navigation.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const schoolName = window.location.pathname.split('/')[1];
+        const container = document.getElementById("children-container");
+
+        fetch(`/api/${schoolName}/parents/my/children`)
+            .then(response => response.json())
+            .then(children => {
+                container.innerHTML = "";
+                if (children.length === 0) {
+                    container.innerHTML = "<p>Дети не найдены.</p>";
+                    return;
+                }
+
+                children.forEach(child => {
+                    const card = document.createElement("section");
+                    card.className = "card";
+
+                    let marksHtml = "";
+                    if (child.marks && child.marks.length > 0) {
+                        marksHtml = "<h4>Оценки:</h4><ul>";
+                        child.marks.forEach(mark => {
+                            marksHtml += `<li>${mark.disciplineName}: <strong>${mark.value}</strong></li>`;
+                        });
+                        marksHtml += "</ul>";
+                    } else {
+                        marksHtml = "<p>Оценок пока нет.</p>";
+                    }
+
+                    card.innerHTML = `
+                        <h3>${child.firstName} ${child.secondName}</h3>
+                        <p>Email: ${child.email}</p>
+                        <p>Возраст: ${child.age}</p>
+                        ${marksHtml}
+                    `;
+                    container.appendChild(card);
+                });
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                container.innerHTML = "<p>Ошибка загрузки данных.</p>";
+            });
+    });
+</script>
 </body>
 </html>

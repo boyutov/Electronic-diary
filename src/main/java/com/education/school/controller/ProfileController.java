@@ -2,7 +2,7 @@ package com.education.school.controller;
 
 import com.education.school.dto.CuratorProfileDto;
 import com.education.school.dto.ProfileUpdateRequest;
-import com.education.school.entity.User;
+import com.education.school.dto.UserProfileDto;
 import com.education.school.service.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,13 +31,13 @@ public class ProfileController {
 
     @GetMapping("/me")
     @Operation(summary = "Получить текущего пользователя")
-    public User getCurrentUser(@PathVariable String schoolName) {
+    public UserProfileDto getCurrentUser(@PathVariable String schoolName) {
         return profileService.getCurrentUser();
     }
 
     @PutMapping("/me")
     @Operation(summary = "Обновить профиль пользователя")
-    public User updateProfile(@PathVariable String schoolName, @Valid @RequestBody ProfileUpdateRequest request) {
+    public UserProfileDto updateProfile(@PathVariable String schoolName, @Valid @RequestBody ProfileUpdateRequest request) {
         return profileService.updateProfile(request);
     }
 }

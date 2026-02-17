@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +25,10 @@ public class NewsService {
 
     public List<News> findAll() {
         return newsRepository.findAll();
+    }
+
+    public News findById(Integer id) {
+        return newsRepository.findById(id).orElse(null);
     }
 
     @Transactional
@@ -46,5 +49,29 @@ public class NewsService {
         }
 
         return newsRepository.save(news);
+    }
+
+    @Transactional
+    public News update(Integer id, NewsRequest request) {
+        News news = newsRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("News not found"));
+
+        news.setTitle(request.title());
+        news.setText(request.text());
+
+        if (request.teacherId() != null) {
+            Teacher teacher = teacherRepository.findById(request.teacherId())
+                    .orElseThrow(() -> new IllegalArgumentException("Teacher not found"));
+            news.setTeacher(teacher);
+        } else {
+            news.setTeacher(null);
+        }
+
+        return newsRepository.save(news);
+    }
+
+    @Transactional
+    public void delete(Integer id) {
+        newsRepository.deleteById(id);
     }
 }

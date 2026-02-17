@@ -22,6 +22,10 @@ public class CourseService {
         return courseRepository.findAll();
     }
 
+    public Course findById(Integer id) {
+        return courseRepository.findById(id).orElse(null);
+    }
+
     @Transactional
     public Course create(CourseRequest request) {
         Teacher teacher = teacherRepository.findById(request.teacherId())
@@ -33,5 +37,25 @@ public class CourseService {
         course.setDescription(request.description());
 
         return courseRepository.save(course);
+    }
+
+    @Transactional
+    public Course update(Integer id, CourseRequest request) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Course not found"));
+
+        Teacher teacher = teacherRepository.findById(request.teacherId())
+                .orElseThrow(() -> new IllegalArgumentException("Teacher not found"));
+
+        course.setName(request.name());
+        course.setTeacher(teacher);
+        course.setDescription(request.description());
+
+        return courseRepository.save(course);
+    }
+
+    @Transactional
+    public void delete(Integer id) {
+        courseRepository.deleteById(id);
     }
 }

@@ -1,6 +1,7 @@
 package com.education.school.service;
 
 import com.education.school.dto.ParentRequest;
+import com.education.school.dto.StudentDto;
 import com.education.school.entity.Parent;
 import com.education.school.entity.Role;
 import com.education.school.entity.User;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,8 +30,16 @@ public class ParentService {
         return parentRepository.findAll();
     }
 
+    public Parent findById(Integer id) {
+        return parentRepository.findById(id).orElse(null);
+    }
+
     @Transactional
     public Parent create(ParentRequest request) {
+        if (request.password() == null || request.password().isBlank()) {
+            throw new IllegalArgumentException("Password is required for new parent");
+        }
+
         Role parentRole = roleRepository.findByName("PARENT")
                 .orElseThrow(() -> new IllegalStateException("Role PARENT not found"));
 
@@ -55,5 +65,43 @@ public class ParentService {
         parent.setPhone(request.phone());
 
         return parentRepository.save(parent);
+    }
+
+    @Transactional
+    public Parent update(Integer id, ParentRequest request) {
+        Parent parent = parentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Parent not found"));
+        
+        User user = parent.getUser();
+        user.setFirstName(request.firstName());
+        user.setSecondName(request.secondName());
+        user.setThirdName(request.thirdName());
+        user.setEmail(request.email());
+        
+        if (request.password() != null && !request.password().isBlank()) {
+            user.setPassword(passwordEncoder.encode(request.password()));
+        }
+
+        userRepository.save(user);
+
+        parent.setPhone(request.phone());
+
+        return parentRepository.save(parent);
+    }
+
+    @Transactional
+    public void delete(Integer id) {
+        parentRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<StudentDto> getMyChildren() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Parent parent = parentRepository.findByUserEmail(email)
+                .orElseThrow(() -> new IllegalStateException("Parent profile not found"));
+
+        return parent.getStudents().stream()
+                .map(StudentDto::from)
+                .collect(Collectors.toList());
     }
 }

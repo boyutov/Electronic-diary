@@ -2,6 +2,7 @@ package com.education.school.service;
 
 import com.education.school.dto.CuratorProfileDto;
 import com.education.school.dto.ProfileUpdateRequest;
+import com.education.school.dto.UserProfileDto;
 import com.education.school.entity.GroupEntity;
 import com.education.school.entity.User;
 import com.education.school.repository.GroupRepository;
@@ -37,13 +38,14 @@ public class ProfileService {
     }
 
     @Transactional(readOnly = true)
-    public User getCurrentUser() {
+    public UserProfileDto getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmail(email);
+        User user = userRepository.findByEmail(email);
+        return UserProfileDto.from(user);
     }
 
     @Transactional
-    public User updateProfile(ProfileUpdateRequest request) {
+    public UserProfileDto updateProfile(ProfileUpdateRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email);
         
@@ -56,6 +58,7 @@ public class ProfileService {
             user.setPassword(passwordEncoder.encode(request.newPassword()));
         }
         
-        return userRepository.save(user);
+        user = userRepository.save(user);
+        return UserProfileDto.from(user);
     }
 }

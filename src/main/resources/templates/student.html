@@ -20,7 +20,54 @@
         <h2>Панель ученика</h2>
         <p>Добро пожаловать! Здесь будет информация для ученика.</p>
     </section>
+
+    <section class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="margin: 0;">Расписание на сегодня</h3>
+            <a class="button" href="/schedule">Полное расписание</a>
+        </div>
+        <div id="schedule-container" class="schedule-grid">
+            <p>Загрузка расписания...</p>
+        </div>
+    </section>
 </main>
 <script src="/js/navigation.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const schoolName = window.location.pathname.split('/')[1];
+        const container = document.getElementById("schedule-container");
+
+        fetch(`/api/${schoolName}/schedules/my/today`)
+            .then(response => response.json())
+            .then(schedule => {
+                container.innerHTML = "";
+                if (schedule.length === 0) {
+                    container.innerHTML = "<p style='font-size: 1.2em; color: #10b981; text-align: center; width: 100%;'>Сегодня отдыхаете! 🎉</p>";
+                    return;
+                }
+
+                // Сортируем по времени начала
+                schedule.sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+                schedule.forEach(item => {
+                    const div = document.createElement("div");
+                    div.className = "schedule-item";
+                    div.innerHTML = `
+                        <div class="schedule-time">${item.startTime} - ${item.endTime}</div>
+                        <div class="schedule-subject">${item.disciplineName}</div>
+                        <div class="schedule-details">
+                            Каб. ${item.classroom || "—"}<br>
+                            ${item.teacherName}
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            })
+            .catch(error => {
+                console.error("Error loading schedule:", error);
+                container.innerHTML = "<p>Ошибка загрузки расписания.</p>";
+            });
+    });
+</script>
 </body>
 </html>

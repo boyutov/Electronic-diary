@@ -29,10 +29,30 @@ public class GroupController {
         return service.findAll();
     }
 
+    @GetMapping("/{id}")
+    @Operation(summary = "Получить группу по ID")
+    public ResponseEntity<GroupResponse> findById(@PathVariable String schoolName, @PathVariable Integer id) {
+        GroupEntity group = service.findById(id);
+        return group != null ? ResponseEntity.ok(GroupResponse.from(group)) : ResponseEntity.notFound().build();
+    }
+
     @PostMapping
     @Operation(summary = "Создать группу")
     public GroupEntity create(@PathVariable String schoolName, @Valid @RequestBody GroupRequest request) {
         return service.create(request);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Обновить группу")
+    public GroupEntity update(@PathVariable String schoolName, @PathVariable Integer id, @Valid @RequestBody GroupRequest request) {
+        return service.update(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Удалить группу")
+    public ResponseEntity<Void> delete(@PathVariable String schoolName, @PathVariable Integer id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{groupId}/students")

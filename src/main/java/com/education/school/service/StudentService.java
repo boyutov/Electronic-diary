@@ -34,6 +34,11 @@ public class StudentService {
 
     @Transactional
     public Student create(StudentRequest request) {
+        // Проверка пароля при создании
+        if (request.password() == null || request.password().isBlank()) {
+            throw new IllegalArgumentException("Password is required for new student");
+        }
+
         Role studentRole = roleRepository.findByName("STUDENT")
                 .orElseThrow(() -> new IllegalStateException("Role STUDENT not found"));
 
@@ -69,8 +74,36 @@ public class StudentService {
         student.setUser(user);
         student.setAge(request.age());
         student.setGroup(group);
-        student.setCurator(group.getCurator()); // Устанавливаем куратора из группы
+        student.setCurator(group.getCurator());
         student.setEmail(request.email());
+
+        return studentRepository.save(student);
+    }
+
+    @Transactional
+    public Student update(Long id, StudentRequest request) {
+        Student student = studentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+        
+        User user = student.getUser();
+        user.setFirstName(request.firstName());
+        user.setSecondName(request.secondName());
+        user.setThirdName(request.thirdName());
+        user.setEmail(request.email());
+        
+        // Обновляем пароль ТОЛЬКО если он передан
+        if (request.password() != null && !request.password().isBlank()) {
+            user.setPassword(passwordEncoder.encode(request.password()));
+        }
+        
+        userRepository.save(user);
+
+        GroupEntity group = groupRepository.findById(request.groupId())
+                .orElseThrow(() -> new IllegalArgumentException("Group not found"));
+
+        student.setAge(request.age());
+        student.setGroup(group);
+        student.setCurator(group.getCurator());
 
         return studentRepository.save(student);
     }

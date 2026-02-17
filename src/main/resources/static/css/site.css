@@ -126,3 +126,35 @@ select {
     margin-top: 16px;
     word-break: break-word;
 }
+
+.schedule-grid {
+    display: flex;
+    overflow-x: auto;
+    gap: 16px;
+    padding-bottom: 16px;
+}
+
+.schedule-item {
+    min-width: 150px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    padding: 12px;
+    border-left: 4px solid #3b82f6;
+}
+
+.schedule-time {
+    font-size: 0.85em;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.schedule-subject {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: 4px;
+}
+
+.schedule-details {
+    font-size: 0.9em;
+    color: #475569;
+}

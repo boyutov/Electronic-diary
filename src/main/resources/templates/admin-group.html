@@ -2,8 +2,73 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Создать группу</title>
+    <title>Управление группами</title>
     <link rel="stylesheet" href="/css/site.css">
+    <style>
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8fafc;
+        }
+        .action-btn {
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-right: 4px;
+        }
+        .edit-btn {
+            background: #f59e0b;
+            color: white;
+        }
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+        }
+    </style>
 </head>
 <body>
 <header>
@@ -15,25 +80,52 @@
 </header>
 <main>
     <section class="card">
-        <span class="badge">Группа</span>
-        <h2>Создать группу/класс</h2>
-        <form class="stacked-form">
-            <label>Название</label>
-            <input placeholder="9Б" required>
-            <label>Есть кабинет</label>
-            <select data-toggle-target="group-office">
-                <option value="no" selected>Нет</option>
-                <option value="yes">Да</option>
-            </select>
-            <div id="group-office" class="conditional">
-                <label>Кабинет</label>
-                <input placeholder="203">
-            </div>
-            <label>Курс (номер)</label>
-            <input type="number" placeholder="1">
-            <button class="button" type="button">Создать группу</button>
-        </form>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Группы</h2>
+            <button class="button" id="add-btn">Добавить группу</button>
+        </div>
+
+        <table id="groups-table">
+            <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Курс</th>
+                    <th>Кабинет</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be populated by JS -->
+            </tbody>
+        </table>
     </section>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="modal-title">Создать группу</h3>
+            <form id="group-form" class="stacked-form">
+                <input type="hidden" id="group-id">
+                <label>Название</label>
+                <input id="name" placeholder="9Б" required>
+
+                <label>Есть кабинет</label>
+                <select id="hasOffice" data-toggle-target="group-office">
+                    <option value="no" selected>Нет</option>
+                    <option value="yes">Да</option>
+                </select>
+                <div id="group-office" class="conditional">
+                    <label>Кабинет</label>
+                    <input id="office" placeholder="203">
+                </div>
+
+                <label>Курс (номер)</label>
+                <input id="course" type="number" placeholder="1">
+                <button class="button" type="submit">Сохранить</button>
+            </form>
+        </div>
+    </div>
 </main>
 <script src="/js/admin-forms.js"></script>
 <script src="/js/admin-group.js"></script>

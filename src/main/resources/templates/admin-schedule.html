@@ -2,8 +2,178 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Создать расписание</title>
+    <title>Управление расписанием</title>
     <link rel="stylesheet" href="/css/site.css">
+    <style>
+        .schedule-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .date-nav {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .nav-arrow {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #64748b;
+            padding: 0 10px;
+        }
+        .nav-arrow:hover {
+            color: #2563eb;
+        }
+        .current-date {
+            font-weight: 600;
+            font-size: 1.1em;
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .lessons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .lesson-slot {
+            background: #fff;
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            min-height: 80px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            position: relative;
+        }
+
+        .lesson-number {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #94a3b8;
+            width: 40px;
+            text-align: center;
+            margin-right: 20px;
+        }
+
+        .lesson-content {
+            flex-grow: 1;
+        }
+
+        .empty-slot-btn {
+            background: #f1f5f9;
+            border: 2px dashed #cbd5e1;
+            color: #64748b;
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .empty-slot-btn:hover {
+            background: #e2e8f0;
+            border-color: #94a3b8;
+            color: #334155;
+        }
+
+        .lesson-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .lesson-info h4 {
+            margin: 0 0 4px 0;
+            color: #1e293b;
+        }
+        .lesson-info p {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.9em;
+        }
+
+        .lesson-actions {
+            position: relative;
+        }
+
+        .menu-dots {
+            cursor: pointer;
+            font-size: 1.5em;
+            color: #94a3b8;
+            padding: 0 10px;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 10;
+            min-width: 120px;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #334155;
+        }
+        .dropdown-item:hover {
+            background: #f1f5f9;
+        }
+        .dropdown-item.delete {
+            color: #ef4444;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 24px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .close {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+            color: #94a3b8;
+        }
+    </style>
 </head>
 <body>
 <header>
@@ -14,33 +184,66 @@
     </nav>
 </header>
 <main>
-    <section class="card">
-        <span class="badge">Расписание</span>
-        <h2>Добавить урок</h2>
-        <form class="stacked-form">
-            <label>Предмет</label>
-            <select name="discipline" required>
-                <option selected disabled>Загрузка...</option>
+    <div class="schedule-controls">
+        <div style="flex-grow: 1;">
+            <label style="margin-bottom: 4px; display: block; font-size: 0.9em; color: #64748b;">Группа</label>
+            <select id="group-select" style="max-width: 200px;">
+                <option disabled selected>Загрузка...</option>
             </select>
-            <label>Учитель</label>
-            <select name="teacher" required>
-                <option selected disabled>Загрузка...</option>
-            </select>
-            <label>Группа</label>
-            <select name="group" required>
-                <option selected disabled>Загрузка...</option>
-            </select>
-            <label>День недели (1-7)</label>
-            <input type="number" placeholder="1" required>
-            <label>Номер урока (1-8)</label>
-            <input type="number" placeholder="1" required>
-            <label>Кабинет</label>
-            <input placeholder="204">
-            <button class="button" type="button">Добавить урок</button>
-        </form>
-    </section>
+        </div>
+
+        <div class="date-nav">
+            <button class="nav-arrow" id="prev-day">‹</button>
+            <div class="current-date">
+                <div id="day-name" style="font-size: 0.9em; color: #64748b;">Понедельник</div>
+                <div id="full-date">12 мая 2025</div>
+            </div>
+            <button class="nav-arrow" id="next-day">›</button>
+        </div>
+
+        <div style="flex-grow: 1;"></div> <!-- Spacer -->
+    </div>
+
+    <div id="lessons-container" class="lessons-container">
+        <!-- Slots will be generated here -->
+        <p style="text-align: center; color: #64748b;">Загрузка расписания...</p>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="modal-title">Добавить урок</h3>
+            <form id="schedule-form" class="stacked-form">
+                <input type="hidden" id="schedule-id">
+                <input type="hidden" id="lesson-number">
+
+                <label>Предмет</label>
+                <select id="discipline" required></select>
+
+                <label>Учитель</label>
+                <select id="teacher" required></select>
+
+                <div class="grid">
+                    <div>
+                        <label>Начало</label>
+                        <input type="time" id="startTime" required>
+                    </div>
+                    <div>
+                        <label>Конец</label>
+                        <input type="time" id="endTime" required>
+                    </div>
+                </div>
+
+                <label>Кабинет</label>
+                <input id="classroom" placeholder="204">
+
+                <button class="button" type="submit" style="width: 100%; margin-top: 10px;">Сохранить</button>
+            </form>
+        </div>
+    </div>
 </main>
-<script src="/js/admin-schedule.js"></script>
 <script src="/js/navigation.js"></script>
+<script src="/js/admin-schedule.js"></script>
 </body>
 </html>

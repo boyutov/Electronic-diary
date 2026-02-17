@@ -11,11 +11,17 @@ import lombok.Setter;
 public class GroupResponse {
     private Integer id;
     private String name;
+    private Boolean hasOffice;
+    private String office;
+    private Integer course;
 
     public static GroupResponse from(GroupEntity group) {
         return new GroupResponse(
             group.getId(),
-            group.getName()
+            group.getName(),
+            group.getHasOffice(),
+            group.getOffice(),
+            group.getCourse()
         );
     }
 }

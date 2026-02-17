@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Расписание</title>
+    <link rel="stylesheet" href="/css/site.css">
+    <style>
+        .week-navigation {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .week-navigation h3 {
+            margin: 0;
+            font-size: 1.1em;
+        }
+        .nav-btn {
+            background: none;
+            border: 1px solid #cbd5e1;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #334155;
+        }
+        .nav-btn:hover {
+            background: #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Electronic Diary</h1>
+    <nav>
+        <a href="/">Главная</a>
+        <form method="post" action="/logout" style="display: inline;">
+            <button type="submit" class="button-link" style="background: none; border: none; color: #e2e8f0; cursor: pointer; font-size: 1em; padding: 0; margin-left: 16px;">Выйти</button>
+        </form>
+    </nav>
+</header>
+<main>
+    <section class="card">
+        <h2>Расписание занятий</h2>
+
+        <!-- Скрытые поля для хранения текущего состояния, если нужно, или просто используем JS переменные -->
+        <!-- Но можно оставить и ручной выбор для гибкости -->
+        <div class="grid" style="align-items: end; margin-bottom: 20px; display: none;" id="manual-date-selector">
+            <div>
+                <label>С даты</label>
+                <input type="date" id="start-date">
+            </div>
+            <div>
+                <label>По дату</label>
+                <input type="date" id="end-date">
+            </div>
+            <button class="button" id="load-schedule">Показать</button>
+        </div>
+
+        <div class="week-navigation">
+            <button class="nav-btn" id="prev-week">← Пред. неделя</button>
+            <h3 id="current-period">Загрузка...</h3>
+            <button class="nav-btn" id="next-week">След. неделя →</button>
+        </div>
+
+        <div id="schedule-results">
+            <p>Загрузка расписания...</p>
+        </div>
+
+        <div style="text-align: center; margin-top: 10px;">
+            <button class="button-link" id="toggle-manual" style="color: #64748b; font-size: 0.9em;">Выбрать произвольный период</button>
+        </div>
+    </section>
+</main>
+<script src="/js/navigation.js"></script>
+<script src="/js/schedule-view.js"></script>
+</body>
+</html>

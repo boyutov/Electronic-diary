@@ -1,0 +1,1 @@
+ALTER TABLE schedule DROP CONSTRAINT IF EXISTS schedule_day_of_week_lesson_number_group_id_key;

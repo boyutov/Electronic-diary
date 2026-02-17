@@ -31,6 +31,11 @@ public class GroupService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public GroupEntity findById(Integer id) {
+        return groupRepository.findById(id).orElse(null);
+    }
+
     @Transactional
     public GroupEntity create(GroupRequest request) {
         GroupEntity group = new GroupEntity();
@@ -40,6 +45,24 @@ public class GroupService {
         group.setCourse(request.course());
 
         return groupRepository.save(group);
+    }
+
+    @Transactional
+    public GroupEntity update(Integer id, GroupRequest request) {
+        GroupEntity group = groupRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Group not found"));
+
+        group.setName(request.name());
+        group.setHasOffice(request.hasOffice());
+        group.setOffice(request.office());
+        group.setCourse(request.course());
+
+        return groupRepository.save(group);
+    }
+
+    @Transactional
+    public void delete(Integer id) {
+        groupRepository.deleteById(id);
     }
 
     @Transactional(readOnly = true)

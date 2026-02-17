@@ -9,12 +9,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Загрузка данных пользователя
     fetch(`/api/${schoolName}/profile/me`)
-        .then(response => response.json())
+        .then(response => {
+            if (response.ok) return response.json();
+            throw new Error("Не удалось загрузить профиль");
+        })
         .then(user => {
-            firstNameInput.value = user.firstName;
-            secondNameInput.value = user.secondName;
-            thirdNameInput.value = user.thirdName || "";
-            emailInput.value = user.email;
+            if (firstNameInput) firstNameInput.value = user.firstName || "";
+            if (secondNameInput) secondNameInput.value = user.secondName || "";
+            if (thirdNameInput) thirdNameInput.value = user.thirdName || "";
+            if (emailInput) emailInput.value = user.email || "";
+        })
+        .catch(error => {
+            console.error(error);
+            alert("Ошибка загрузки данных профиля.");
         });
 
     submitButton.addEventListener("click", () => {

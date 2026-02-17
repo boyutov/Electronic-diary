@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Управление расписанием</title>
+    <link rel="stylesheet" href="/css/site.css">
+    <style>
+        .week-navigation {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .week-navigation h3 {
+            margin: 0;
+            font-size: 1.1em;
+        }
+        .nav-btn {
+            background: none;
+            border: 1px solid #cbd5e1;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #334155;
+        }
+        .nav-btn:hover {
+            background: #e2e8f0;
+        }
+        .action-btn {
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            margin-top: 8px;
+            margin-right: 4px;
+        }
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+        }
+        .edit-btn {
+            background: #f59e0b;
+            color: white;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Electronic Diary</h1>
+    <nav>
+        <a href="/admin">Панель</a>
+        <a href="/">Главная</a>
+    </nav>
+</header>
+<main>
+    <section class="card">
+        <h2>Управление расписанием</h2>
+
+        <div style="margin-bottom: 20px;">
+            <label>Выберите группу</label>
+            <select id="group-select">
+                <option selected disabled>Загрузка...</option>
+            </select>
+        </div>
+
+        <div class="week-navigation">
+            <button class="nav-btn" id="prev-week">← Пред. неделя</button>
+            <h3 id="current-period">Загрузка...</h3>
+            <button class="nav-btn" id="next-week">След. неделя →</button>
+        </div>
+
+        <div id="schedule-results">
+            <p>Выберите группу для просмотра расписания.</p>
+        </div>
+    </section>
+
+    <!-- Модальное окно редактирования -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Редактировать урок</h3>
+            <form id="edit-form" class="stacked-form">
+                <input type="hidden" id="edit-id">
+                <label>Предмет</label>
+                <select id="edit-discipline" required></select>
+                <label>Учитель</label>
+                <select id="edit-teacher" required></select>
+                <label>Группа</label>
+                <select id="edit-group" required></select>
+                <label>Дата</label>
+                <input type="date" id="edit-date" required>
+                <div class="grid">
+                    <div>
+                        <label>Начало</label>
+                        <input type="time" id="edit-startTime" required>
+                    </div>
+                    <div>
+                        <label>Конец</label>
+                        <input type="time" id="edit-endTime" required>
+                    </div>
+                </div>
+                <label>Номер урока</label>
+                <input type="number" id="edit-lessonNumber" required>
+                <label>Кабинет</label>
+                <input id="edit-classroom">
+                <button class="button" type="submit">Сохранить</button>
+            </form>
+        </div>
+    </div>
+</main>
+<script src="/js/navigation.js"></script>
+<script src="/js/admin-schedule-view.js"></script>
+</body>
+</html>

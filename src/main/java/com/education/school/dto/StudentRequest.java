@@ -19,7 +19,7 @@ public record StudentRequest(
     @Email(message = "Invalid email format")
     String email,
 
-    @NotBlank(message = "Password is required")
+    // Убрали @NotBlank, теперь пароль опционален на уровне валидации DTO
     @Size(min = 6, message = "Password must be at least 6 characters long")
     String password,
 

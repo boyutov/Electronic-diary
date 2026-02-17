@@ -1,5 +1,6 @@
 package com.education.school.controller;
 
+import com.education.school.dto.StudentDto;
 import com.education.school.dto.StudentRequest;
 import com.education.school.entity.Student;
 import com.education.school.service.StudentService;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/{schoolName}/students")
@@ -22,8 +24,11 @@ public class StudentController {
 
     @GetMapping
     @Operation(summary = "Получить всех студентов")
-    public List<Student> findAll(@PathVariable String schoolName) {
-        return service.findAll();
+    public List<StudentDto> findAll(@PathVariable String schoolName) {
+        // Возвращаем DTO, чтобы не было проблем с ленивой загрузкой и лишними данными
+        return service.findAll().stream()
+                .map(StudentDto::from)
+                .collect(Collectors.toList());
     }
 
     @PostMapping
@@ -32,11 +37,17 @@ public class StudentController {
         return service.create(request);
     }
 
+    @PutMapping("/{id}")
+    @Operation(summary = "Обновить студента")
+    public Student update(@PathVariable String schoolName, @PathVariable Long id, @Valid @RequestBody StudentRequest request) {
+        return service.update(id, request);
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Получить по ID")
-    public ResponseEntity<Student> findById(@PathVariable String schoolName, @PathVariable Long id) {
+    public ResponseEntity<StudentDto> findById(@PathVariable String schoolName, @PathVariable Long id) {
         Student student = service.findById(id);
-        return student != null ? ResponseEntity.ok(student) : ResponseEntity.notFound().build();
+        return student != null ? ResponseEntity.ok(StudentDto.from(student)) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")

@@ -89,6 +89,11 @@ public class PageController {
         return "admin-schedule";
     }
 
+    @GetMapping("/{schoolName}/admin/schedule/view")
+    public String adminScheduleView(@PathVariable String schoolName) {
+        return "admin-schedule-view";
+    }
+
     @GetMapping("/{schoolName}/admin/news")
     public String adminNews(@PathVariable String schoolName) {
         return "admin-news";
@@ -122,5 +127,10 @@ public class PageController {
     @GetMapping("/{schoolName}/profile")
     public String profile(@PathVariable String schoolName) {
         return "profile";
+    }
+
+    @GetMapping("/{schoolName}/schedule")
+    public String scheduleView(@PathVariable String schoolName) {
+        return "schedule-view";
     }
 }

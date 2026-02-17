@@ -18,6 +18,8 @@ public class StudentDto {
     private String thirdName;
     private String email;
     private Integer age;
+    private Integer groupId;
+    private String groupName;
     private List<MarkDto> marks;
 
     public static StudentDto from(Student student) {
@@ -32,6 +34,8 @@ public class StudentDto {
             student.getUser().getThirdName(),
             student.getUser().getEmail(),
             student.getAge(),
+            student.getGroup().getId(),
+            student.getGroup().getName(),
             marks
         );
     }
