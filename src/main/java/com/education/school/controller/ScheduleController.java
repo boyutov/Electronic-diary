@@ -31,6 +31,7 @@ public class ScheduleController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Добавить урок в расписание")
     public ScheduleResponse create(@PathVariable String schoolName, @Valid @RequestBody ScheduleRequest request) {
         return ScheduleResponse.from(service.create(request));

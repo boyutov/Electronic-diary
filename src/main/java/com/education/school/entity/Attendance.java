@@ -24,6 +24,10 @@ public class Attendance {
     @JoinColumn(name = "discipline_id")
     private Discipline discipline;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "schedule_id")
+    private Schedule schedule;
+
     @Column(name = "lesson_date", nullable = false)
     private LocalDate lessonDate;
 

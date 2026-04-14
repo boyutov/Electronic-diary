@@ -4,135 +4,105 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalTitle = document.getElementById("modal-title");
     const form = document.getElementById("course-form");
     const addBtn = document.getElementById("add-btn");
-    const closeBtn = document.getElementsByClassName("close")[0];
+    const closeBtn = document.getElementById("modal-close");
     const teacherSelect = document.getElementById("teacher");
-    const schoolName = window.location.pathname.split('/')[1];
+    const formError = document.getElementById("form-error");
+    const schoolName = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
 
-    // Load teachers
-    fetch(`/api/${schoolName}/teachers`)
-        .then(response => response.json())
+    apiFetch(`/api/${schoolName}/teachers`)
+        .then(r => r.ok ? r.json() : [])
         .then(teachers => {
             teacherSelect.innerHTML = "<option selected disabled>Выберите учителя</option>";
-            teachers.forEach(teacher => {
-                const option = document.createElement("option");
-                option.value = teacher.id;
-                option.textContent = `${teacher.firstName} ${teacher.secondName}`;
-                teacherSelect.appendChild(option);
+            teachers.forEach(t => {
+                const opt = document.createElement("option");
+                opt.value = t.id;
+                opt.textContent = `${t.firstName} ${t.secondName}`;
+                teacherSelect.appendChild(opt);
             });
         });
 
     function loadCourses() {
-        fetch(`/api/${schoolName}/courses`)
-            .then(response => response.json())
+        apiFetch(`/api/${schoolName}/courses`)
+            .then(r => r.ok ? r.json() : [])
             .then(courses => {
                 tableBody.innerHTML = "";
+                if (!courses.length) {
+                    tableBody.innerHTML = "<tr><td colspan='4' class='td-empty'>Курсов нет</td></tr>";
+                    return;
+                }
                 courses.forEach(course => {
                     const row = document.createElement("tr");
                     row.innerHTML = `
                         <td>${course.name}</td>
-                        <td>${course.teacher ? (course.teacher.user.firstName + ' ' + course.teacher.user.secondName) : '-'}</td>
+                        <td>${course.teacherName || "—"}</td>
+                        <td>${course.description || "—"}</td>
                         <td>
-                            <button class="action-btn edit-btn" data-id="${course.id}">Ред.</button>
-                            <button class="action-btn delete-btn" data-id="${course.id}">Удал.</button>
+                            <button class="button warning sm" data-id="${course.id}">Ред.</button>
+                            <button class="button danger sm" style="margin-left:4px;" data-id="${course.id}">Удал.</button>
                         </td>
                     `;
+                    row.querySelector(".warning").addEventListener("click", () => openEditModal(course.id));
+                    row.querySelector(".danger").addEventListener("click", () => deleteCourse(course.id));
                     tableBody.appendChild(row);
                 });
-
-                document.querySelectorAll(".edit-btn").forEach(btn => {
-                    btn.addEventListener("click", (e) => openEditModal(e.target.dataset.id));
-                });
-
-                document.querySelectorAll(".delete-btn").forEach(btn => {
-                    btn.addEventListener("click", (e) => deleteCourse(e.target.dataset.id));
-                });
+            })
+            .catch(() => {
+                tableBody.innerHTML = "<tr><td colspan='4' class='td-error'>Ошибка загрузки</td></tr>";
             });
     }
 
     function openEditModal(id) {
         modalTitle.textContent = "Редактировать курс";
         document.getElementById("course-id").value = id;
-        
-        fetch(`/api/${schoolName}/courses/${id}`)
-            .then(response => response.json())
+        apiFetch(`/api/${schoolName}/courses/${id}`)
+            .then(r => r.json())
             .then(course => {
                 document.getElementById("name").value = course.name;
+                document.getElementById("teacher").value = course.teacherId || "";
                 document.getElementById("description").value = course.description || "";
-                document.getElementById("teacher").value = course.teacher.id;
             });
-        
-        modal.style.display = "block";
+        if (formError) formError.style.display = "none";
+        modal.classList.add("open");
     }
 
     addBtn.onclick = () => {
         modalTitle.textContent = "Создать курс";
         form.reset();
         document.getElementById("course-id").value = "";
-        modal.style.display = "block";
+        if (formError) formError.style.display = "none";
+        modal.classList.add("open");
     };
 
-    closeBtn.onclick = () => {
-        modal.style.display = "none";
-    };
+    closeBtn.onclick = () => modal.classList.remove("open");
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
 
-    window.onclick = (event) => {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    };
-
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", e => {
         e.preventDefault();
         const id = document.getElementById("course-id").value;
-        const method = id ? "PUT" : "POST";
-        const url = id ? `/api/${schoolName}/courses/${id}` : `/api/${schoolName}/courses`;
-
         const data = {
             name: document.getElementById("name").value,
             teacherId: parseInt(document.getElementById("teacher").value),
             description: document.getElementById("description").value
         };
-
-        fetch(url, {
-            method: method,
-            headers: {
-                "Content-Type": "application/json"
-            },
+        apiFetch(id ? `/api/${schoolName}/courses/${id}` : `/api/${schoolName}/courses`, {
+            method: id ? "PUT" : "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
-        })
-        .then(response => {
-            if (response.ok) {
-                modal.style.display = "none";
-                loadCourses();
-                alert(id ? "Курс обновлен!" : "Курс создан!");
-            } else {
-                response.json().then(errors => {
-                    let errorMessages = "";
-                    if (typeof errors === 'object') {
-                        for (const [field, message] of Object.entries(errors)) {
-                            errorMessages += `${field}: ${message}\n`;
-                        }
-                    } else {
-                        errorMessages = errors;
-                    }
-                    alert("Ошибка:\n" + errorMessages);
-                });
-            }
+        }).then(r => {
+            if (r.ok) { modal.classList.remove("open"); loadCourses(); }
+            else r.json().then(err => {
+                if (formError) {
+                    formError.textContent = typeof err === "object" ? Object.values(err).join(", ") : String(err);
+                    formError.style.display = "block";
+                }
+            });
         });
     });
 
     function deleteCourse(id) {
-        if (confirm("Вы уверены?")) {
-            fetch(`/api/${schoolName}/courses/${id}`, {
-                method: "DELETE"
-            }).then(response => {
-                if (response.ok) {
-                    loadCourses();
-                } else {
-                    alert("Ошибка при удалении");
-                }
-            });
-        }
+        if (!confirm("Удалить курс?")) return;
+        apiFetch(`/api/${schoolName}/courses/${id}`, { method: "DELETE" })
+            .then(r => { if (r.ok) loadCourses(); else alert("Ошибка при удалении"); });
     }
 
     loadCourses();

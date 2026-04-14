@@ -34,8 +34,8 @@ public class StudentDto {
             student.getUser().getThirdName(),
             student.getUser().getEmail(),
             student.getAge(),
-            student.getGroup().getId(),
-            student.getGroup().getName(),
+            student.getGroup() != null ? student.getGroup().getId() : null,
+            student.getGroup() != null ? student.getGroup().getName() : null,
             marks
         );
     }

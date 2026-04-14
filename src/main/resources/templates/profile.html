@@ -4,36 +4,54 @@
     <meta charset="UTF-8">
     <title>Личный кабинет</title>
     <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
 </head>
-<body>
-<header>
-    <h1>Electronic Diary</h1>
-    <nav>
-        <a href="/">Главная</a>
-        <form method="post" action="/logout" style="display: inline;">
-            <button type="submit" class="button-link" style="background: none; border: none; color: #e2e8f0; cursor: pointer; font-size: 1em; padding: 0; margin-left: 16px;">Выйти</button>
-        </form>
-    </nav>
-</header>
-<main>
-    <section class="card">
+<body class="app-layout">
+<aside class="sidebar">
+    <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge" id="sidebar-role">Профиль</span></div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+        <button id="logout-btn">🚪 Выйти</button>
+    </div>
+</aside>
+
+<div class="app-content">
+    <div class="page-header">
         <h2>Личный кабинет</h2>
-        <form class="stacked-form">
-            <label>Имя</label>
-            <input id="firstName" required>
-            <label>Фамилия</label>
-            <input id="secondName" required>
-            <label>Отчество</label>
-            <input id="thirdName">
-            <label>Email</label>
-            <input id="email" type="email" required>
-            <label>Новый пароль (оставьте пустым, если не хотите менять)</label>
-            <input id="newPassword" type="password">
-            <button class="button" type="button">Сохранить изменения</button>
+        <p>Управление вашим профилем</p>
+    </div>
+
+    <div class="card" style="max-width:560px;">
+        <div id="success-msg" class="alert-success" style="display:none;"></div>
+        <div id="error-msg" class="alert-error" style="display:none;"></div>
+        <form id="profile-form">
+            <div class="form-group"><label>Имя</label><input id="firstName" required></div>
+            <div class="form-group"><label>Фамилия</label><input id="secondName" required></div>
+            <div class="form-group"><label>Отчество</label><input id="thirdName"></div>
+            <div class="form-group"><label>Email</label><input id="email" type="email" required></div>
+
+            <div id="phone-container" style="display:none;">
+                <div class="form-group"><label>Телефон</label><input id="phone" type="tel"></div>
+            </div>
+            <div id="bio-container" style="display:none;">
+                <div class="form-group"><label>О себе</label><textarea id="bio" rows="3"></textarea></div>
+            </div>
+            <div id="office-container" style="display:none;">
+                <div class="form-group"><label>Кабинет</label><input id="office"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Новый пароль <span style="font-weight:400;color:#64748b;">(оставьте пустым, если не хотите менять)</span></label>
+                <input id="newPassword" type="password">
+            </div>
+            <button class="button" type="submit" style="width:100%;">Сохранить изменения</button>
         </form>
-    </section>
-</main>
+    </div>
+</div>
+
+<script src="/js/sidebar.js"></script>
 <script src="/js/profile.js"></script>
-<script src="/js/navigation.js"></script>
+</body>
+</html>
 </body>
 </html>

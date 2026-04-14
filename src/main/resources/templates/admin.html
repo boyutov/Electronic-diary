@@ -1,83 +1,74 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Панель школы</title>
+    <title>Панель администратора</title>
     <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
 </head>
-<body>
-<header>
-    <h1>Electronic Diary</h1>
-    <nav>
-        <a href="/">Главная</a>
-        <a href="/about">О проекте</a>
-        <a href="/pricing">Прайс</a>
-    </nav>
-</header>
-<main>
-    <section class="card">
-        <span class="badge">Панель администратора</span>
-        <h2>Управление школой</h2>
-        <p>Выберите раздел для управления.</p>
-    </section>
-    <section class="grid">
-        <div class="card">
-            <h3>Директор</h3>
-            <p>Управление директорами.</p>
-            <a class="button" href="/admin/director">Директора</a>
+<body class="app-layout">
+
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <h1>Electronic Diary</h1>
+        <span class="role-badge">Администратор</span>
+    </div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+        <a href="/profile">👤 Личный кабинет</a>
+        <button id="logout-btn">🚪 Выйти</button>
+    </div>
+</aside>
+
+<div class="app-content">
+    <div class="page-header">
+        <h2>Панель управления</h2>
+        <p>Добро пожаловать! Управляйте всеми аспектами школы.</p>
+    </div>
+
+    <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="stat-teachers">—</div><div class="stat-label">Учителей</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-students">—</div><div class="stat-label">Учеников</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-groups">—</div><div class="stat-label">Классов</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-disciplines">—</div><div class="stat-label">Предметов</div></div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-bottom:20px;">Быстрый доступ</h3>
+        <div class="nav-grid">
+            <a class="nav-card" href="/admin/director"><span class="nav-icon">👔</span><span class="nav-title">Директора</span><span class="nav-desc">Управление директорами школы</span></a>
+            <a class="nav-card" href="/admin/admin"><span class="nav-icon">🛡</span><span class="nav-title">Администраторы</span><span class="nav-desc">Управление администраторами</span></a>
+            <a class="nav-card" href="/admin/teacher"><span class="nav-icon">👨🏫</span><span class="nav-title">Учителя</span><span class="nav-desc">Управление преподавателями</span></a>
+            <a class="nav-card" href="/admin/parent"><span class="nav-icon">👨👩👧</span><span class="nav-title">Родители</span><span class="nav-desc">Управление родителями</span></a>
+            <a class="nav-card" href="/admin/group"><span class="nav-icon">📚</span><span class="nav-title">Классы и ученики</span><span class="nav-desc">Управление классами и учениками</span></a>
+            <a class="nav-card" href="/admin/discipline"><span class="nav-icon">📖</span><span class="nav-title">Предметы</span><span class="nav-desc">Управление дисциплинами</span></a>
+            <a class="nav-card" href="/admin/course"><span class="nav-icon">🎯</span><span class="nav-title">Курсы</span><span class="nav-desc">Управление курсами</span></a>
+            <a class="nav-card" href="/admin/schedule/view"><span class="nav-icon">📅</span><span class="nav-title">Расписание</span><span class="nav-desc">Управление расписанием</span></a>
+            <a class="nav-card" href="/admin/news"><span class="nav-icon">📰</span><span class="nav-title">Новости</span><span class="nav-desc">Публикация новостей</span></a>
+            <a class="nav-card" href="/admin/poll"><span class="nav-icon">📊</span><span class="nav-title">Голосования</span><span class="nav-desc">Управление опросами</span></a>
         </div>
-        <div class="card">
-            <h3>Администратор</h3>
-            <p>Управление администраторами.</p>
-            <a class="button" href="/admin/admin">Администраторы</a>
-        </div>
-        <div class="card">
-            <h3>Учитель</h3>
-            <p>Управление преподавателями.</p>
-            <a class="button" href="/admin/teacher">Учителя</a>
-        </div>
-        <div class="card">
-            <h3>Ученик</h3>
-            <p>Управление учениками.</p>
-            <a class="button" href="/admin/student">Ученики</a>
-        </div>
-        <div class="card">
-            <h3>Родитель</h3>
-            <p>Управление родителями.</p>
-            <a class="button" href="/admin/parent">Родители</a>
-        </div>
-        <div class="card">
-            <h3>Группа/Класс</h3>
-            <p>Управление классами.</p>
-            <a class="button" href="/admin/group">Группы</a>
-        </div>
-        <div class="card">
-            <h3>Предмет</h3>
-            <p>Управление предметами.</p>
-            <a class="button" href="/admin/discipline">Предметы</a>
-        </div>
-        <div class="card">
-            <h3>Курс</h3>
-            <p>Управление курсами.</p>
-            <a class="button" href="/admin/course">Курсы</a>
-        </div>
-        <div class="card">
-            <h3>Расписание</h3>
-            <p>Управление расписанием.</p>
-            <a class="button" href="/admin/schedule/view">Расписание</a>
-        </div>
-        <div class="card">
-            <h3>Новости</h3>
-            <p>Управление новостями.</p>
-            <a class="button" href="/admin/news">Новости</a>
-        </div>
-        <div class="card">
-            <h3>Голосование</h3>
-            <p>Управление опросами.</p>
-            <a class="button" href="/admin/poll">Голосования</a>
-        </div>
-    </section>
-</main>
-<script src="/js/navigation.js"></script>
+    </div>
+</div>
+
+<script src="/js/sidebar.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const schoolName = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
+    if (!schoolName || schoolName === "admin") return;
+
+    Promise.all([
+        apiFetch(`/api/${schoolName}/teachers`).then(r => r.ok ? r.json() : []),
+        apiFetch(`/api/${schoolName}/students`).then(r => r.ok ? r.json() : []),
+        apiFetch(`/api/${schoolName}/groups`).then(r => r.ok ? r.json() : []),
+        apiFetch(`/api/${schoolName}/disciplines`).then(r => r.ok ? r.json() : []),
+    ]).then(([teachers, students, groups, disciplines]) => {
+        document.getElementById("stat-teachers").textContent = teachers.length;
+        document.getElementById("stat-students").textContent = students.length;
+        document.getElementById("stat-groups").textContent = groups.length;
+        document.getElementById("stat-disciplines").textContent = disciplines.length;
+    }).catch(() => {});
+});
+</script>
 </body>
 </html>
+

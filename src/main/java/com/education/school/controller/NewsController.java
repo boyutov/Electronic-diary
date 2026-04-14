@@ -1,7 +1,7 @@
 package com.education.school.controller;
 
 import com.education.school.dto.NewsRequest;
-import com.education.school.entity.News;
+import com.education.school.dto.NewsResponse;
 import com.education.school.service.NewsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/{schoolName}/news")
@@ -22,27 +23,28 @@ public class NewsController {
 
     @GetMapping
     @Operation(summary = "Получить все новости")
-    public List<News> findAll(@PathVariable String schoolName) {
-        return service.findAll();
+    public List<NewsResponse> findAll(@PathVariable String schoolName) {
+        return service.findAll().stream().map(NewsResponse::from).collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Получить новость по ID")
-    public ResponseEntity<News> findById(@PathVariable String schoolName, @PathVariable Integer id) {
-        News news = service.findById(id);
-        return news != null ? ResponseEntity.ok(news) : ResponseEntity.notFound().build();
+    public ResponseEntity<NewsResponse> findById(@PathVariable String schoolName, @PathVariable Integer id) {
+        return service.findById(id) != null
+                ? ResponseEntity.ok(NewsResponse.from(service.findById(id)))
+                : ResponseEntity.notFound().build();
     }
 
     @PostMapping
     @Operation(summary = "Опубликовать новость")
-    public News create(@PathVariable String schoolName, @Valid @RequestBody NewsRequest request) {
-        return service.create(request);
+    public NewsResponse create(@PathVariable String schoolName, @Valid @RequestBody NewsRequest request) {
+        return NewsResponse.from(service.create(request));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Обновить новость")
-    public News update(@PathVariable String schoolName, @PathVariable Integer id, @Valid @RequestBody NewsRequest request) {
-        return service.update(id, request);
+    public NewsResponse update(@PathVariable String schoolName, @PathVariable Integer id, @Valid @RequestBody NewsRequest request) {
+        return NewsResponse.from(service.update(id, request));
     }
 
     @DeleteMapping("/{id}")

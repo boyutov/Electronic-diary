@@ -1,0 +1,1 @@
+ALTER TABLE groups ADD COLUMN funding_type VARCHAR(20) DEFAULT 'BUDGET';

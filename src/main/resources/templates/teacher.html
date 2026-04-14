@@ -4,94 +4,60 @@
     <meta charset="UTF-8">
     <title>Панель учителя</title>
     <link rel="stylesheet" href="/css/site.css">
-    <style>
-        .panel { display: none; }
-        .panel.is-visible { display: block; }
-    </style>
+    <script src="/js/api.js"></script>
 </head>
-<body>
-<header>
-    <h1>Electronic Diary</h1>
-    <nav>
-        <a href="/">Главная</a>
-        <form method="post" action="/logout" style="display: inline;">
-            <button type="submit" class="button-link" style="background: none; border: none; color: #e2e8f0; cursor: pointer; font-size: 1em; padding: 0; margin-left: 16px;">Выйти</button>
-        </form>
-    </nav>
-</header>
-<main>
-    <section class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h3 style="margin: 0;">Мое расписание на сегодня</h3>
-            <a class="button" href="/schedule">Полное расписание</a>
+<body class="app-layout">
+<aside class="sidebar">
+    <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge">Учитель</span></div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+        <button id="logout-btn">🚪 Выйти</button>
+    </div>
+</aside>
+<div class="app-content">
+    <div class="page-header">
+        <h2>Добро пожаловать, <span id="teacher-greeting">...</span>!</h2>
+    </div>
+    <div id="curator-panel" style="display:none;">
+        <div class="card" style="margin-bottom:24px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <h3 style="margin:0;">👥 Панель куратора</h3>
+                    <p style="margin-top:4px;color:#64748b;">Вы куратор группы: <strong id="curator-group-name"></strong></p>
+                </div>
+                <a id="view-my-class-btn" class="button" href="#">Посмотреть класс</a>
+            </div>
+        </div>
+    </div>
+    <div class="card" style="margin-bottom:24px;">
+        <h3 style="margin-bottom:16px;">📚 Мои группы</h3>
+        <div id="groups-container"><p style="color:#64748b;">Загрузка...</p></div>
+    </div>
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="margin:0;">📅 Расписание на сегодня</h3>
+            <a class="button ghost sm" id="full-schedule-link" href="#">Полное расписание</a>
         </div>
         <div id="schedule-container" class="schedule-grid">
-            <p>Загрузка расписания...</p>
+            <p style="color:#64748b;">Загрузка расписания...</p>
         </div>
-    </section>
-
-    <!-- Regular Teacher Panel -->
-    <div id="teacher-panel" class="panel is-visible">
-        <section class="card">
-            <h2>Панель учителя</h2>
-            <p>Добро пожаловать! Здесь будет информация для учителей, которые не являются кураторами.</p>
-        </section>
     </div>
-
-    <!-- Curator Panel -->
-    <div id="curator-panel" class="panel">
-        <section class="card">
-            <h2>Панель куратора</h2>
-            <p>Вы являетесь куратором группы: <strong id="curator-group-name"></strong></p>
-            <a id="create-student-btn" class="button" href="#">Создать ученика</a>
-        </section>
-
-        <section class="card">
-            <h3>Ученики вашей группы</h3>
-            <div id="students-list">
-                <p>Загрузка списка учеников...</p>
-            </div>
-        </section>
+</div>
+<div id="mark-modal" class="modal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="modal-title">Выставление оценок</h3>
+            <button class="modal-close" id="mark-modal-close">&times;</button>
+        </div>
+        <p style="margin-bottom:4px;font-size:0.9em;">Предмет: <strong id="mark-modal-discipline"></strong></p>
+        <p style="margin-bottom:16px;font-size:0.9em;">Группа: <strong id="mark-modal-group"></strong></p>
+        <form id="mark-form">
+            <div id="mark-students-container" style="max-height:400px;overflow-y:auto;margin-bottom:16px;"></div>
+            <button class="button" type="submit" style="width:100%;">Сохранить оценки</button>
+        </form>
     </div>
-</main>
+</div>
+<script src="/js/sidebar.js"></script>
 <script src="/js/teacher.js"></script>
-<script src="/js/navigation.js"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const schoolName = window.location.pathname.split('/')[1];
-        const container = document.getElementById("schedule-container");
-
-        fetch(`/api/${schoolName}/schedules/my/today`)
-            .then(response => response.json())
-            .then(schedule => {
-                container.innerHTML = "";
-                if (schedule.length === 0) {
-                    container.innerHTML = "<p style='font-size: 1.2em; color: #10b981; text-align: center; width: 100%;'>Сегодня отдыхаете! 🎉</p>";
-                    return;
-                }
-
-                // Сортируем по времени начала
-                schedule.sort((a, b) => a.startTime.localeCompare(b.startTime));
-
-                schedule.forEach(item => {
-                    const div = document.createElement("div");
-                    div.className = "schedule-item";
-                    div.innerHTML = `
-                        <div class="schedule-time">${item.startTime} - ${item.endTime}</div>
-                        <div class="schedule-subject">${item.disciplineName}</div>
-                        <div class="schedule-details">
-                            Каб. ${item.classroom || "—"}<br>
-                            Группа: ${item.groupName}
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
-            })
-            .catch(error => {
-                console.error("Error loading schedule:", error);
-                container.innerHTML = "<p>Ошибка загрузки расписания.</p>";
-            });
-    });
-</script>
 </body>
 </html>

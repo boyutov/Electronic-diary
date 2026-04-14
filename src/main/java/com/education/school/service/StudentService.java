@@ -1,5 +1,6 @@
 package com.education.school.service;
 
+import com.education.school.dto.StudentDto;
 import com.education.school.dto.StudentRequest;
 import com.education.school.entity.GroupEntity;
 import com.education.school.entity.Role;
@@ -28,8 +29,20 @@ public class StudentService {
     private final GroupRepository groupRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional(readOnly = true)
     public List<Student> findAll() {
         return studentRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public StudentDto getCurrentStudent() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email);
+        
+        Student student = studentRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new IllegalStateException("Student not found"));
+                
+        return StudentDto.from(student);
     }
 
     @Transactional
@@ -108,6 +121,7 @@ public class StudentService {
         return studentRepository.save(student);
     }
 
+    @Transactional(readOnly = true)
     public Student findById(Long id) {
         return studentRepository.findById(id).orElse(null);
     }

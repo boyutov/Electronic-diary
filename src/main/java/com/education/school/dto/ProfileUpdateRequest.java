@@ -18,5 +18,9 @@ public record ProfileUpdateRequest(
     String email,
 
     @Size(min = 6, message = "New password must be at least 6 characters long")
-    String newPassword
+    String newPassword,
+    
+    String phone,
+    String bio,
+    String office
 ) {}

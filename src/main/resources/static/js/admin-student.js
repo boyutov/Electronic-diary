@@ -4,49 +4,52 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalTitle = document.getElementById("modal-title");
     const form = document.getElementById("student-form");
     const addBtn = document.getElementById("add-btn");
-    const closeBtn = document.getElementsByClassName("close")[0];
+    const closeBtn = document.getElementById("modal-close");
     const groupSelect = document.getElementById("group");
-    const schoolName = window.location.pathname.split('/')[1];
+    const formError = document.getElementById("form-error");
+    const schoolName = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
 
-    // Load groups for select
-    fetch(`/api/${schoolName}/groups`)
-        .then(response => response.json())
+    // Toggle office/group conditionals
+    document.getElementById("hasOffice") && document.getElementById("hasOffice").addEventListener("change", function() {
+        document.getElementById("teacher-office").style.display = this.value === "yes" ? "block" : "none";
+    });
+
+    apiFetch(`/api/${schoolName}/groups`)
+        .then(r => r.json())
         .then(groups => {
-            groupSelect.innerHTML = "<option selected disabled>Выберите группу</option>";
-            groups.forEach(group => {
-                const option = document.createElement("option");
-                option.value = group.id;
-                option.textContent = group.name;
-                groupSelect.appendChild(option);
+            groupSelect.innerHTML = "<option disabled selected>Выберите группу</option>";
+            groups.forEach(g => {
+                const opt = document.createElement("option");
+                opt.value = g.id;
+                opt.textContent = g.name;
+                groupSelect.appendChild(opt);
             });
         });
 
     function loadStudents() {
-        fetch(`/api/${schoolName}/students`)
-            .then(response => response.json())
+        apiFetch(`/api/${schoolName}/students`)
+            .then(r => r.json())
             .then(students => {
                 tableBody.innerHTML = "";
-                students.forEach(student => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td>${student.firstName} ${student.secondName}</td>
-                        <td>${student.email}</td>
-                        <td>${student.age}</td>
-                        <td>${student.groupName}</td>
+                if (students.length === 0) {
+                    tableBody.innerHTML = "<tr><td colspan='5' style='text-align:center;color:#64748b;padding:24px;'>Учеников нет</td></tr>";
+                    return;
+                }
+                students.forEach(s => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${s.firstName} ${s.secondName}${s.thirdName ? ' ' + s.thirdName : ''}</td>
+                        <td>${s.email}</td>
+                        <td>${s.age}</td>
+                        <td>${s.groupName || "—"}</td>
                         <td>
-                            <button class="action-btn edit-btn" data-id="${student.id}">Ред.</button>
-                            <button class="action-btn delete-btn" data-id="${student.id}">Удал.</button>
+                            <button class="button warning sm" data-id="${s.id}">Ред.</button>
+                            <button class="button danger sm" style="margin-left:4px;" data-id="${s.id}">Удал.</button>
                         </td>
                     `;
-                    tableBody.appendChild(row);
-                });
-
-                document.querySelectorAll(".edit-btn").forEach(btn => {
-                    btn.addEventListener("click", (e) => openEditModal(e.target.dataset.id));
-                });
-
-                document.querySelectorAll(".delete-btn").forEach(btn => {
-                    btn.addEventListener("click", (e) => deleteStudent(e.target.dataset.id));
+                    tr.querySelectorAll(".warning")[0].addEventListener("click", () => openEditModal(s.id));
+                    tr.querySelectorAll(".danger")[0].addEventListener("click", () => deleteStudent(s.id));
+                    tableBody.appendChild(tr);
                 });
             });
     }
@@ -54,41 +57,34 @@ document.addEventListener("DOMContentLoaded", () => {
     function openEditModal(id) {
         modalTitle.textContent = "Редактировать ученика";
         document.getElementById("student-id").value = id;
-        
-        fetch(`/api/${schoolName}/students/${id}`)
-            .then(response => response.json())
-            .then(student => {
-                document.getElementById("firstName").value = student.firstName;
-                document.getElementById("secondName").value = student.secondName;
-                document.getElementById("thirdName").value = student.thirdName || "";
-                document.getElementById("email").value = student.email;
-                document.getElementById("password").value = ""; // Don't show password
-                document.getElementById("age").value = student.age;
-                document.getElementById("group").value = student.groupId;
+        apiFetch(`/api/${schoolName}/students/${id}`)
+            .then(r => r.json())
+            .then(s => {
+                document.getElementById("firstName").value = s.firstName;
+                document.getElementById("secondName").value = s.secondName;
+                document.getElementById("thirdName").value = s.thirdName || "";
+                document.getElementById("email").value = s.email;
+                document.getElementById("password").value = "";
+                document.getElementById("age").value = s.age;
+                document.getElementById("group").value = s.groupId;
             });
-        
-        modal.style.display = "block";
+        modal.classList.add("open");
     }
 
     addBtn.onclick = () => {
-        modalTitle.textContent = "Создать ученика";
+        modalTitle.textContent = "Добавить ученика";
         form.reset();
         document.getElementById("student-id").value = "";
-        modal.style.display = "block";
+        formError.style.display = "none";
+        modal.classList.add("open");
     };
 
-    closeBtn.onclick = () => {
-        modal.style.display = "none";
-    };
+    closeBtn.onclick = () => modal.classList.remove("open");
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
 
-    window.onclick = (event) => {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    };
-
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", e => {
         e.preventDefault();
+        formError.style.display = "none";
         const id = document.getElementById("student-id").value;
         const method = id ? "PUT" : "POST";
         const url = id ? `/api/${schoolName}/students/${id}` : `/api/${schoolName}/students`;
@@ -103,46 +99,27 @@ document.addEventListener("DOMContentLoaded", () => {
             groupId: parseInt(document.getElementById("group").value)
         };
 
-        fetch(url, {
-            method: method,
-            headers: {
-                "Content-Type": "application/json"
-            },
+        apiFetch(url, {
+            method,
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
-        })
-        .then(response => {
-            if (response.ok) {
-                modal.style.display = "none";
+        }).then(r => {
+            if (r.ok) {
+                modal.classList.remove("open");
                 loadStudents();
-                alert(id ? "Ученик обновлен!" : "Ученик создан!");
             } else {
-                response.json().then(errors => {
-                    let errorMessages = "";
-                    if (typeof errors === 'object') {
-                        for (const [field, message] of Object.entries(errors)) {
-                            errorMessages += `${field}: ${message}\n`;
-                        }
-                    } else {
-                        errorMessages = errors;
-                    }
-                    alert("Ошибка:\n" + errorMessages);
+                r.json().then(err => {
+                    formError.textContent = typeof err === "object" ? Object.values(err).join(", ") : String(err);
+                    formError.style.display = "block";
                 });
             }
         });
     });
 
     function deleteStudent(id) {
-        if (confirm("Вы уверены?")) {
-            fetch(`/api/${schoolName}/students/${id}`, {
-                method: "DELETE"
-            }).then(response => {
-                if (response.ok) {
-                    loadStudents();
-                } else {
-                    alert("Ошибка при удалении");
-                }
-            });
-        }
+        if (!confirm("Удалить ученика?")) return;
+        apiFetch(`/api/${schoolName}/students/${id}`, { method: "DELETE" })
+            .then(r => { if (r.ok) loadStudents(); else alert("Ошибка при удалении"); });
     }
 
     loadStudents();

@@ -4,23 +4,103 @@
     <meta charset="UTF-8">
     <title>Панель директора</title>
     <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
 </head>
-<body>
-<header>
-    <h1>Electronic Diary</h1>
-    <nav>
-        <a href="/">Главная</a>
-        <form method="post" action="/logout" style="display: inline;">
-            <button type="submit" class="button-link" style="background: none; border: none; color: #e2e8f0; cursor: pointer; font-size: 1em; padding: 0; margin-left: 16px;">Выйти</button>
-        </form>
-    </nav>
-</header>
-<main>
-    <section class="card">
+<body class="app-layout">
+<aside class="sidebar">
+    <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge">Директор</span></div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+        <button id="logout-btn">🚪 Выйти</button>
+    </div>
+</aside>
+<div class="app-content">
+    <div class="page-header">
         <h2>Панель директора</h2>
-        <p>Добро пожаловать! Здесь будет информация для директора.</p>
-    </section>
-</main>
-<script src="/js/navigation.js"></script>
+        <p style="color:#64748b;margin-top:4px;">Добро пожаловать!</p>
+    </div>
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="stat-teachers">—</div><div class="stat-label">Учителей</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-students">—</div><div class="stat-label">Учеников</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-groups">—</div><div class="stat-label">Классов</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-complaints">—</div><div class="stat-label">Жалоб</div></div>
+    </div>
+    <div class="card" style="margin-bottom:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="margin:0;">📋 Жалобы</h3>
+            <span class="badge blue" id="complaints-count">0</span>
+        </div>
+        <div id="complaints-container"><p style="color:#64748b;">Загрузка жалоб...</p></div>
+    </div>
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="margin:0;">📅 Расписание на сегодня</h3>
+            <a class="button ghost sm" id="full-schedule-link" href="#">Полное расписание</a>
+        </div>
+        <div id="schedule-container" class="schedule-grid"><p style="color:#64748b;">Загрузка...</p></div>
+    </div>
+</div>
+<script src="/js/sidebar.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const schoolName = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
+    if (!schoolName) return;
+
+    const schedLink = document.getElementById("full-schedule-link");
+    if (schedLink) schedLink.href = `/${schoolName}/schedule`;
+
+    Promise.all([
+        apiFetch(`/api/${schoolName}/teachers`).then(r => r.ok ? r.json() : []),
+        apiFetch(`/api/${schoolName}/students`).then(r => r.ok ? r.json() : []),
+        apiFetch(`/api/${schoolName}/groups`).then(r => r.ok ? r.json() : []),
+    ]).then(([teachers, students, groups]) => {
+        document.getElementById("stat-teachers").textContent = teachers.length;
+        document.getElementById("stat-students").textContent = students.length;
+        document.getElementById("stat-groups").textContent = groups.length;
+    }).catch(() => {});
+
+    apiFetch(`/api/${schoolName}/complaints`)
+        .then(r => r.ok ? r.json() : [])
+        .then(complaints => {
+            document.getElementById("stat-complaints").textContent = complaints.length;
+            document.getElementById("complaints-count").textContent = complaints.length;
+            const container = document.getElementById("complaints-container");
+            if (!complaints.length) { container.innerHTML = "<p style='color:#64748b;'>Жалоб нет.</p>"; return; }
+            container.innerHTML = "";
+            complaints.forEach(c => {
+                const div = document.createElement("div");
+                div.className = "complaint-card";
+                const date = c.createdAt ? new Date(c.createdAt).toLocaleDateString('ru-RU') : "—";
+                div.innerHTML = `
+                    <div class="complaint-meta">
+                        <span>📅 ${date}</span>
+                        <span class="badge ${c.isAnonymous ? 'gray' : 'blue'}">${c.isAnonymous ? 'Анонимно' : 'Открыто'}</span>
+                    </div>
+                    <div class="complaint-text">${c.content}</div>`;
+                container.appendChild(div);
+            });
+        }).catch(() => {
+            document.getElementById("complaints-container").innerHTML = "<p style='color:#64748b;'>Нет доступа к жалобам.</p>";
+        });
+
+    apiFetch(`/api/${schoolName}/schedules/my/today`)
+        .then(r => r.ok ? r.json() : [])
+        .then(schedule => {
+            const container = document.getElementById("schedule-container");
+            if (!schedule.length) { container.innerHTML = "<p style='color:#10b981;'>Сегодня нет уроков 🎉</p>"; return; }
+            container.innerHTML = "";
+            schedule.sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""));
+            schedule.forEach(item => {
+                const div = document.createElement("div");
+                div.className = "schedule-item";
+                div.innerHTML = `
+                    <div class="schedule-time">${(item.startTime || "").slice(0,5)} — ${(item.endTime || "").slice(0,5)}</div>
+                    <div class="schedule-subject">${item.disciplineName}</div>
+                    <div class="schedule-details">Каб. ${item.classroom || "—"} · ${item.groupName}</div>`;
+                container.appendChild(div);
+            });
+        }).catch(() => {});
+});
+</script>
 </body>
 </html>

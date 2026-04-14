@@ -16,5 +16,8 @@ public record PollRequest(
     List<String> options,
 
     @NotNull(message = "Active status is required")
-    Boolean active
+    Boolean active,
+
+    // comma-separated roles: "STUDENT,TEACHER,PARENT,DIRECTOR"
+    String allowedRoles
 ) {}

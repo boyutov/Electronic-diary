@@ -1,7 +1,6 @@
 package com.education.school.controller;
 
 import com.education.school.dto.DisciplineDto;
-import com.education.school.entity.Discipline;
 import com.education.school.service.DisciplineService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,20 +27,21 @@ public class DisciplineController {
     @GetMapping("/{id}")
     @Operation(summary = "Получить предмет по ID")
     public ResponseEntity<DisciplineDto> findById(@PathVariable String schoolName, @PathVariable Integer id) {
-        Discipline discipline = service.findById(id);
-        return discipline != null ? ResponseEntity.ok(DisciplineDto.from(discipline)) : ResponseEntity.notFound().build();
+        return service.findById(id) != null
+                ? ResponseEntity.ok(DisciplineDto.from(service.findById(id)))
+                : ResponseEntity.notFound().build();
     }
 
     @PostMapping
     @Operation(summary = "Создать предмет")
-    public DisciplineDto create(@PathVariable String schoolName, @RequestBody Discipline discipline) {
-        return DisciplineDto.from(service.create(discipline));
+    public DisciplineDto create(@PathVariable String schoolName, @RequestBody DisciplineDto request) {
+        return DisciplineDto.from(service.create(request.getName()));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Обновить предмет")
-    public DisciplineDto update(@PathVariable String schoolName, @PathVariable Integer id, @RequestBody Discipline discipline) {
-        return DisciplineDto.from(service.update(id, discipline));
+    public DisciplineDto update(@PathVariable String schoolName, @PathVariable Integer id, @RequestBody DisciplineDto request) {
+        return DisciplineDto.from(service.update(id, request.getName()));
     }
 
     @DeleteMapping("/{id}")

@@ -1,7 +1,7 @@
 package com.education.school.controller;
 
 import com.education.school.dto.CourseRequest;
-import com.education.school.entity.Course;
+import com.education.school.dto.CourseResponse;
 import com.education.school.service.CourseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/{schoolName}/courses")
@@ -22,27 +23,28 @@ public class CourseController {
 
     @GetMapping
     @Operation(summary = "Получить все курсы")
-    public List<Course> findAll(@PathVariable String schoolName) {
-        return service.findAll();
+    public List<CourseResponse> findAll(@PathVariable String schoolName) {
+        return service.findAll().stream().map(CourseResponse::from).collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Получить курс по ID")
-    public ResponseEntity<Course> findById(@PathVariable String schoolName, @PathVariable Integer id) {
-        Course course = service.findById(id);
-        return course != null ? ResponseEntity.ok(course) : ResponseEntity.notFound().build();
+    public ResponseEntity<CourseResponse> findById(@PathVariable String schoolName, @PathVariable Integer id) {
+        return service.findById(id) != null
+                ? ResponseEntity.ok(CourseResponse.from(service.findById(id)))
+                : ResponseEntity.notFound().build();
     }
 
     @PostMapping
     @Operation(summary = "Создать курс")
-    public Course create(@PathVariable String schoolName, @Valid @RequestBody CourseRequest request) {
-        return service.create(request);
+    public CourseResponse create(@PathVariable String schoolName, @Valid @RequestBody CourseRequest request) {
+        return CourseResponse.from(service.create(request));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Обновить курс")
-    public Course update(@PathVariable String schoolName, @PathVariable Integer id, @Valid @RequestBody CourseRequest request) {
-        return service.update(id, request);
+    public CourseResponse update(@PathVariable String schoolName, @PathVariable Integer id, @Valid @RequestBody CourseRequest request) {
+        return CourseResponse.from(service.update(id, request));
     }
 
     @DeleteMapping("/{id}")

@@ -8,5 +8,6 @@ public record GroupRequest(
 
     Boolean hasOffice,
     String office,
-    Integer course
+    Integer course,
+    String fundingType
 ) {}

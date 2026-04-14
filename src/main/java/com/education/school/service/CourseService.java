@@ -18,10 +18,12 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final TeacherRepository teacherRepository;
 
+    @Transactional(readOnly = true)
     public List<Course> findAll() {
         return courseRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Course findById(Integer id) {
         return courseRepository.findById(id).orElse(null);
     }

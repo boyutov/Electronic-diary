@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Мой класс — Куратор</title>
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
+</head>
+<body class="app-layout">
+<aside class="sidebar">
+    <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge">Учитель</span></div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+        <button id="logout-btn">🚪 Выйти</button>
+    </div>
+</aside>
+<div class="app-content">
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+            <h2>Класс: <span id="group-name-display" style="color:var(--primary);"></span></h2>
+            <p style="color:#64748b;margin-top:4px;">Список учеников вашего класса</p>
+        </div>
+        <a id="create-student-btn" class="button" href="#">+ Добавить ученика</a>
+    </div>
+    <div class="card">
+        <div id="students-container">
+            <p style="color:#64748b;">Загрузка данных...</p>
+        </div>
+    </div>
+</div>
+<div id="marks-modal" class="modal">
+    <div class="modal-box" style="max-width:600px;">
+        <div class="modal-header">
+            <h3 id="marks-modal-title">Оценки</h3>
+            <button class="modal-close" id="marks-modal-close">&times;</button>
+        </div>
+        <div id="marks-modal-body"><p style="color:#64748b;">Загрузка...</p></div>
+    </div>
+</div>
+<script src="/js/sidebar.js"></script>
+<script src="/js/curator-students-list.js"></script>
+</body>
+</html>

@@ -2,45 +2,89 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Активация школы</title>
-    <link rel="stylesheet" href="/css/site.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Активация — Electronic Diary</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Inter", "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .brand { color: #fff; font-size: 1.3em; font-weight: 800; margin-bottom: 32px; text-align: center; }
+        .brand span { color: #60a5fa; }
+        .card {
+            background: #fff; border-radius: 20px; padding: 40px;
+            width: 100%; max-width: 460px;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+        }
+        .card h2 { font-size: 1.5em; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+        .card .subtitle { font-size: 0.88em; color: #64748b; margin-bottom: 28px; line-height: 1.5; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 0.85em; font-weight: 600; color: #374151; margin-bottom: 6px; }
+        .form-group input {
+            width: 100%; padding: 11px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px;
+            font-size: 0.92em; font-family: inherit; color: #0f172a; background: #f8fafc; outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .form-group input:focus { border-color: #2563eb; background: #fff; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .btn {
+            width: 100%; padding: 13px; background: #2563eb; color: #fff; border: none;
+            border-radius: 10px; font-size: 0.95em; font-weight: 700; cursor: pointer;
+            font-family: inherit; transition: background 0.15s, transform 0.1s; margin-top: 4px;
+        }
+        .btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .result-box {
+            background: #dcfce7; color: #166534; border-radius: 10px;
+            padding: 16px; margin-top: 20px; font-size: 0.88em; line-height: 1.6; display: none;
+        }
+        .result-box strong { display: block; margin-bottom: 4px; font-size: 1em; }
+        .back-link { color: #94a3b8; font-size: 0.85em; text-decoration: none; margin-top: 20px; display: block; text-align: center; }
+        .back-link:hover { color: #fff; }
+    </style>
 </head>
 <body>
-<header>
-    <h1>Electronic Diary</h1>
-    <nav>
-        <a href="/">Главная</a>
-        <a href="/about">О проекте</a>
-        <a href="/pricing">Прайс</a>
-        <a href="/login">Вход</a>
-    </nav>
-</header>
-<main>
-    <section class="card">
-        <span class="badge">Активация</span>
-        <h2>Активируйте аккаунт школы</h2>
-        <p>Введите пароль из письма/чека и заполните данные администратора.</p>
-        <form id="activate-form">
-            <label for="schoolPassword">Пароль школы</label>
-            <input id="schoolPassword" name="schoolPassword" type="password" required>
 
-            <label for="firstName">Имя</label>
-            <input id="firstName" name="firstName" required>
+<div class="brand">📚 <span>Electronic</span>Diary</div>
 
-            <label for="secondName">Фамилия</label>
-            <input id="secondName" name="secondName" required>
+<div class="card">
+    <h2>Активация школы</h2>
+    <p class="subtitle">Введите пароль из письма и заполните данные первого администратора.</p>
 
-            <label for="thirdName">Отчество (необязательно)</label>
-            <input id="thirdName" name="thirdName">
+    <form id="activate-form">
+        <div class="form-group">
+            <label>Пароль школы (из письма)</label>
+            <input id="schoolPassword" name="schoolPassword" type="password" placeholder="••••••••" required>
+        </div>
+        <div class="form-group">
+            <label>Имя</label>
+            <input id="firstName" name="firstName" placeholder="Иван" required>
+        </div>
+        <div class="form-group">
+            <label>Фамилия</label>
+            <input id="secondName" name="secondName" placeholder="Иванов" required>
+        </div>
+        <div class="form-group">
+            <label>Отчество (необязательно)</label>
+            <input id="thirdName" name="thirdName" placeholder="Иванович">
+        </div>
+        <div class="form-group">
+            <label>Email администратора</label>
+            <input id="email" name="email" type="email" placeholder="admin@school.kz" required>
+        </div>
+        <button class="btn" type="submit">Активировать →</button>
+    </form>
 
-            <label for="email">Email администратора</label>
-            <input id="email" name="email" type="email" required>
+    <div id="activate-result" class="result-box"></div>
+</div>
 
-            <button class="button" type="submit">Создать администратора</button>
-        </form>
-        <div id="activate-result" class="result" hidden></div>
-    </section>
-</main>
+<a class="back-link" href="/login">← Уже есть аккаунт? Войти</a>
+
 <script src="/js/activate.js"></script>
 </body>
 </html>

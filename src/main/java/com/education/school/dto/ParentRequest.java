@@ -3,6 +3,7 @@ package com.education.school.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 
 public record ParentRequest(
     @NotBlank(message = "First name is required")
@@ -20,5 +21,7 @@ public record ParentRequest(
     @Size(min = 6, message = "Password must be at least 6 characters long")
     String password,
 
-    String phone
+    String phone,
+
+    List<Long> studentIds
 ) {}

@@ -4,9 +4,11 @@ import com.education.school.dto.ParentRequest;
 import com.education.school.dto.StudentDto;
 import com.education.school.entity.Parent;
 import com.education.school.entity.Role;
+import com.education.school.entity.Student;
 import com.education.school.entity.User;
 import com.education.school.repository.ParentRepository;
 import com.education.school.repository.RoleRepository;
+import com.education.school.repository.StudentRepository;
 import com.education.school.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,12 +26,15 @@ public class ParentService {
     private final ParentRepository parentRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final StudentRepository studentRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional(readOnly = true)
     public List<Parent> findAll() {
         return parentRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Parent findById(Integer id) {
         return parentRepository.findById(id).orElse(null);
     }
@@ -64,6 +69,10 @@ public class ParentService {
         parent.setUser(user);
         parent.setPhone(request.phone());
 
+        if (request.studentIds() != null && !request.studentIds().isEmpty()) {
+            parent.getStudents().addAll(studentRepository.findAllById(request.studentIds()));
+        }
+
         return parentRepository.save(parent);
     }
 
@@ -85,6 +94,11 @@ public class ParentService {
         userRepository.save(user);
 
         parent.setPhone(request.phone());
+
+        if (request.studentIds() != null) {
+            parent.getStudents().clear();
+            parent.getStudents().addAll(studentRepository.findAllById(request.studentIds()));
+        }
 
         return parentRepository.save(parent);
     }

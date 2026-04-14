@@ -4,128 +4,135 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalTitle = document.getElementById("modal-title");
     const form = document.getElementById("parent-form");
     const addBtn = document.getElementById("add-btn");
-    const closeBtn = document.getElementsByClassName("close")[0];
-    const schoolName = window.location.pathname.split('/')[1];
+    const closeBtn = document.getElementById("modal-close");
+    const formError = document.getElementById("form-error");
+    const studentsContainer = document.getElementById("students-container");
+    const schoolName = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
+
+    let allStudents = [];
+
+    // Загружаем всех учеников для выбора
+    apiFetch(`/api/${schoolName}/students`)
+        .then(r => r.ok ? r.json() : [])
+        .then(students => {
+            allStudents = students;
+            renderStudentCheckboxes([]);
+        }).catch(() => {});
+
+    function renderStudentCheckboxes(selectedIds) {
+        studentsContainer.innerHTML = "";
+        if (!allStudents.length) {
+            studentsContainer.innerHTML = "<p style='color:#64748b;font-size:0.9em;'>Учеников нет. Сначала создайте учеников.</p>";
+            return;
+        }
+        allStudents.forEach(s => {
+            const div = document.createElement("div");
+            div.className = "checkbox-item";
+            div.innerHTML = `
+                <input type="checkbox" id="st-${s.id}" value="${s.id}" name="students"
+                    ${selectedIds.includes(s.id) ? "checked" : ""}>
+                <label for="st-${s.id}">${s.secondName} ${s.firstName}${s.thirdName ? " " + s.thirdName : ""} — ${s.groupName || "без класса"}</label>
+            `;
+            studentsContainer.appendChild(div);
+        });
+    }
+
+    function getSelectedStudentIds() {
+        return Array.from(document.querySelectorAll("input[name='students']:checked"))
+            .map(cb => parseInt(cb.value));
+    }
 
     function loadParents() {
-        fetch(`/api/${schoolName}/parents`)
-            .then(response => response.json())
+        apiFetch(`/api/${schoolName}/parents`)
+            .then(r => r.ok ? r.json() : [])
             .then(parents => {
                 tableBody.innerHTML = "";
-                parents.forEach(parent => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td>${parent.user.firstName} ${parent.user.secondName}</td>
-                        <td>${parent.user.email}</td>
-                        <td>${parent.phone || "-"}</td>
+                if (!parents.length) {
+                    tableBody.innerHTML = "<tr><td colspan='5' class='td-empty'>Родителей нет</td></tr>";
+                    return;
+                }
+                parents.forEach(p => {
+                    const childrenText = p.children && p.children.length
+                        ? p.children.map(c => `${c.firstName} ${c.secondName}`).join(", ")
+                        : "—";
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${p.firstName} ${p.secondName}${p.thirdName ? " " + p.thirdName : ""}</td>
+                        <td>${p.email}</td>
+                        <td>${p.phone || "—"}</td>
+                        <td style="color:#64748b;font-size:0.88em;">${childrenText}</td>
                         <td>
-                            <button class="action-btn edit-btn" data-id="${parent.id}">Ред.</button>
-                            <button class="action-btn delete-btn" data-id="${parent.id}">Удал.</button>
+                            <button class="button warning sm">Ред.</button>
+                            <button class="button danger sm" style="margin-left:4px;">Удал.</button>
                         </td>
                     `;
-                    tableBody.appendChild(row);
+                    tr.querySelector(".warning").addEventListener("click", () => openEditModal(p.id, p));
+                    tr.querySelector(".danger").addEventListener("click", () => deleteParent(p.id));
+                    tableBody.appendChild(tr);
                 });
-
-                document.querySelectorAll(".edit-btn").forEach(btn => {
-                    btn.addEventListener("click", (e) => openEditModal(e.target.dataset.id));
-                });
-
-                document.querySelectorAll(".delete-btn").forEach(btn => {
-                    btn.addEventListener("click", (e) => deleteParent(e.target.dataset.id));
-                });
+            })
+            .catch(() => {
+                tableBody.innerHTML = "<tr><td colspan='5' class='td-error'>Ошибка загрузки</td></tr>";
             });
     }
 
-    function openEditModal(id) {
+    function openEditModal(id, parent) {
         modalTitle.textContent = "Редактировать родителя";
         document.getElementById("parent-id").value = id;
-
-        fetch(`/api/${schoolName}/parents/${id}`)
-            .then(response => response.json())
-            .then(parent => {
-                document.getElementById("firstName").value = parent.user.firstName;
-                document.getElementById("secondName").value = parent.user.secondName;
-                document.getElementById("thirdName").value = parent.user.thirdName || "";
-                document.getElementById("email").value = parent.user.email;
-                document.getElementById("password").value = ""; // Don't show password
-                document.getElementById("phone").value = parent.phone || "";
-            });
-
-        modal.style.display = "block";
+        document.getElementById("firstName").value = parent.firstName || "";
+        document.getElementById("secondName").value = parent.secondName || "";
+        document.getElementById("thirdName").value = parent.thirdName || "";
+        document.getElementById("email").value = parent.email || "";
+        document.getElementById("password").value = "";
+        document.getElementById("phone").value = parent.phone || "";
+        const selectedIds = (parent.children || []).map(c => Number(c.id));
+        renderStudentCheckboxes(selectedIds);
+        formError.style.display = "none";
+        modal.classList.add("open");
     }
 
     addBtn.onclick = () => {
-        modalTitle.textContent = "Создать родителя";
+        modalTitle.textContent = "Добавить родителя";
         form.reset();
         document.getElementById("parent-id").value = "";
-        modal.style.display = "block";
+        renderStudentCheckboxes([]);
+        formError.style.display = "none";
+        modal.classList.add("open");
     };
 
-    closeBtn.onclick = () => {
-        modal.style.display = "none";
-    };
+    closeBtn.onclick = () => modal.classList.remove("open");
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
 
-    window.onclick = (event) => {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    };
-
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", e => {
         e.preventDefault();
+        formError.style.display = "none";
         const id = document.getElementById("parent-id").value;
-        const method = id ? "PUT" : "POST";
-        const url = id ? `/api/${schoolName}/parents/${id}` : `/api/${schoolName}/parents`;
-
         const data = {
             firstName: document.getElementById("firstName").value,
             secondName: document.getElementById("secondName").value,
             thirdName: document.getElementById("thirdName").value,
             email: document.getElementById("email").value,
             password: document.getElementById("password").value,
-            phone: document.getElementById("phone").value
+            phone: document.getElementById("phone").value,
+            studentIds: getSelectedStudentIds()
         };
-
-        fetch(url, {
-            method: method,
-            headers: {
-                "Content-Type": "application/json"
-            },
+        apiFetch(id ? `/api/${schoolName}/parents/${id}` : `/api/${schoolName}/parents`, {
+            method: id ? "PUT" : "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
-        })
-        .then(response => {
-            if (response.ok) {
-                modal.style.display = "none";
-                loadParents();
-                alert(id ? "Родитель обновлен!" : "Родитель создан!");
-            } else {
-                response.json().then(errors => {
-                    let errorMessages = "";
-                    if (typeof errors === 'object') {
-                        for (const [field, message] of Object.entries(errors)) {
-                            errorMessages += `${field}: ${message}\n`;
-                        }
-                    } else {
-                        errorMessages = errors;
-                    }
-                    alert("Ошибка:\n" + errorMessages);
-                });
-            }
+        }).then(r => {
+            if (r.ok) { modal.classList.remove("open"); loadParents(); }
+            else r.json().then(err => {
+                formError.textContent = typeof err === "object" ? Object.values(err).join(", ") : String(err);
+                formError.style.display = "block";
+            });
         });
     });
 
     function deleteParent(id) {
-        if (confirm("Вы уверены?")) {
-            fetch(`/api/${schoolName}/parents/${id}`, {
-                method: "DELETE"
-            }).then(response => {
-                if (response.ok) {
-                    loadParents();
-                } else {
-                    alert("Ошибка при удалении");
-                }
-            });
-        }
+        if (!confirm("Удалить родителя?")) return;
+        apiFetch(`/api/${schoolName}/parents/${id}`, { method: "DELETE" })
+            .then(r => { if (r.ok) loadParents(); else alert("Ошибка при удалении"); });
     }
 
     loadParents();

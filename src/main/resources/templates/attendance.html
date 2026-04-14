@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Посещаемость</title>
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
+    <style>
+        .status-badge { display:inline-block; padding:3px 10px; border-radius:999px; font-size:0.8em; font-weight:600; }
+        .status-present    { background:#dcfce7; color:#15803d; }
+        .status-absent     { background:#fee2e2; color:#b91c1c; }
+        .status-late       { background:#fef9c3; color:#854d0e; }
+        .status-reasonable { background:#dbeafe; color:#1d4ed8; }
+    </style>
+</head>
+<body class="app-layout">
+<aside class="sidebar">
+    <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge">Пользователь</span></div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+        <button id="logout-btn">🚪 Выйти</button>
+    </div>
+</aside>
+
+<div class="app-content">
+    <div class="page-header">
+        <h2>📋 Посещаемость</h2>
+        <p style="color:#64748b;margin-top:4px;" id="page-subtitle">Загрузка...</p>
+    </div>
+
+    <!-- Панель учителя: выбор даты → список уроков -->
+    <div id="teacher-panel" style="display:none;">
+        <div class="card" style="margin-bottom:24px;">
+            <div style="display:flex;gap:12px;align-items:flex-end;">
+                <div class="form-group" style="margin:0;">
+                    <label>Дата</label>
+                    <input type="date" id="date-select">
+                </div>
+                <button class="button" id="load-btn">Загрузить уроки</button>
+            </div>
+        </div>
+        <div id="attendance-form-section" style="display:none;">
+            <div id="lessons-container"></div>
+        </div>
+    </div>
+
+    <!-- Панель ученика/родителя: просмотр -->
+    <div id="view-panel" style="display:none;">
+        <div class="card" style="margin-bottom:24px;">
+            <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+                <div class="form-group" style="margin:0;"><label>С</label><input type="date" id="from-date"></div>
+                <div class="form-group" style="margin:0;"><label>По</label><input type="date" id="to-date"></div>
+                <button class="button" id="view-load-btn">Показать</button>
+            </div>
+        </div>
+        <div id="view-container"></div>
+    </div>
+</div>
+
+<script src="/js/sidebar.js"></script>
+<script src="/js/attendance.js"></script>
+</body>
+</html>

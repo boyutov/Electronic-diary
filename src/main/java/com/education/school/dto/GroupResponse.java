@@ -14,14 +14,22 @@ public class GroupResponse {
     private Boolean hasOffice;
     private String office;
     private Integer course;
+    private String fundingType;
+    private String curatorName;
 
     public static GroupResponse from(GroupEntity group) {
+        String curatorName = null;
+        if (group.getCurator() != null) {
+            curatorName = group.getCurator().getSecondName() + " " + group.getCurator().getFirstName();
+        }
         return new GroupResponse(
             group.getId(),
             group.getName(),
             group.getHasOffice(),
             group.getOffice(),
-            group.getCourse()
+            group.getCourse(),
+            group.getFundingType(),
+            curatorName
         );
     }
 }

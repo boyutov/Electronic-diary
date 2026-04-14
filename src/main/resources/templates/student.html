@@ -4,70 +4,42 @@
     <meta charset="UTF-8">
     <title>Панель ученика</title>
     <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
 </head>
-<body>
-<header>
-    <h1>Electronic Diary</h1>
-    <nav>
-        <a href="/">Главная</a>
-        <form method="post" action="/logout" style="display: inline;">
-            <button type="submit" class="button-link" style="background: none; border: none; color: #e2e8f0; cursor: pointer; font-size: 1em; padding: 0; margin-left: 16px;">Выйти</button>
-        </form>
-    </nav>
-</header>
-<main>
-    <section class="card">
-        <h2>Панель ученика</h2>
-        <p>Добро пожаловать! Здесь будет информация для ученика.</p>
-    </section>
-
-    <section class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h3 style="margin: 0;">Расписание на сегодня</h3>
-            <a class="button" href="/schedule">Полное расписание</a>
+<body class="app-layout">
+<aside class="sidebar">
+    <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge">Ученик</span></div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+        <button id="logout-btn">🚪 Выйти</button>
+    </div>
+</aside>
+<div class="app-content">
+    <div class="page-header">
+        <h2 id="student-greeting">Добро пожаловать!</h2>
+        <p id="student-info" style="color:#64748b;margin-top:4px;">Загрузка...</p>
+    </div>
+    <div class="card" style="margin-bottom:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="margin:0;">📅 Расписание на сегодня</h3>
+            <a class="button ghost sm" id="full-schedule-link" href="#">Полное расписание</a>
         </div>
         <div id="schedule-container" class="schedule-grid">
-            <p>Загрузка расписания...</p>
+            <p style="color:#64748b;">Загрузка...</p>
         </div>
-    </section>
-</main>
-<script src="/js/navigation.js"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const schoolName = window.location.pathname.split('/')[1];
-        const container = document.getElementById("schedule-container");
-
-        fetch(`/api/${schoolName}/schedules/my/today`)
-            .then(response => response.json())
-            .then(schedule => {
-                container.innerHTML = "";
-                if (schedule.length === 0) {
-                    container.innerHTML = "<p style='font-size: 1.2em; color: #10b981; text-align: center; width: 100%;'>Сегодня отдыхаете! 🎉</p>";
-                    return;
-                }
-
-                // Сортируем по времени начала
-                schedule.sort((a, b) => a.startTime.localeCompare(b.startTime));
-
-                schedule.forEach(item => {
-                    const div = document.createElement("div");
-                    div.className = "schedule-item";
-                    div.innerHTML = `
-                        <div class="schedule-time">${item.startTime} - ${item.endTime}</div>
-                        <div class="schedule-subject">${item.disciplineName}</div>
-                        <div class="schedule-details">
-                            Каб. ${item.classroom || "—"}<br>
-                            ${item.teacherName}
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
-            })
-            .catch(error => {
-                console.error("Error loading schedule:", error);
-                container.innerHTML = "<p>Ошибка загрузки расписания.</p>";
-            });
-    });
-</script>
+    </div>
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="margin:0;">📊 Мои оценки</h3>
+            <span id="marks-overall" style="font-size:0.9em;color:#64748b;"></span>
+        </div>
+        <div id="marks-container">
+            <p style="color:#64748b;">Загрузка оценок...</p>
+        </div>
+    </div>
+</div>
+<script src="/js/api.js"></script>
+<script src="/js/sidebar.js"></script>
+<script src="/js/student.js"></script>
 </body>
 </html>

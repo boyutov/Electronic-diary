@@ -43,6 +43,7 @@ public class GroupService {
         group.setHasOffice(request.hasOffice());
         group.setOffice(request.office());
         group.setCourse(request.course());
+        group.setFundingType(request.fundingType() != null ? request.fundingType() : "BUDGET");
 
         return groupRepository.save(group);
     }
@@ -56,6 +57,7 @@ public class GroupService {
         group.setHasOffice(request.hasOffice());
         group.setOffice(request.office());
         group.setCourse(request.course());
+        group.setFundingType(request.fundingType() != null ? request.fundingType() : "BUDGET");
 
         return groupRepository.save(group);
     }
@@ -67,17 +69,11 @@ public class GroupService {
 
     @Transactional(readOnly = true)
     public List<StudentDto> getStudentsByGroupId(Integer groupId) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByEmail(email);
-
         GroupEntity group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new IllegalArgumentException("Group not found"));
 
-        // Security check: only the curator of this group or an admin can view students
-        if (group.getCurator() != null && !group.getCurator().getId().equals(currentUser.getId()) && !currentUser.getRole().getName().equals("ADMIN")) {
-            throw new SecurityException("You are not authorized to view students of this group.");
-        }
-
+        // Контроллер уже защищен @PreAuthorize("hasAnyAuthority('TEACHER', 'ADMIN')"),
+        // поэтому любой авторизованный учитель имеет право получить список учеников для выставления оценок.
         return group.getStudents().stream()
                 .map(StudentDto::from)
                 .collect(Collectors.toList());

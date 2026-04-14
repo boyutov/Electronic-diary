@@ -7,10 +7,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Modal elements
     const modal = document.getElementById("edit-modal");
-    const span = document.getElementsByClassName("close")[0];
     const editForm = document.getElementById("edit-form");
+    const editModalClose = document.getElementById("edit-modal-close");
 
-    const schoolName = window.location.pathname.split('/')[1];
+    const schoolName = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
 
     let currentStartDate = new Date();
     let currentEndDate = new Date();
@@ -20,9 +20,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Загрузка данных для списков
     Promise.all([
-        fetch(`/api/${schoolName}/groups`).then(r => r.json()),
-        fetch(`/api/${schoolName}/disciplines`).then(r => r.json()),
-        fetch(`/api/${schoolName}/teachers`).then(r => r.json())
+        apiFetch(`/api/${schoolName}/groups`).then(r => r.json()),
+        apiFetch(`/api/${schoolName}/disciplines`).then(r => r.json()),
+        apiFetch(`/api/${schoolName}/teachers`).then(r => r.json())
     ]).then(([groups, disciplines, teachers]) => {
         allGroups = groups;
         allDisciplines = disciplines;
@@ -61,6 +61,14 @@ document.addEventListener("DOMContentLoaded", () => {
             option.textContent = `${teacher.firstName} ${teacher.secondName}`;
             editTeacherSelect.appendChild(option);
         });
+        
+        // Загружаем расписание для первой группы
+        if (groups.length > 0) {
+            groupSelect.value = groups[0].id;
+            initCurrentWeek(); // Вызываем здесь, чтобы сначала выбрать группу
+        } else {
+            resultsContainer.innerHTML = "<p style='text-align: center;'>Нет групп. Сначала создайте группу.</p>";
+        }
     });
 
     function initCurrentWeek() {
@@ -72,6 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
         currentEndDate = new Date(today.setDate(currentStartDate.getDate() + 6));
         
         updatePeriodLabel();
+        loadSchedule(); // Вызываем загрузку расписания после установки дат
     }
 
     function updatePeriodLabel() {
@@ -88,12 +97,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
         resultsContainer.innerHTML = "<p>Загрузка...</p>";
 
-        fetch(`/api/${schoolName}/schedules/group/${groupId}?start=${start}&end=${end}`)
+        apiFetch(`/api/${schoolName}/schedules/group/${groupId}?start=${start}&end=${end}`)
             .then(response => response.json())
             .then(schedule => {
                 resultsContainer.innerHTML = "";
+                
+                // Создаем кнопку добавления даже если расписания нет
+                const topAddBtnContainer = document.createElement("div");
+                topAddBtnContainer.style.marginBottom = "15px";
+                topAddBtnContainer.style.display = "flex";
+                topAddBtnContainer.style.justifyContent = "flex-end";
+                
+                const topAddBtn = document.createElement("button");
+                topAddBtn.className = "button";
+                topAddBtn.textContent = "+ Создать урок";
+                topAddBtn.onclick = () => openCreateModal(); // Открываем модалку для создания
+                
+                topAddBtnContainer.appendChild(topAddBtn);
+                resultsContainer.appendChild(topAddBtnContainer);
+
                 if (schedule.length === 0) {
-                    resultsContainer.innerHTML = "<p style='text-align: center; color: #64748b;'>На эту неделю расписания нет.</p>";
+                    const noScheduleMsg = document.createElement("p");
+                    noScheduleMsg.style.textAlign = "center";
+                    noScheduleMsg.style.color = "#64748b";
+                    noScheduleMsg.textContent = "На эту неделю расписания нет.";
+                    resultsContainer.appendChild(noScheduleMsg);
                     return;
                 }
 
@@ -167,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function deleteSchedule(id) {
-        fetch(`/api/${schoolName}/schedules/${id}`, {
+        apiFetch(`/api/${schoolName}/schedules/${id}`, {
             method: "DELETE"
         })
         .then(response => {
@@ -177,6 +205,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert("Ошибка при удалении урока");
             }
         });
+    }
+    
+    // Новая функция для создания урока
+    function openCreateModal() {
+        document.getElementById("edit-id").value = ""; // Очищаем ID (признак создания)
+        document.getElementById("edit-form").reset(); // Очищаем форму
+        
+        // Предзаполняем группу
+        const groupId = groupSelect.value;
+        if (groupId) {
+            document.getElementById("edit-group").value = groupId;
+        }
+        
+        // Предзаполняем дату (например, понедельник текущей выбранной недели)
+        const start = new Date(currentStartDate.getTime() - (currentStartDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        document.getElementById("edit-date").value = start;
+
+        modal.classList.add("open");
     }
 
     function openEditModal(item) {
@@ -192,23 +238,18 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("edit-lessonNumber").value = item.lessonNumber;
         document.getElementById("edit-classroom").value = item.classroom;
 
-        modal.style.display = "block";
+        modal.classList.add("open");
     }
 
     // Modal close logic
-    span.onclick = function() {
-        modal.style.display = "none";
-    }
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    }
+    editModalClose.onclick = () => modal.classList.remove("open");
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
 
-    // Edit form submit
+    // Edit/Create form submit
     editForm.addEventListener("submit", (e) => {
         e.preventDefault();
         const id = document.getElementById("edit-id").value;
+        const isEdit = id !== ""; // Если есть ID, то редактируем, иначе создаем
 
         const data = {
             disciplineId: parseInt(document.getElementById("edit-discipline").value),
@@ -221,8 +262,11 @@ document.addEventListener("DOMContentLoaded", () => {
             classroom: document.getElementById("edit-classroom").value
         };
 
-        fetch(`/api/${schoolName}/schedules/${id}`, {
-            method: "PUT",
+        const url = isEdit ? `/api/${schoolName}/schedules/${id}` : `/api/${schoolName}/schedules`;
+        const method = isEdit ? "PUT" : "POST";
+
+        apiFetch(url, {
+            method: method,
             headers: {
                 "Content-Type": "application/json"
             },
@@ -230,19 +274,11 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .then(response => {
             if (response.ok) {
-                modal.style.display = "none";
+                modal.classList.remove("open");
                 loadSchedule();
             } else {
                 response.json().then(errors => {
-                     let errorMessages = "";
-                    if (typeof errors === 'object') {
-                        for (const [field, message] of Object.entries(errors)) {
-                            errorMessages += `${field}: ${message}\n`;
-                        }
-                    } else {
-                        errorMessages = errors;
-                    }
-                    alert("Ошибка при обновлении урока:\n" + errorMessages);
+                    alert(`Ошибка: ` + (typeof errors === 'object' ? Object.values(errors).join(", ") : String(errors)));
                 });
             }
         });
@@ -263,6 +299,4 @@ document.addEventListener("DOMContentLoaded", () => {
         updatePeriodLabel();
         loadSchedule();
     });
-
-    initCurrentWeek();
 });

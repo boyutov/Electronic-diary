@@ -15,13 +15,15 @@ public class MarkDto {
     private Integer value;
     private OffsetDateTime createdAt;
     private String disciplineName;
+    private String comment;
 
     public static MarkDto from(Mark mark) {
         return new MarkDto(
             mark.getId(),
             mark.getValue(),
             mark.getCreatedAt(),
-            mark.getDiscipline().getName()
+            mark.getDiscipline().getName(),
+            mark.getComment()
         );
     }
 }

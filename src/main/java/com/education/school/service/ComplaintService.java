@@ -63,4 +63,15 @@ public class ComplaintService {
         complaint.setDeletedAt(OffsetDateTime.now());
         complaintRepository.save(complaint);
     }
+
+    @Transactional(readOnly = true)
+    public List<ComplaintDto> findMy() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByEmail(email);
+        return complaintRepository.findAll().stream()
+                .filter(c -> c.getDeletedAt() == null)
+                .filter(c -> c.getAuthorUser() != null && c.getAuthorUser().getId().equals(currentUser.getId()))
+                .map(ComplaintDto::from)
+                .collect(Collectors.toList());
+    }
 }

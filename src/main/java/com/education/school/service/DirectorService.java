@@ -20,10 +20,12 @@ public class DirectorService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional(readOnly = true)
     public List<User> findAll() {
         return userRepository.findAllByRoleName("DIRECTOR");
     }
 
+    @Transactional(readOnly = true)
     public User findById(Long id) {
         return userRepository.findById(id).orElse(null);
     }

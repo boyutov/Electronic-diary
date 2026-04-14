@@ -4,73 +4,77 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalTitle = document.getElementById("modal-title");
     const form = document.getElementById("admin-form");
     const addBtn = document.getElementById("add-btn");
-    const closeBtn = document.getElementsByClassName("close")[0];
-    const schoolName = window.location.pathname.split('/')[1];
+    const closeBtn = document.getElementById("modal-close");
+    const formError = document.getElementById("form-error");
+    const schoolName = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
 
     function loadAdmins() {
-        fetch(`/api/${schoolName}/admins`)
-            .then(response => response.json())
+        apiFetch(`/api/${schoolName}/admins`)
+            .then(r => {
+                if (!r.ok) {
+                    tableBody.innerHTML = `<tr><td colspan='3' class='td-error'>Ошибка загрузки (${r.status})</td></tr>`;
+                    return null;
+                }
+                return r.json();
+            })
             .then(admins => {
+                if (!admins) return;
                 tableBody.innerHTML = "";
-                admins.forEach(admin => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td>${admin.firstName} ${admin.secondName}</td>
-                        <td>${admin.email}</td>
+                if (!admins.length) {
+                    tableBody.innerHTML = "<tr><td colspan='3' class='td-empty'>Администраторов нет</td></tr>";
+                    return;
+                }
+                admins.forEach(a => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${a.firstName} ${a.secondName}${a.thirdName ? ' ' + a.thirdName : ''}</td>
+                        <td>${a.email}</td>
                         <td>
-                            <button class="action-btn edit-btn" data-id="${admin.id}">Ред.</button>
-                            <button class="action-btn delete-btn" data-id="${admin.id}">Удал.</button>
+                            <button class="button warning sm" data-id="${a.id}">Ред.</button>
+                            <button class="button danger sm" style="margin-left:4px;" data-id="${a.id}">Удал.</button>
                         </td>
                     `;
-                    tableBody.appendChild(row);
+                    tr.querySelector(".warning").addEventListener("click", () => openEditModal(a.id));
+                    tr.querySelector(".danger").addEventListener("click", () => deleteAdmin(a.id));
+                    tableBody.appendChild(tr);
                 });
-
-                document.querySelectorAll(".edit-btn").forEach(btn => {
-                    btn.addEventListener("click", (e) => openEditModal(e.target.dataset.id));
-                });
-
-                document.querySelectorAll(".delete-btn").forEach(btn => {
-                    btn.addEventListener("click", (e) => deleteAdmin(e.target.dataset.id));
-                });
+            })
+            .catch(err => {
+                if (err !== "Unauthorized")
+                    tableBody.innerHTML = `<tr><td colspan='3' class='td-error'>Ошибка: ${err}</td></tr>`;
             });
     }
 
     function openEditModal(id) {
         modalTitle.textContent = "Редактировать администратора";
         document.getElementById("admin-id").value = id;
-        
-        fetch(`/api/${schoolName}/admins/${id}`)
-            .then(response => response.json())
-            .then(admin => {
-                document.getElementById("firstName").value = admin.firstName;
-                document.getElementById("secondName").value = admin.secondName;
-                document.getElementById("thirdName").value = admin.thirdName || "";
-                document.getElementById("email").value = admin.email;
-                document.getElementById("password").value = ""; // Don't show password
+        apiFetch(`/api/${schoolName}/admins/${id}`)
+            .then(r => r.json())
+            .then(a => {
+                document.getElementById("firstName").value = a.firstName;
+                document.getElementById("secondName").value = a.secondName;
+                document.getElementById("thirdName").value = a.thirdName || "";
+                document.getElementById("email").value = a.email;
+                document.getElementById("password").value = "";
             });
-        
-        modal.style.display = "block";
+        formError.style.display = "none";
+        modal.classList.add("open");
     }
 
     addBtn.onclick = () => {
-        modalTitle.textContent = "Создать администратора";
+        modalTitle.textContent = "Добавить администратора";
         form.reset();
         document.getElementById("admin-id").value = "";
-        modal.style.display = "block";
+        formError.style.display = "none";
+        modal.classList.add("open");
     };
 
-    closeBtn.onclick = () => {
-        modal.style.display = "none";
-    };
+    closeBtn.onclick = () => modal.classList.remove("open");
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
 
-    window.onclick = (event) => {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    };
-
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", e => {
         e.preventDefault();
+        formError.style.display = "none";
         const id = document.getElementById("admin-id").value;
         const method = id ? "PUT" : "POST";
         const url = id ? `/api/${schoolName}/admins/${id}` : `/api/${schoolName}/admins`;
@@ -83,46 +87,27 @@ document.addEventListener("DOMContentLoaded", () => {
             password: document.getElementById("password").value
         };
 
-        fetch(url, {
-            method: method,
-            headers: {
-                "Content-Type": "application/json"
-            },
+        apiFetch(url, {
+            method,
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
-        })
-        .then(response => {
-            if (response.ok) {
-                modal.style.display = "none";
+        }).then(r => {
+            if (r.ok) {
+                modal.classList.remove("open");
                 loadAdmins();
-                alert(id ? "Администратор обновлен!" : "Администратор создан!");
             } else {
-                response.json().then(errors => {
-                    let errorMessages = "";
-                    if (typeof errors === 'object') {
-                        for (const [field, message] of Object.entries(errors)) {
-                            errorMessages += `${field}: ${message}\n`;
-                        }
-                    } else {
-                        errorMessages = errors;
-                    }
-                    alert("Ошибка:\n" + errorMessages);
+                r.json().then(err => {
+                    formError.textContent = typeof err === "object" ? Object.values(err).join(", ") : String(err);
+                    formError.style.display = "block";
                 });
             }
         });
     });
 
     function deleteAdmin(id) {
-        if (confirm("Вы уверены?")) {
-            fetch(`/api/${schoolName}/admins/${id}`, {
-                method: "DELETE"
-            }).then(response => {
-                if (response.ok) {
-                    loadAdmins();
-                } else {
-                    alert("Ошибка при удалении");
-                }
-            });
-        }
+        if (!confirm("Удалить администратора?")) return;
+        apiFetch(`/api/${schoolName}/admins/${id}`, { method: "DELETE" })
+            .then(r => { if (r.ok) loadAdmins(); else alert("Ошибка при удалении"); });
     }
 
     loadAdmins();

@@ -1,8 +1,8 @@
 package com.education.school.controller;
 
 import com.education.school.dto.ParentRequest;
+import com.education.school.dto.ParentResponse;
 import com.education.school.dto.StudentDto;
-import com.education.school.entity.Parent;
 import com.education.school.service.ParentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/{schoolName}/parents")
@@ -23,27 +24,28 @@ public class ParentController {
 
     @GetMapping
     @Operation(summary = "Получить всех родителей")
-    public List<Parent> findAll(@PathVariable String schoolName) {
-        return service.findAll();
+    public List<ParentResponse> findAll(@PathVariable String schoolName) {
+        return service.findAll().stream().map(ParentResponse::from).collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Получить родителя по ID")
-    public ResponseEntity<Parent> findById(@PathVariable String schoolName, @PathVariable Integer id) {
-        Parent parent = service.findById(id);
-        return parent != null ? ResponseEntity.ok(parent) : ResponseEntity.notFound().build();
+    public ResponseEntity<ParentResponse> findById(@PathVariable String schoolName, @PathVariable Integer id) {
+        return service.findById(id) != null
+                ? ResponseEntity.ok(ParentResponse.from(service.findById(id)))
+                : ResponseEntity.notFound().build();
     }
 
     @PostMapping
     @Operation(summary = "Создать родителя")
-    public Parent create(@PathVariable String schoolName, @Valid @RequestBody ParentRequest request) {
-        return service.create(request);
+    public ParentResponse create(@PathVariable String schoolName, @Valid @RequestBody ParentRequest request) {
+        return ParentResponse.from(service.create(request));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Обновить родителя")
-    public Parent update(@PathVariable String schoolName, @PathVariable Integer id, @Valid @RequestBody ParentRequest request) {
-        return service.update(id, request);
+    public ParentResponse update(@PathVariable String schoolName, @PathVariable Integer id, @Valid @RequestBody ParentRequest request) {
+        return ParentResponse.from(service.update(id, request));
     }
 
     @DeleteMapping("/{id}")

@@ -1,73 +1,46 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const form = document.querySelector("form");
-    const submitButton = form.querySelector("button");
-    const schoolName = window.location.pathname.split('/')[1];
-    let groupId = null;
+    const schoolName = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
+    const form = document.getElementById("student-form");
+    const successMsg = document.getElementById("success-msg");
+    const errorMsg = document.getElementById("error-msg");
 
-    // Получаем профиль куратора, чтобы узнать ID его группы
-    fetch(`/api/${schoolName}/profile/curator`)
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            }
-            return Promise.reject("Could not fetch curator profile");
-        })
-        .then(profile => {
-            groupId = profile.groupId;
-        })
-        .catch(error => {
-            console.error("Error fetching curator group:", error);
-            alert("Не удалось определить вашу группу. Вы не можете создавать учеников.");
-            submitButton.disabled = true;
-        });
+    form.addEventListener("submit", e => {
+        e.preventDefault();
+        successMsg.style.display = "none";
+        errorMsg.style.display = "none";
 
-    submitButton.addEventListener("click", () => {
-        if (!groupId) {
-            alert("Группа не определена. Создание невозможно.");
-            return;
-        }
+        // First get curator's group
+        apiFetch(`/api/${schoolName}/profile/curator`)
+            .then(r => r.ok ? r.json() : Promise.reject("Вы не являетесь куратором"))
+            .then(curatorProfile => {
+                const data = {
+                    firstName: document.getElementById("firstName").value,
+                    secondName: document.getElementById("secondName").value,
+                    thirdName: document.getElementById("thirdName").value,
+                    email: document.getElementById("email").value,
+                    password: document.getElementById("password").value,
+                    age: parseInt(document.getElementById("age").value),
+                    groupId: curatorProfile.groupId
+                };
 
-        const firstName = form.querySelector("input[placeholder='Имя']").value;
-        const secondName = form.querySelector("input[placeholder='Фамилия']").value;
-        const thirdName = form.querySelector("input[placeholder='Отчество']").value;
-        const email = form.querySelector("input[type='email']").value;
-        const password = form.querySelector("input[type='password']").value;
-        const age = form.querySelector("input[placeholder='15']").value;
-
-        const data = {
-            firstName,
-            secondName,
-            thirdName,
-            email,
-            password,
-            age: parseInt(age),
-            groupId: groupId // Автоматически подставляем ID группы
-        };
-
-        fetch(`/api/${schoolName}/students`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => {
-            if (response.ok) {
-                alert("Ученик успешно создан!");
-                form.reset();
-            } else {
-                response.json().then(errors => {
-                    let errorMessages = "";
-                    if (typeof errors === 'object') {
-                        for (const [field, message] of Object.entries(errors)) {
-                            errorMessages += `${field}: ${message}\n`;
-                        }
-                    } else {
-                        errorMessages = errors;
-                    }
-                    alert("Ошибка при создании ученика:\n" + errorMessages);
+                return apiFetch(`/api/${schoolName}/students`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
                 });
-            }
-        });
+            })
+            .then(r => {
+                if (r.ok) {
+                    form.reset();
+                    successMsg.textContent = "Ученик успешно создан!";
+                    successMsg.style.display = "block";
+                } else {
+                    return r.json().then(err => Promise.reject(JSON.stringify(err)));
+                }
+            })
+            .catch(err => {
+                errorMsg.textContent = "Ошибка: " + (typeof err === "string" ? err : "Не удалось создать ученика");
+                errorMsg.style.display = "block";
+            });
     });
 });

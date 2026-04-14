@@ -33,6 +33,9 @@ public class Poll {
 
     private Boolean active;
 
+    @Column(name = "allowed_roles")
+    private String allowedRoles; // comma-separated: "STUDENT,TEACHER,PARENT"
+
     @OneToMany(mappedBy = "poll", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PollOption> options = new HashSet<>();
 

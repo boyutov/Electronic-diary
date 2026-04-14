@@ -2,7 +2,7 @@ const activateForm = document.getElementById("activate-form");
 const activateResult = document.getElementById("activate-result");
 
 const showActivateResult = (message, isError = false) => {
-    activateResult.hidden = false;
+    activateResult.style.display = 'block';
     activateResult.style.background = isError ? "#fee2e2" : "#dcfce7";
     activateResult.style.color = isError ? "#991b1b" : "#166534";
     activateResult.textContent = message;
@@ -10,7 +10,7 @@ const showActivateResult = (message, isError = false) => {
 
 activateForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    activateResult.hidden = true;
+    activateResult.style.display = 'none';
 
     const payload = {
         schoolPassword: activateForm.schoolPassword.value.trim(),

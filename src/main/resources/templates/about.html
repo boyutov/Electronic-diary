@@ -2,37 +2,149 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>О проекте</title>
-    <link rel="stylesheet" href="/css/site.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>О проекте — Electronic Diary</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: "Inter", "Segoe UI", sans-serif; background: #fff; color: #1e293b; }
+
+        .nav {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(8px);
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 40px; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nav-brand { font-size: 1.1em; font-weight: 800; color: #0f172a; text-decoration: none; }
+        .nav-brand span { color: #2563eb; }
+        .nav-links { display: flex; gap: 8px; align-items: center; }
+        .nav-links a { color: #475569; text-decoration: none; font-size: 0.9em; font-weight: 500; padding: 8px 14px; border-radius: 8px; }
+        .nav-links a:hover { background: #f1f5f9; color: #0f172a; }
+        .nav-links .active { color: #2563eb; background: #eff6ff; }
+        .nav-links .btn-login { background: #2563eb; color: #fff; }
+        .nav-links .btn-login:hover { background: #1d4ed8; }
+
+        .page-hero {
+            background: linear-gradient(135deg, #0f172a, #1e3a5f);
+            color: #fff; padding: 72px 40px; text-align: center;
+        }
+        .page-hero .badge {
+            display: inline-block; background: rgba(37,99,235,0.25);
+            border: 1px solid rgba(37,99,235,0.4); color: #93c5fd;
+            padding: 4px 14px; border-radius: 999px; font-size: 0.8em;
+            font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px;
+        }
+        .page-hero h1 { font-size: clamp(1.8em, 4vw, 2.6em); font-weight: 800; margin-bottom: 14px; }
+        .page-hero p { color: #94a3b8; font-size: 1em; max-width: 520px; margin: 0 auto; line-height: 1.7; }
+
+        .section { max-width: 960px; margin: 0 auto; padding: 72px 40px; }
+        .section-label { font-size: 0.8em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #2563eb; margin-bottom: 10px; }
+        .section-title { font-size: clamp(1.4em, 2.5vw, 1.9em); font-weight: 800; color: #0f172a; margin-bottom: 14px; }
+        .section-text { color: #475569; line-height: 1.8; font-size: 0.95em; max-width: 640px; }
+
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 40px; }
+        .info-card {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px;
+        }
+        .info-card .icon { font-size: 1.8em; margin-bottom: 14px; }
+        .info-card h3 { font-size: 1em; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+        .info-card p { font-size: 0.87em; color: #64748b; line-height: 1.6; }
+
+        .tech-stack {
+            background: #0f172a; color: #e2e8f0; border-radius: 16px;
+            padding: 36px; margin-top: 40px;
+        }
+        .tech-stack h3 { font-size: 1em; font-weight: 700; color: #fff; margin-bottom: 20px; }
+        .tech-tags { display: flex; flex-wrap: wrap; gap: 10px; }
+        .tech-tag {
+            background: rgba(37,99,235,0.2); border: 1px solid rgba(37,99,235,0.3);
+            color: #93c5fd; padding: 6px 14px; border-radius: 8px; font-size: 0.85em; font-weight: 600;
+        }
+
+        footer { background: #0f172a; color: #475569; text-align: center; padding: 24px 40px; font-size: 0.85em; }
+        footer a { color: #64748b; text-decoration: none; margin: 0 12px; }
+    </style>
 </head>
 <body>
-<header>
-    <h1>Electronic Diary</h1>
-    <nav>
+
+<nav class="nav">
+    <a class="nav-brand" href="/">📚 <span>Electronic</span>Diary</a>
+    <div class="nav-links">
         <a href="/">Главная</a>
+        <a href="/about" class="active">О проекте</a>
         <a href="/pricing">Прайс</a>
-    </nav>
-</header>
-<main>
-    <section class="card">
-        <span class="badge">О проекте</span>
-        <h2>Почему мы делаем Electronic Diary</h2>
-        <p>Мы создаём единый цифровой кабинет, в котором школа может вести дневники, контролировать успеваемость и держать связь с родителями.</p>
-    </section>
-    <section class="grid">
-        <div class="card">
+        <a href="/login" class="btn-login">Войти</a>
+    </div>
+</nav>
+
+<div class="page-hero">
+    <div class="badge">О проекте</div>
+    <h1>Почему Electronic Diary?</h1>
+    <p>Мы создаём единый цифровой кабинет, в котором школа может вести дневники, контролировать успеваемость и держать связь с родителями.</p>
+</div>
+
+<div class="section">
+    <div class="section-label">Миссия</div>
+    <div class="section-title">Цифровизация образования</div>
+    <p class="section-text">Electronic Diary — это современная платформа управления школой, которая объединяет всех участников образовательного процесса в одной системе. Мы убираем бумажную волокиту и делаем коммуникацию прозрачной.</p>
+
+    <div class="cards-grid">
+        <div class="info-card">
+            <div class="icon">🎯</div>
             <h3>Единая система</h3>
-            <p>Администрирование, расписание и оценивание находятся в одном приложении.</p>
+            <p>Администрирование, расписание и оценивание находятся в одном приложении без лишних интеграций.</p>
         </div>
-        <div class="card">
+        <div class="info-card">
+            <div class="icon">👁</div>
             <h3>Прозрачность</h3>
-            <p>Родители видят прогресс ребёнка, а учителя получают удобные инструменты для работы.</p>
+            <p>Родители видят прогресс ребёнка в реальном времени, а учителя получают удобные инструменты.</p>
         </div>
-        <div class="card">
+        <div class="info-card">
+            <div class="icon">📈</div>
             <h3>Масштабирование</h3>
             <p>Подходит как для небольшой школы, так и для сети образовательных учреждений.</p>
         </div>
-    </section>
-</main>
+        <div class="info-card">
+            <div class="icon">🔒</div>
+            <h3>Безопасность</h3>
+            <p>JWT-аутентификация, ролевая модель доступа и шифрование паролей по стандарту BCrypt.</p>
+        </div>
+        <div class="info-card">
+            <div class="icon">⚡</div>
+            <h3>Быстрый старт</h3>
+            <p>Зарегистрируйте школу, получите пароль и начните работу за несколько минут.</p>
+        </div>
+        <div class="info-card">
+            <div class="icon">🌐</div>
+            <h3>REST API</h3>
+            <p>Полноценный REST API с документацией Swagger для интеграции с другими системами.</p>
+        </div>
+    </div>
+
+    <div class="tech-stack">
+        <h3>🛠 Технологический стек</h3>
+        <div class="tech-tags">
+            <span class="tech-tag">Java 17</span>
+            <span class="tech-tag">Spring Boot 3</span>
+            <span class="tech-tag">Spring Security</span>
+            <span class="tech-tag">Spring Data JPA</span>
+            <span class="tech-tag">PostgreSQL</span>
+            <span class="tech-tag">Flyway</span>
+            <span class="tech-tag">JWT</span>
+            <span class="tech-tag">Swagger / OpenAPI</span>
+            <span class="tech-tag">Docker</span>
+            <span class="tech-tag">Lombok</span>
+            <span class="tech-tag">MapStruct</span>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div style="margin-bottom:10px;">
+        <a href="/">Главная</a><a href="/about">О проекте</a><a href="/pricing">Прайс</a><a href="/login">Войти</a>
+    </div>
+    © 2025 Electronic Diary
+</footer>
+
 </body>
 </html>

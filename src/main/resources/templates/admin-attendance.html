@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Посещаемость — Администратор</title>
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
+    <style>
+        .status-badge { display:inline-block; padding:3px 10px; border-radius:999px; font-size:0.8em; font-weight:600; }
+        .status-present    { background:#dcfce7; color:#15803d; }
+        .status-absent     { background:#fee2e2; color:#b91c1c; }
+        .status-late       { background:#fef9c3; color:#854d0e; }
+        .status-reasonable { background:#dbeafe; color:#1d4ed8; }
+
+        .stat-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:4px; }
+        .progress-bar { height:8px; border-radius:999px; background:#f1f5f9; overflow:hidden; margin-top:4px; }
+        .progress-fill { height:100%; border-radius:999px; transition:width 0.3s; }
+
+        .group-card { margin-bottom:24px; }
+        .student-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); }
+        .student-row:last-child { border-bottom:none; }
+        .student-name { width:200px; font-weight:500; font-size:0.92em; }
+        .student-stats { display:flex; gap:6px; flex:1; flex-wrap:wrap; }
+        .student-rate { margin-left:auto; font-weight:700; font-size:1em; }
+    </style>
+</head>
+<body class="app-layout">
+<aside class="sidebar">
+    <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge">Администратор</span></div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+        <button id="logout-btn">🚪 Выйти</button>
+    </div>
+</aside>
+
+<div class="app-content">
+    <div class="page-header">
+        <h2>📋 Аналитика посещаемости</h2>
+        <p style="color:#64748b;margin-top:4px;">Подробная статистика по группам и ученикам</p>
+    </div>
+
+    <!-- Фильтры -->
+    <div class="card" style="margin-bottom:24px;">
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+            <div class="form-group" style="margin:0;">
+                <label>Группа</label>
+                <select id="group-filter" style="min-width:160px;">
+                    <option value="">Все группы</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin:0;"><label>С</label><input type="date" id="from-date"></div>
+            <div class="form-group" style="margin:0;"><label>По</label><input type="date" id="to-date"></div>
+            <button class="button" id="load-btn">Показать</button>
+        </div>
+    </div>
+
+    <!-- Сводная статистика -->
+    <div id="summary-section" style="display:none;">
+        <div class="stats-grid" id="summary-stats" style="margin-bottom:24px;"></div>
+    </div>
+
+    <!-- Детальная аналитика по группам -->
+    <div id="analytics-container"></div>
+</div>
+
+<script src="/js/sidebar.js"></script>
+<script src="/js/admin-attendance.js"></script>
+</body>
+</html>

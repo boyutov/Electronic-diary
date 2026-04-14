@@ -4,73 +4,77 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalTitle = document.getElementById("modal-title");
     const form = document.getElementById("director-form");
     const addBtn = document.getElementById("add-btn");
-    const closeBtn = document.getElementsByClassName("close")[0];
-    const schoolName = window.location.pathname.split('/')[1];
+    const closeBtn = document.getElementById("modal-close");
+    const formError = document.getElementById("form-error");
+    const schoolName = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
 
     function loadDirectors() {
-        fetch(`/api/${schoolName}/directors`)
-            .then(response => response.json())
+        apiFetch(`/api/${schoolName}/directors`)
+            .then(r => {
+                if (!r.ok) {
+                    tableBody.innerHTML = `<tr><td colspan='3' class='td-error'>Ошибка загрузки (${r.status})</td></tr>`;
+                    return null;
+                }
+                return r.json();
+            })
             .then(directors => {
+                if (!directors) return;
                 tableBody.innerHTML = "";
-                directors.forEach(director => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td>${director.firstName} ${director.secondName}</td>
-                        <td>${director.email}</td>
+                if (!directors.length) {
+                    tableBody.innerHTML = "<tr><td colspan='3' class='td-empty'>Директоров нет</td></tr>";
+                    return;
+                }
+                directors.forEach(d => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${d.firstName} ${d.secondName}${d.thirdName ? ' ' + d.thirdName : ''}</td>
+                        <td>${d.email}</td>
                         <td>
-                            <button class="action-btn edit-btn" data-id="${director.id}">Ред.</button>
-                            <button class="action-btn delete-btn" data-id="${director.id}">Удал.</button>
+                            <button class="button warning sm" data-id="${d.id}">Ред.</button>
+                            <button class="button danger sm" style="margin-left:4px;" data-id="${d.id}">Удал.</button>
                         </td>
                     `;
-                    tableBody.appendChild(row);
+                    tr.querySelector(".warning").addEventListener("click", () => openEditModal(d.id));
+                    tr.querySelector(".danger").addEventListener("click", () => deleteDirector(d.id));
+                    tableBody.appendChild(tr);
                 });
-
-                document.querySelectorAll(".edit-btn").forEach(btn => {
-                    btn.addEventListener("click", (e) => openEditModal(e.target.dataset.id));
-                });
-
-                document.querySelectorAll(".delete-btn").forEach(btn => {
-                    btn.addEventListener("click", (e) => deleteDirector(e.target.dataset.id));
-                });
+            })
+            .catch(err => {
+                if (err !== "Unauthorized")
+                    tableBody.innerHTML = `<tr><td colspan='3' class='td-error'>Ошибка: ${err}</td></tr>`;
             });
     }
 
     function openEditModal(id) {
         modalTitle.textContent = "Редактировать директора";
         document.getElementById("director-id").value = id;
-        
-        fetch(`/api/${schoolName}/directors/${id}`)
-            .then(response => response.json())
-            .then(director => {
-                document.getElementById("firstName").value = director.firstName;
-                document.getElementById("secondName").value = director.secondName;
-                document.getElementById("thirdName").value = director.thirdName || "";
-                document.getElementById("email").value = director.email;
-                document.getElementById("password").value = ""; // Don't show password
+        apiFetch(`/api/${schoolName}/directors/${id}`)
+            .then(r => r.json())
+            .then(d => {
+                document.getElementById("firstName").value = d.firstName;
+                document.getElementById("secondName").value = d.secondName;
+                document.getElementById("thirdName").value = d.thirdName || "";
+                document.getElementById("email").value = d.email;
+                document.getElementById("password").value = "";
             });
-        
-        modal.style.display = "block";
+        formError.style.display = "none";
+        modal.classList.add("open");
     }
 
     addBtn.onclick = () => {
-        modalTitle.textContent = "Создать директора";
+        modalTitle.textContent = "Добавить директора";
         form.reset();
         document.getElementById("director-id").value = "";
-        modal.style.display = "block";
+        formError.style.display = "none";
+        modal.classList.add("open");
     };
 
-    closeBtn.onclick = () => {
-        modal.style.display = "none";
-    };
+    closeBtn.onclick = () => modal.classList.remove("open");
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
 
-    window.onclick = (event) => {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    };
-
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", e => {
         e.preventDefault();
+        formError.style.display = "none";
         const id = document.getElementById("director-id").value;
         const method = id ? "PUT" : "POST";
         const url = id ? `/api/${schoolName}/directors/${id}` : `/api/${schoolName}/directors`;
@@ -83,46 +87,27 @@ document.addEventListener("DOMContentLoaded", () => {
             password: document.getElementById("password").value
         };
 
-        fetch(url, {
-            method: method,
-            headers: {
-                "Content-Type": "application/json"
-            },
+        apiFetch(url, {
+            method,
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
-        })
-        .then(response => {
-            if (response.ok) {
-                modal.style.display = "none";
+        }).then(r => {
+            if (r.ok) {
+                modal.classList.remove("open");
                 loadDirectors();
-                alert(id ? "Директор обновлен!" : "Директор создан!");
             } else {
-                response.json().then(errors => {
-                    let errorMessages = "";
-                    if (typeof errors === 'object') {
-                        for (const [field, message] of Object.entries(errors)) {
-                            errorMessages += `${field}: ${message}\n`;
-                        }
-                    } else {
-                        errorMessages = errors;
-                    }
-                    alert("Ошибка:\n" + errorMessages);
+                r.json().then(err => {
+                    formError.textContent = typeof err === "object" ? Object.values(err).join(", ") : String(err);
+                    formError.style.display = "block";
                 });
             }
         });
     });
 
     function deleteDirector(id) {
-        if (confirm("Вы уверены?")) {
-            fetch(`/api/${schoolName}/directors/${id}`, {
-                method: "DELETE"
-            }).then(response => {
-                if (response.ok) {
-                    loadDirectors();
-                } else {
-                    alert("Ошибка при удалении");
-                }
-            });
-        }
+        if (!confirm("Удалить директора?")) return;
+        apiFetch(`/api/${schoolName}/directors/${id}`, { method: "DELETE" })
+            .then(r => { if (r.ok) loadDirectors(); else alert("Ошибка при удалении"); });
     }
 
     loadDirectors();

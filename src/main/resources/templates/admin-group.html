@@ -1,134 +1,111 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Управление группами</title>
+    <title>Классы — Администратор</title>
     <link rel="stylesheet" href="/css/site.css">
-    <style>
-        /* Modal styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 500px;
-            border-radius: 8px;
-        }
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #f8fafc;
-        }
-        .action-btn {
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
-            margin-right: 4px;
-        }
-        .edit-btn {
-            background: #f59e0b;
-            color: white;
-        }
-        .delete-btn {
-            background: #ef4444;
-            color: white;
-        }
-    </style>
+    <script src="/js/api.js"></script>
 </head>
-<body>
-<header>
-    <h1>Electronic Diary</h1>
-    <nav>
-        <a href="/admin">Панель</a>
-        <a href="/">Главная</a>
-    </nav>
-</header>
-<main>
-    <section class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2>Группы</h2>
-            <button class="button" id="add-btn">Добавить группу</button>
+<body class="app-layout">
+<aside class="sidebar">
+    <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge">Администратор</span></div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+        <a href="/profile">👤 Личный кабинет</a>
+        <button id="logout-btn">🚪 Выйти</button>
+    </div>
+</aside>
+<div class="app-content">
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div><h2>Группы / Классы</h2><p>Управление классами и группами</p></div>
+        <button class="button" id="add-btn">+ Добавить класс</button>
+    </div>
+    <div class="card">
+        <div class="table-wrap">
+            <table id="groups-table">
+                <thead><tr><th>Название</th><th class="col-center">Курс</th><th>Кабинет</th><th class="col-center">Финансирование</th><th>Куратор</th><th>Действия</th></tr></thead>
+                <tbody></tbody>
+            </table>
         </div>
+    </div>
+</div>
 
-        <table id="groups-table">
-            <thead>
-                <tr>
-                    <th>Название</th>
-                    <th>Курс</th>
-                    <th>Кабинет</th>
-                    <th>Действия</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Rows will be populated by JS -->
-            </tbody>
-        </table>
-    </section>
-
-    <!-- Modal -->
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h3 id="modal-title">Создать группу</h3>
-            <form id="group-form" class="stacked-form">
-                <input type="hidden" id="group-id">
-                <label>Название</label>
-                <input id="name" placeholder="9Б" required>
-
+<!-- Модал: группа -->
+<div id="modal" class="modal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="modal-title">Добавить класс</h3>
+            <button class="modal-close" id="modal-close">&times;</button>
+        </div>
+        <form id="group-form">
+            <input type="hidden" id="group-id">
+            <div class="form-group"><label>Название</label><input id="name" placeholder="9Б" required></div>
+            <div class="form-group"><label>Курс (номер)</label><input id="course" type="number" placeholder="9" min="1" max="12"></div>
+            <div class="form-group">
+                <label>Финансирование</label>
+                <select id="fundingType">
+                    <option value="BUDGET" selected>Бюджет</option>
+                    <option value="CONTRACT">Контракт</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label>Есть кабинет</label>
-                <select id="hasOffice" data-toggle-target="group-office">
+                <select id="hasOffice">
                     <option value="no" selected>Нет</option>
                     <option value="yes">Да</option>
                 </select>
-                <div id="group-office" class="conditional">
-                    <label>Кабинет</label>
-                    <input id="office" placeholder="203">
-                </div>
+            </div>
+            <div class="form-group" id="group-office" style="display:none;">
+                <label>Кабинет</label><input id="office" placeholder="203">
+            </div>
+            <div id="form-error" class="alert-error" style="display:none;"></div>
+            <button class="button" type="submit" style="width:100%;">Сохранить</button>
+        </form>
+    </div>
+</div>
 
-                <label>Курс (номер)</label>
-                <input id="course" type="number" placeholder="1">
-                <button class="button" type="submit">Сохранить</button>
-            </form>
+<!-- Модал: ученики группы -->
+<div id="students-modal" class="modal">
+    <div class="modal-box" style="max-width:700px;">
+        <div class="modal-header">
+            <h3 id="students-modal-title">Ученики</h3>
+            <button class="modal-close" id="students-modal-close">&times;</button>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+            <button class="button" id="add-student-btn">+ Добавить ученика</button>
+        </div>
+        <div class="table-wrap">
+            <table id="students-table">
+                <thead><tr><th>ФИО</th><th>Email</th><th class="col-center">Возраст</th><th>Действия</th></tr></thead>
+                <tbody></tbody>
+            </table>
         </div>
     </div>
-</main>
-<script src="/js/admin-forms.js"></script>
+</div>
+
+<!-- Модал: форма ученика -->
+<div id="student-form-modal" class="modal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="student-form-title">Добавить ученика</h3>
+            <button class="modal-close" id="student-form-close">&times;</button>
+        </div>
+        <form id="student-form">
+            <input type="hidden" id="student-id">
+            <div class="form-group"><label>Имя</label><input id="s-firstName" placeholder="Имя" required></div>
+            <div class="form-group"><label>Фамилия</label><input id="s-secondName" placeholder="Фамилия" required></div>
+            <div class="form-group"><label>Отчество</label><input id="s-thirdName" placeholder="Отчество"></div>
+            <div class="form-group"><label>Email</label><input id="s-email" type="email" placeholder="student@school.kz" required></div>
+            <div class="form-group"><label>Пароль <span style="font-weight:400;color:#64748b;">(обязателен при создании)</span></label><input id="s-password" type="password" placeholder="Пароль"></div>
+            <div class="form-group"><label>Возраст</label><input id="s-age" type="number" placeholder="15" min="5" max="25" required></div>
+            <div id="student-form-error" class="alert-error" style="display:none;"></div>
+            <button class="button" type="submit" style="width:100%;">Сохранить</button>
+        </form>
+    </div>
+</div>
+
 <script src="/js/admin-group.js"></script>
-<script src="/js/navigation.js"></script>
+<script src="/js/sidebar.js"></script>
 </body>
 </html>
+

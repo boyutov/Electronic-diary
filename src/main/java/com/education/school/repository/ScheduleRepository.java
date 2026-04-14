@@ -15,4 +15,6 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Integer> {
 
     @Query("SELECT s FROM Schedule s WHERE s.teacher.id = :teacherId AND s.date BETWEEN :startDate AND :endDate")
     List<Schedule> findByTeacherIdAndDateBetween(@Param("teacherId") Integer teacherId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    List<Schedule> findByTeacherId(Integer teacherId);
 }

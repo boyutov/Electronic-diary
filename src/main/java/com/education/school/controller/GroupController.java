@@ -3,7 +3,6 @@ package com.education.school.controller;
 import com.education.school.dto.GroupRequest;
 import com.education.school.dto.GroupResponse;
 import com.education.school.dto.StudentDto;
-import com.education.school.entity.GroupEntity;
 import com.education.school.service.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,23 +31,27 @@ public class GroupController {
     @GetMapping("/{id}")
     @Operation(summary = "Получить группу по ID")
     public ResponseEntity<GroupResponse> findById(@PathVariable String schoolName, @PathVariable Integer id) {
-        GroupEntity group = service.findById(id);
-        return group != null ? ResponseEntity.ok(GroupResponse.from(group)) : ResponseEntity.notFound().build();
+        return service.findById(id) != null
+                ? ResponseEntity.ok(GroupResponse.from(service.findById(id)))
+                : ResponseEntity.notFound().build();
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Создать группу")
-    public GroupEntity create(@PathVariable String schoolName, @Valid @RequestBody GroupRequest request) {
-        return service.create(request);
+    public GroupResponse create(@PathVariable String schoolName, @Valid @RequestBody GroupRequest request) {
+        return GroupResponse.from(service.create(request));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Обновить группу")
-    public GroupEntity update(@PathVariable String schoolName, @PathVariable Integer id, @Valid @RequestBody GroupRequest request) {
-        return service.update(id, request);
+    public GroupResponse update(@PathVariable String schoolName, @PathVariable Integer id, @Valid @RequestBody GroupRequest request) {
+        return GroupResponse.from(service.update(id, request));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Удалить группу")
     public ResponseEntity<Void> delete(@PathVariable String schoolName, @PathVariable Integer id) {
         service.delete(id);
@@ -56,8 +59,8 @@ public class GroupController {
     }
 
     @GetMapping("/{groupId}/students")
-    @PreAuthorize("hasAnyAuthority('TEACHER', 'ADMIN')")
-    @Operation(summary = "Получить список учеников группы (только для куратора или админа)")
+    @PreAuthorize("hasAnyAuthority('TEACHER', 'ADMIN', 'DIRECTOR')")
+    @Operation(summary = "Получить список учеников группы")
     public ResponseEntity<List<StudentDto>> getStudentsByGroupId(@PathVariable String schoolName, @PathVariable Integer groupId) {
         try {
             List<StudentDto> students = service.getStudentsByGroupId(groupId);

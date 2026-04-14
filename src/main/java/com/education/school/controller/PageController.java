@@ -64,6 +64,11 @@ public class PageController {
         return "curator-student";
     }
 
+    @GetMapping("/{schoolName}/curator/students-list")
+    public String curatorStudentsList(@PathVariable String schoolName) {
+        return "curator-students-list";
+    }
+
     @GetMapping("/{schoolName}/admin/parent")
     public String adminParent(@PathVariable String schoolName) {
         return "admin-parent";
@@ -132,5 +137,35 @@ public class PageController {
     @GetMapping("/{schoolName}/schedule")
     public String scheduleView(@PathVariable String schoolName) {
         return "schedule-view";
+    }
+
+    @GetMapping("/{schoolName}/polls")
+    public String polls(@PathVariable String schoolName) {
+        return "polls";
+    }
+
+    @GetMapping("/{schoolName}/complaints")
+    public String complaints(@PathVariable String schoolName) {
+        return "complaints";
+    }
+
+    @GetMapping("/{schoolName}/canteen")
+    public String canteen(@PathVariable String schoolName) {
+        return "canteen";
+    }
+
+    @GetMapping("/{schoolName}/attendance")
+    public String attendance(@PathVariable String schoolName) {
+        return "attendance";
+    }
+
+    @GetMapping("/{schoolName}/admin/attendance")
+    public String adminAttendance(@PathVariable String schoolName) {
+        return "admin-attendance";
+    }
+
+    @GetMapping("/{schoolName}/exams")
+    public String exams(@PathVariable String schoolName) {
+        return "exams";
     }
 }

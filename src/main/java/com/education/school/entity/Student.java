@@ -41,6 +41,8 @@ public class Student {
     private User createdByAdminUser;
 
     private String email;
+    
+    private String phone;
 
     @ManyToMany(mappedBy = "students")
     private Set<Parent> parents = new HashSet<>();

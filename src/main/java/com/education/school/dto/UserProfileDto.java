@@ -15,6 +15,11 @@ public class UserProfileDto {
     private String thirdName;
     private String email;
     private String role;
+    
+    // Extended fields
+    private String phone;
+    private String bio;
+    private String office;
 
     public static UserProfileDto from(User user) {
         return new UserProfileDto(
@@ -23,7 +28,10 @@ public class UserProfileDto {
             user.getSecondName(),
             user.getThirdName(),
             user.getEmail(),
-            user.getRole().getName()
+            user.getRole().getName(),
+            null, // phone
+            null, // bio
+            null  // office
         );
     }
 }

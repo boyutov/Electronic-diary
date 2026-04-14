@@ -2,38 +2,173 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Вход в школу</title>
-    <link rel="stylesheet" href="/css/site.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход — Electronic Diary</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Inter", "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .brand {
+            color: #fff;
+            font-size: 1.3em;
+            font-weight: 800;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+        .brand span { color: #60a5fa; }
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+        }
+        .card h2 {
+            font-size: 1.5em;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+        .card .subtitle {
+            font-size: 0.88em;
+            color: #64748b;
+            margin-bottom: 28px;
+        }
+        .form-group { margin-bottom: 18px; }
+        .form-group label {
+            display: block;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.92em;
+            font-family: inherit;
+            color: #0f172a;
+            background: #f8fafc;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            outline: none;
+        }
+        .form-group input:focus {
+            border-color: #2563eb;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+        .btn {
+            width: 100%;
+            padding: 13px;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95em;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s, transform 0.1s;
+            margin-top: 4px;
+        }
+        .btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .error-msg {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .notice {
+            background: #fef9c3;
+            color: #854d0e;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 0.82em;
+            margin-top: 20px;
+            line-height: 1.5;
+        }
+        .notice a { color: #92400e; font-weight: 600; }
+        .back-link {
+            color: #94a3b8;
+            font-size: 0.85em;
+            text-decoration: none;
+            margin-top: 20px;
+            display: block;
+            text-align: center;
+        }
+        .back-link:hover { color: #fff; }
+    </style>
 </head>
 <body>
-<header>
-    <h1>Electronic Diary</h1>
-    <nav>
-        <a href="/">Главная</a>
-        <a href="/about">О проекте</a>
-        <a href="/pricing">Прайс</a>
-    </nav>
-</header>
-<main>
-    <section class="card">
-        <span class="badge">Вход</span>
-        <h2>Войти в школу</h2>
-        <form method="post" action="/login">
+
+<div class="brand">📚 <span>Electronic</span>Diary</div>
+
+<div class="card">
+    <h2>Добро пожаловать</h2>
+    <p class="subtitle">Войдите в панель вашей школы</p>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <form id="login-form">
+        <div class="form-group">
             <label for="schoolName">Название школы</label>
-            <input id="schoolName" name="schoolName" required>
-
-            <label for="username">Email</label>
-            <input id="username" name="username" type="email" required>
-
-            <label for="password">Пароль</label>
-            <input id="password" name="password" type="password" required>
-
-            <button class="button" type="submit">Войти</button>
-        </form>
-        <div class="notice">
-            Если вы только что зарегистрировали школу, сначала пройдите <a href="/activate">активацию</a>.
+            <input id="schoolName" name="schoolName" placeholder="school123" required autocomplete="organization">
         </div>
-    </section>
-</main>
+        <div class="form-group">
+            <label for="username">Email</label>
+            <input id="username" name="username" type="email" placeholder="admin@school.kz" required autocomplete="email">
+        </div>
+        <div class="form-group">
+            <label for="password">Пароль</label>
+            <input id="password" name="password" type="password" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <button class="btn" type="submit">Войти →</button>
+    </form>
+
+    <div class="notice">
+        Только что зарегистрировали школу? Сначала пройдите
+        <a href="/activate">активацию</a>.
+    </div>
+</div>
+
+<a class="back-link" href="/">← Вернуться на главную</a>
+
+<script src="/js/login.js"></script>
+<script>
+// Override default login.js error handling to show inline error
+const origSubmit = document.getElementById('login-form').onsubmit;
+document.getElementById('login-form').addEventListener('submit', () => {
+    document.getElementById('error-msg').style.display = 'none';
+});
+// Patch fetch error display
+const _origFetch = window.fetch;
+</script>
+<script>
+// Patch login error to show inline
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('login-form');
+    const errorMsg = document.getElementById('error-msg');
+    // login.js already handles submit, we just need to intercept alert
+    window._loginError = (msg) => {
+        errorMsg.textContent = msg;
+        errorMsg.style.display = 'block';
+    };
+});
+</script>
 </body>
 </html>

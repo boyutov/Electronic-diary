@@ -28,17 +28,17 @@ public class DisciplineService {
     }
 
     @Transactional
-    public Discipline create(Discipline discipline) {
+    public Discipline create(String name) {
+        Discipline discipline = new Discipline();
+        discipline.setName(name);
         return repository.save(discipline);
     }
 
     @Transactional
-    public Discipline update(Integer id, Discipline disciplineDetails) {
+    public Discipline update(Integer id, String name) {
         Discipline discipline = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Discipline not found"));
-        
-        discipline.setName(disciplineDetails.getName());
-        
+        discipline.setName(name);
         return repository.save(discipline);
     }
 

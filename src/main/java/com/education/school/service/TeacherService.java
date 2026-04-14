@@ -23,6 +23,7 @@ public class TeacherService {
     private final RoleRepository roleRepository;
     private final GroupRepository groupRepository;
     private final DisciplineRepository disciplineRepository;
+    private final ScheduleRepository scheduleRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
@@ -145,5 +146,25 @@ public class TeacherService {
     @Transactional
     public void delete(Integer id) {
         teacherRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<java.util.Map<String, Object>> getMyGroupsWithDisciplines() {
+        String email = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication().getName();
+        com.education.school.entity.User user = userRepository.findByEmail(email);
+        Teacher teacher = teacherRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new IllegalStateException("Teacher not found"));
+
+        // Уникальные пары (группа, дисциплина) из расписания учителя
+        return scheduleRepository.findByTeacherId(teacher.getId()).stream()
+                .map(s -> java.util.Map.<String, Object>of(
+                        "groupId", s.getGroup().getId(),
+                        "groupName", s.getGroup().getName(),
+                        "disciplineId", s.getDiscipline().getId(),
+                        "disciplineName", s.getDiscipline().getName()
+                ))
+                .distinct()
+                .collect(Collectors.toList());
     }
 }

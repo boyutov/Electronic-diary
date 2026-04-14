@@ -31,6 +31,9 @@ public class GroupEntity {
 
     private Integer course;
 
+    @Column(name = "funding_type")
+    private String fundingType; // BUDGET or CONTRACT
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "deleted_by_admin_user_id")
     private User deletedByAdminUser;

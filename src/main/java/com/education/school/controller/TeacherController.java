@@ -2,7 +2,6 @@ package com.education.school.controller;
 
 import com.education.school.dto.TeacherRequest;
 import com.education.school.dto.TeacherResponse;
-import com.education.school.entity.Teacher;
 import com.education.school.service.TeacherService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,20 +35,27 @@ public class TeacherController {
     @GetMapping("/{id}")
     @Operation(summary = "Получить учителя по ID")
     public ResponseEntity<TeacherResponse> findById(@PathVariable String schoolName, @PathVariable Integer id) {
-        Teacher teacher = service.findById(id);
-        return teacher != null ? ResponseEntity.ok(TeacherResponse.from(teacher)) : ResponseEntity.notFound().build();
+        return service.findById(id) != null
+                ? ResponseEntity.ok(TeacherResponse.from(service.findById(id)))
+                : ResponseEntity.notFound().build();
     }
 
     @PostMapping
     @Operation(summary = "Создать учителя")
-    public Teacher create(@PathVariable String schoolName, @Valid @RequestBody TeacherRequest request) {
-        return service.create(request);
+    public TeacherResponse create(@PathVariable String schoolName, @Valid @RequestBody TeacherRequest request) {
+        return TeacherResponse.from(service.create(request));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Обновить учителя")
-    public Teacher update(@PathVariable String schoolName, @PathVariable Integer id, @Valid @RequestBody TeacherRequest request) {
-        return service.update(id, request);
+    public TeacherResponse update(@PathVariable String schoolName, @PathVariable Integer id, @Valid @RequestBody TeacherRequest request) {
+        return TeacherResponse.from(service.update(id, request));
+    }
+
+    @GetMapping("/my/groups-disciplines")
+    @Operation(summary = "Получить группы и предметы текущего учителя")
+    public List<java.util.Map<String, Object>> getMyGroupsWithDisciplines(@PathVariable String schoolName) {
+        return service.getMyGroupsWithDisciplines();
     }
 
     @DeleteMapping("/{id}")

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Задания</title>
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
+    <style>
+        .exam-type-EXAM     { background:#fee2e2; color:#b91c1c; }
+        .exam-type-TEST     { background:#fef9c3; color:#854d0e; }
+        .exam-type-QUIZ     { background:#dbeafe; color:#1d4ed8; }
+        .exam-type-HOMEWORK { background:#f3e8ff; color:#7c3aed; }
+        .exam-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+        .exam-card { background:#fff; border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow); padding:20px; }
+        .exam-card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+        .exam-card-title { font-weight:700; font-size:1em; }
+        .exam-card-meta { font-size:0.85em; color:#64748b; margin-bottom:8px; }
+        .exam-card-desc { font-size:0.88em; color:#64748b; margin-bottom:10px; }
+        .exam-card-groups { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px; }
+        .days-left { font-size:0.78em; font-weight:700; padding:3px 8px; border-radius:999px; }
+        .days-soon   { background:#fee2e2; color:#b91c1c; }
+        .days-near   { background:#fef9c3; color:#854d0e; }
+        .days-normal { background:#dcfce7; color:#15803d; }
+        .days-past   { background:#f1f5f9; color:#94a3b8; }
+    </style>
+</head>
+<body class="app-layout">
+<aside class="sidebar">
+    <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge">Пользователь</span></div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer"><button id="logout-btn">🚪 Выйти</button></div>
+</aside>
+
+<div class="app-content">
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+            <h2>📚 Задания</h2>
+            <p style="color:#64748b;margin-top:4px;" id="page-subtitle">Загрузка...</p>
+        </div>
+        <button class="button" id="add-btn" style="display:none;">+ Добавить</button>
+    </div>
+
+    <div id="exams-container" class="exam-grid">
+        <p style="color:#64748b;">Загрузка...</p>
+    </div>
+</div>
+
+<!-- Модал -->
+<div id="modal" class="modal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="modal-title">Добавить экзамен/тест</h3>
+            <button class="modal-close" id="modal-close">&times;</button>
+        </div>
+        <form id="exam-form">
+            <input type="hidden" id="exam-id">
+            <div class="form-group">
+                <label>Тип</label>
+                <select id="type">
+                    <option value="EXAM">📋 Экзамен</option>
+                    <option value="TEST">📄 Тест</option>
+                    <option value="QUIZ">❓ Контрольная</option>
+                    <option value="HOMEWORK">📚 Домашнее задание</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Название</label><input id="title" placeholder="Итоговый экзамен / Дз по математике" required></div>
+            <div class="form-group"><label>Предмет</label><select id="discipline"><option value="">— Не указан —</option></select></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="form-group"><label id="date-label">Дата</label><input type="date" id="examDate" required></div>
+                <div class="form-group"><label>Время</label><input type="time" id="examTime"></div>
+            </div>
+            <div class="form-group"><label>Описание / Темы / Задание</label><textarea id="description" placeholder="Темы: алгебра, геометрия... или текст задания"></textarea></div>
+            <div class="form-group">
+                <label>Группы</label>
+                <div id="groups-container" style="max-height:150px;overflow-y:auto;border:1.5px solid #e2e8f0;padding:10px;border-radius:8px;">
+                    <p style="color:#64748b;font-size:0.9em;">Загрузка...</p>
+                </div>
+            </div>
+            <div id="form-error" class="alert-error" style="display:none;"></div>
+            <button class="button" type="submit" style="width:100%;">Сохранить</button>
+        </form>
+    </div>
+</div>
+
+<script src="/js/sidebar.js"></script>
+<script src="/js/exams.js"></script>
+</body>
+</html>

@@ -4,116 +4,93 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalTitle = document.getElementById("modal-title");
     const form = document.getElementById("discipline-form");
     const addBtn = document.getElementById("add-btn");
-    const closeBtn = document.getElementsByClassName("close")[0];
-    const schoolName = window.location.pathname.split('/')[1];
+    const closeBtn = document.getElementById("modal-close");
+    const formError = document.getElementById("form-error");
+    const schoolName = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
 
     function loadDisciplines() {
-        fetch(`/api/${schoolName}/disciplines`)
-            .then(response => response.json())
+        apiFetch(`/api/${schoolName}/disciplines`)
+            .then(r => {
+                if (!r.ok) {
+                    tableBody.innerHTML = `<tr><td colspan='2' class='td-error'>Ошибка загрузки (${r.status})</td></tr>`;
+                    return null;
+                }
+                return r.json();
+            })
             .then(disciplines => {
+                if (!disciplines) return;
                 tableBody.innerHTML = "";
-                disciplines.forEach(discipline => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td>${discipline.name}</td>
+                if (!disciplines.length) {
+                    tableBody.innerHTML = "<tr><td colspan='2' class='td-empty'>Предметов нет</td></tr>";
+                    return;
+                }
+                disciplines.forEach(d => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${d.name}</td>
                         <td>
-                            <button class="action-btn edit-btn" data-id="${discipline.id}">Ред.</button>
-                            <button class="action-btn delete-btn" data-id="${discipline.id}">Удал.</button>
+                            <button class="button warning sm" data-id="${d.id}">Ред.</button>
+                            <button class="button danger sm" style="margin-left:4px;" data-id="${d.id}">Удал.</button>
                         </td>
                     `;
-                    tableBody.appendChild(row);
+                    tr.querySelector(".warning").addEventListener("click", () => openEditModal(d.id, d.name));
+                    tr.querySelector(".danger").addEventListener("click", () => deleteDiscipline(d.id));
+                    tableBody.appendChild(tr);
                 });
-
-                document.querySelectorAll(".edit-btn").forEach(btn => {
-                    btn.addEventListener("click", (e) => openEditModal(e.target.dataset.id));
-                });
-
-                document.querySelectorAll(".delete-btn").forEach(btn => {
-                    btn.addEventListener("click", (e) => deleteDiscipline(e.target.dataset.id));
-                });
+            })
+            .catch(err => {
+                if (err !== "Unauthorized")
+                    tableBody.innerHTML = `<tr><td colspan='2' style='text-align:center;color:#ef4444;padding:24px;'>Ошибка: ${err}</td></tr>`;
             });
     }
 
-    function openEditModal(id) {
+    function openEditModal(id, name) {
         modalTitle.textContent = "Редактировать предмет";
         document.getElementById("discipline-id").value = id;
-        
-        fetch(`/api/${schoolName}/disciplines/${id}`)
-            .then(response => response.json())
-            .then(discipline => {
-                document.getElementById("name").value = discipline.name;
-            });
-
-        modal.style.display = "block";
+        document.getElementById("name").value = name;
+        formError.style.display = "none";
+        modal.classList.add("open");
     }
 
     addBtn.onclick = () => {
-        modalTitle.textContent = "Создать предмет";
+        modalTitle.textContent = "Добавить предмет";
         form.reset();
         document.getElementById("discipline-id").value = "";
-        modal.style.display = "block";
+        formError.style.display = "none";
+        modal.classList.add("open");
     };
 
-    closeBtn.onclick = () => {
-        modal.style.display = "none";
-    };
+    closeBtn.onclick = () => modal.classList.remove("open");
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
 
-    window.onclick = (event) => {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    };
-
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", e => {
         e.preventDefault();
+        formError.style.display = "none";
         const id = document.getElementById("discipline-id").value;
         const method = id ? "PUT" : "POST";
         const url = id ? `/api/${schoolName}/disciplines/${id}` : `/api/${schoolName}/disciplines`;
 
-        const data = {
-            name: document.getElementById("name").value
-        };
-
-        fetch(url, {
-            method: method,
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => {
-            if (response.ok) {
-                modal.style.display = "none";
+        apiFetch(url, {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: document.getElementById("name").value })
+        }).then(r => {
+            if (r.ok) {
+                modal.classList.remove("open");
                 loadDisciplines();
-                alert(id ? "Предмет обновлен!" : "Предмет создан!");
             } else {
-                response.json().then(errors => {
-                    let errorMessages = "";
-                    if (typeof errors === 'object') {
-                        for (const [field, message] of Object.entries(errors)) {
-                            errorMessages += `${field}: ${message}\n`;
-                        }
-                    } else {
-                        errorMessages = errors;
-                    }
-                    alert("Ошибка:\n" + errorMessages);
+                r.json().then(err => {
+                    formError.textContent = typeof err === "object" ? Object.values(err).join(", ") : String(err);
+                    formError.style.display = "block";
                 });
             }
         });
     });
 
     function deleteDiscipline(id) {
-        if (confirm("Вы уверены?")) {
-            fetch(`/api/${schoolName}/disciplines/${id}`, {
-                method: "DELETE"
-            }).then(response => {
-                if (response.ok) {
-                    loadDisciplines();
-                } else {
-                    alert("Ошибка при удалении");
-                }
-            });
-        }
+        if (!confirm("Удалить предмет?")) return;
+        apiFetch(`/api/${schoolName}/disciplines/${id}`, { method: "DELETE" })
+            .then(r => { if (r.ok) loadDisciplines(); else alert("Ошибка при удалении"); });
     }
 
     loadDisciplines();

@@ -1,52 +1,58 @@
-const loginForm = document.getElementById("login-form");
-const loginResult = document.getElementById("login-result");
+document.addEventListener("DOMContentLoaded", () => {
+    const loginForm = document.getElementById("login-form");
 
-const showLoginResult = (message, isError = false) => {
-    loginResult.hidden = false;
-    loginResult.style.background = isError ? "#fee2e2" : "#dcfce7";
-    loginResult.style.color = isError ? "#991b1b" : "#166534";
-    loginResult.textContent = message;
-};
+    if (loginForm) {
+        loginForm.addEventListener("submit", (e) => {
+            e.preventDefault();
 
-loginForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    loginResult.hidden = true;
+            const schoolName = document.getElementById("schoolName").value;
+            const email = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
 
-    const payload = {
-        schoolPassword: loginForm.schoolPassword.value.trim(),
-        firstName: loginForm.firstName.value.trim(),
-        secondName: loginForm.secondName.value.trim(),
-        thirdName: loginForm.thirdName.value.trim() || null,
-        lastName: loginForm.lastName.value.trim() || null,
-        email: loginForm.email.value.trim()
-    };
+            fetch("/api/auth/authenticate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    schoolName: schoolName,
+                    email: email,
+                    password: password
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Неверный email, пароль или название школы");
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Сохраняем токен в sessionStorage (уникален для каждой вкладки!)
+                sessionStorage.setItem("jwtToken", data.token);
+                sessionStorage.setItem("schoolName", data.schoolName);
+                sessionStorage.setItem("userRole", data.role);
 
-    if (!payload.schoolPassword || !payload.firstName || !payload.secondName || !payload.email) {
-        showLoginResult("Пожалуйста, заполните обязательные поля.", true);
-        return;
-    }
+                // Перенаправляем на нужную страницу в зависимости от роли
+                const role = data.role;
+                let redirectUrl = `/${data.schoolName}`;
 
-    loginForm.querySelector("button").disabled = true;
+                if (role === "ADMIN") redirectUrl += "/admin";
+                else if (role === "DIRECTOR") redirectUrl += "/director";
+                else if (role === "TEACHER") redirectUrl += "/teacher";
+                else if (role === "PARENT") redirectUrl += "/parent";
+                else if (role === "STUDENT") redirectUrl += "/student";
 
-    try {
-        const response = await fetch("/api/purchase/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+                window.location.href = redirectUrl;
+            })
+            .catch(error => {
+                const errEl = document.getElementById('error-msg');
+                if (errEl) {
+                    errEl.textContent = error.message;
+                    errEl.style.display = 'block';
+                } else {
+                    alert(error.message);
+                }
+            });
         });
-
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.message || "Не удалось активировать аккаунт школы.");
-        }
-
-        showLoginResult("Готово! Аккаунт школы активирован, администратор создан. Переходим в панель...");
-        setTimeout(() => {
-            window.location.href = "/admin";
-        }, 1200);
-    } catch (error) {
-        showLoginResult(error.message, true);
-    } finally {
-        loginForm.querySelector("button").disabled = false;
     }
 });

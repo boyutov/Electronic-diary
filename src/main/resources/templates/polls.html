@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Голосования</title>
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
+</head>
+<body class="app-layout">
+<aside class="sidebar">
+    <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge">Пользователь</span></div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+        <button id="logout-btn">🚪 Выйти</button>
+    </div>
+</aside>
+<div class="app-content">
+    <div class="page-header">
+        <h2>📋 Голосования</h2>
+        <p style="color:#64748b;margin-top:4px;">Активные голосования доступные вам</p>
+    </div>
+    <div id="polls-container"><p style="color:#64748b;">Загрузка...</p></div>
+</div>
+<script src="/js/sidebar.js"></script>
+<script src="/js/polls.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const schoolName = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
+    initPolls("polls-container", schoolName);
+});
+</script>
+</body>
+</html>

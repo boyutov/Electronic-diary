@@ -22,10 +22,16 @@ public class ComplaintController {
     private final ComplaintService service;
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
-    @Operation(summary = "Получить все жалобы (только для директора/админа)")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR', 'MINISTRY')")
+    @Operation(summary = "Получить все жалобы")
     public List<ComplaintDto> findAll(@PathVariable String schoolName) {
         return service.findAll();
+    }
+
+    @GetMapping("/my")
+    @Operation(summary = "Мои жалобы")
+    public List<ComplaintDto> findMy(@PathVariable String schoolName) {
+        return service.findMy();
     }
 
     @PostMapping

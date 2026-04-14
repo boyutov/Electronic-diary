@@ -4,16 +4,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalTitle = document.getElementById("modal-title");
     const form = document.getElementById("teacher-form");
     const addBtn = document.getElementById("add-btn");
-    const closeBtn = document.getElementsByClassName("close")[0];
+    const closeBtn = document.getElementById("modal-close");
     const groupSelect = document.getElementById("group");
     const hasOfficeSelect = document.getElementById("hasOffice");
     const hasGroupSelect = document.getElementById("hasGroup");
     const disciplinesContainer = document.getElementById("disciplines-container");
-    const schoolName = window.location.pathname.split('/')[1];
+    const formError = document.getElementById("form-error");
+    const schoolName = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
 
     // Load groups
-    fetch(`/api/${schoolName}/groups`)
-        .then(response => response.json())
+    apiFetch(`/api/${schoolName}/groups`)
+        .then(response => response.ok ? response.json() : [])
         .then(groups => {
             groupSelect.innerHTML = "<option selected disabled>Выберите группу</option>";
             groups.forEach(group => {
@@ -22,18 +23,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 option.textContent = group.name;
                 groupSelect.appendChild(option);
             });
-        });
+        })
+        .catch(() => {});
 
     // Load disciplines
-    fetch(`/api/${schoolName}/disciplines`)
-        .then(response => response.json())
+    apiFetch(`/api/${schoolName}/disciplines`)
+        .then(response => response.ok ? response.json() : [])
         .then(disciplines => {
             disciplinesContainer.innerHTML = "";
-            if (disciplines.length === 0) {
+            if (!disciplines.length) {
                 disciplinesContainer.innerHTML = "<p>Нет предметов. Создайте их сначала.</p>";
                 return;
             }
-            
             disciplines.forEach(discipline => {
                 const div = document.createElement("div");
                 div.className = "checkbox-item";
@@ -43,34 +44,45 @@ document.addEventListener("DOMContentLoaded", () => {
                 `;
                 disciplinesContainer.appendChild(div);
             });
-        });
+        })
+        .catch(() => {});
 
     function loadTeachers() {
-        fetch(`/api/${schoolName}/teachers`)
-            .then(response => response.json())
+        apiFetch(`/api/${schoolName}/teachers`)
+            .then(response => {
+                if (!response.ok) {
+                    tableBody.innerHTML = `<tr><td colspan='5' class='td-error'>Ошибка загрузки (${response.status})</td></tr>`;
+                    return null;
+                }
+                return response.json();
+            })
             .then(teachers => {
+                if (!teachers) return;
                 tableBody.innerHTML = "";
+                if (!teachers.length) {
+                    tableBody.innerHTML = "<tr><td colspan='5' class='td-empty'>Учителей нет</td></tr>";
+                    return;
+                }
                 teachers.forEach(teacher => {
                     const row = document.createElement("tr");
                     row.innerHTML = `
                         <td>${teacher.firstName} ${teacher.secondName}</td>
                         <td>${teacher.email}</td>
-                        <td>${teacher.phone || "-"}</td>
+                        <td>${teacher.phone || "—"}</td>
+                        <td>${teacher.groupName || "—"}</td>
                         <td>
-                            <button class="action-btn edit-btn" data-id="${teacher.id}">Ред.</button>
-                            <button class="action-btn delete-btn" data-id="${teacher.id}">Удал.</button>
+                            <button class="button warning sm">Ред.</button>
+                            <button class="button danger sm" style="margin-left:4px;">Удал.</button>
                         </td>
                     `;
+                    row.querySelector(".warning").addEventListener("click", () => openEditModal(teacher.id));
+                    row.querySelector(".danger").addEventListener("click", () => deleteTeacher(teacher.id));
                     tableBody.appendChild(row);
                 });
-
-                document.querySelectorAll(".edit-btn").forEach(btn => {
-                    btn.addEventListener("click", (e) => openEditModal(e.target.dataset.id));
-                });
-
-                document.querySelectorAll(".delete-btn").forEach(btn => {
-                    btn.addEventListener("click", (e) => deleteTeacher(e.target.dataset.id));
-                });
+            })
+            .catch(err => {
+                if (err !== "Unauthorized")
+                    tableBody.innerHTML = `<tr><td colspan='5' class='td-error'>Ошибка: ${err}</td></tr>`;
             });
     }
 
@@ -78,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
         modalTitle.textContent = "Редактировать учителя";
         document.getElementById("teacher-id").value = id;
         
-        fetch(`/api/${schoolName}/teachers/${id}`)
+        apiFetch(`/api/${schoolName}/teachers/${id}`)
             .then(response => response.json())
             .then(teacher => {
                 document.getElementById("firstName").value = teacher.firstName;
@@ -90,14 +102,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.getElementById("bio").value = teacher.bio || "";
                 
                 hasOfficeSelect.value = teacher.hasOffice ? "yes" : "no";
+                document.getElementById("teacher-office").style.display = teacher.hasOffice ? "block" : "none";
                 document.getElementById("office").value = teacher.office || "";
-                toggleConditional(hasOfficeSelect);
 
                 hasGroupSelect.value = teacher.hasGroup ? "yes" : "no";
+                document.getElementById("teacher-group").style.display = teacher.hasGroup ? "block" : "none";
                 if (teacher.hasGroup && teacher.groupId) {
                     groupSelect.value = teacher.groupId;
                 }
-                toggleConditional(hasGroupSelect);
 
                 // Set disciplines
                 document.querySelectorAll("input[name='disciplines']").forEach(cb => {
@@ -105,30 +117,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             });
         
-        modal.style.display = "block";
+        modal.classList.add("open");
     }
 
     addBtn.onclick = () => {
         modalTitle.textContent = "Создать учителя";
         form.reset();
         document.getElementById("teacher-id").value = "";
-        modal.style.display = "block";
-        // Reset conditionals
-        toggleConditional(hasOfficeSelect);
-        toggleConditional(hasGroupSelect);
-        // Reset checkboxes
+        if (formError) formError.style.display = "none";
+        document.getElementById("teacher-office").style.display = "none";
+        document.getElementById("teacher-group").style.display = "none";
         document.querySelectorAll("input[name='disciplines']").forEach(cb => cb.checked = false);
+        modal.classList.add("open");
     };
 
-    closeBtn.onclick = () => {
-        modal.style.display = "none";
-    };
-
-    window.onclick = (event) => {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    };
+    closeBtn.onclick = () => modal.classList.remove("open");
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
 
     form.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -160,29 +164,23 @@ document.addEventListener("DOMContentLoaded", () => {
             disciplineIds: selectedDisciplines
         };
 
-        fetch(url, {
+        apiFetch(url, {
             method: method,
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify(data)
         })
-        .then(response => {
-            if (response.ok) {
-                modal.style.display = "none";
+        .then(r => {
+            if (r.ok) {
+                modal.classList.remove("open");
                 loadTeachers();
-                alert(id ? "Учитель обновлен!" : "Учитель создан!");
             } else {
-                response.json().then(errors => {
-                    let errorMessages = "";
-                    if (typeof errors === 'object') {
-                        for (const [field, message] of Object.entries(errors)) {
-                            errorMessages += `${field}: ${message}\n`;
-                        }
-                    } else {
-                        errorMessages = errors;
+                r.json().then(err => {
+                    if (formError) {
+                        formError.textContent = typeof err === 'object' ? Object.values(err).join(", ") : String(err);
+                        formError.style.display = "block";
                     }
-                    alert("Ошибка:\n" + errorMessages);
                 });
             }
         });
@@ -190,7 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function deleteTeacher(id) {
         if (confirm("Вы уверены?")) {
-            fetch(`/api/${schoolName}/teachers/${id}`, {
+            apiFetch(`/api/${schoolName}/teachers/${id}`, {
                 method: "DELETE"
             }).then(response => {
                 if (response.ok) {
@@ -203,20 +201,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Helper for conditional fields
-    const toggleConditional = (select) => {
-        const targetId = select.dataset.toggleTarget;
-        if (!targetId) return;
-        const target = document.getElementById(targetId);
-        if (!target) return;
-        if (select.value === "yes") {
-            target.classList.add("is-visible");
-        } else {
-            target.classList.remove("is-visible");
-        }
-    };
-
-    hasOfficeSelect.addEventListener("change", () => toggleConditional(hasOfficeSelect));
-    hasGroupSelect.addEventListener("change", () => toggleConditional(hasGroupSelect));
+    hasOfficeSelect.addEventListener("change", function() {
+        document.getElementById("teacher-office").style.display = this.value === "yes" ? "block" : "none";
+    });
+    hasGroupSelect.addEventListener("change", function() {
+        document.getElementById("teacher-group").style.display = this.value === "yes" ? "block" : "none";
+    });
 
     loadTeachers();
 });

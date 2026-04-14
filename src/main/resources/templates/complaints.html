@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Жалобы</title>
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
+</head>
+<body class="app-layout">
+<aside class="sidebar">
+    <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge">Пользователь</span></div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+        <button id="logout-btn">🚪 Выйти</button>
+    </div>
+</aside>
+
+<div class="app-content">
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+            <h2>📝 Жалобы</h2>
+            <p style="color:#64748b;margin-top:4px;" id="page-subtitle">Загрузка...</p>
+        </div>
+        <button class="button" id="add-btn">+ Написать жалобу</button>
+    </div>
+
+    <!-- Секция: все жалобы (только для ADMIN, DIRECTOR, MINISTRY) -->
+    <div id="all-complaints-section" style="display:none;">
+        <div class="card" style="margin-bottom:24px;">
+            <h3 style="margin-bottom:16px;">Все жалобы</h3>
+            <div id="all-complaints-container">
+                <p style="color:#64748b;">Загрузка...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Секция: мои жалобы -->
+    <div class="card">
+        <h3 style="margin-bottom:16px;">Мои жалобы</h3>
+        <div id="my-complaints-container">
+            <p style="color:#64748b;">Загрузка...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Модал создания жалобы -->
+<div id="modal" class="modal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>Написать жалобу</h3>
+            <button class="modal-close" id="modal-close">&times;</button>
+        </div>
+        <form id="complaint-form">
+            <div class="form-group">
+                <label>Текст жалобы</label>
+                <textarea id="content" placeholder="Опишите проблему..." rows="5" required></textarea>
+            </div>
+            <div class="form-group">
+                <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer;">
+                    <input type="checkbox" id="isAnonymous" style="width:auto;">
+                    Отправить анонимно
+                </label>
+            </div>
+            <div id="form-error" class="alert-error" style="display:none;"></div>
+            <button class="button" type="submit" style="width:100%;">Отправить</button>
+        </form>
+    </div>
+</div>
+
+<script src="/js/sidebar.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const schoolName = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
+    const role = sessionStorage.getItem("userRole") || "";
+    const canReadAll = ["ADMIN", "DIRECTOR", "MINISTRY"].includes(role);
+
+    document.getElementById("page-subtitle").textContent = canReadAll
+        ? "Просмотр всех жалоб и управление своими"
+        : "Отправляйте жалобы анонимно или открыто";
+
+    const modal = document.getElementById("modal");
+    const form = document.getElementById("complaint-form");
+    const formError = document.getElementById("form-error");
+
+    document.getElementById("add-btn").onclick = () => {
+        form.reset();
+        formError.style.display = "none";
+        modal.classList.add("open");
+    };
+    document.getElementById("modal-close").onclick = () => modal.classList.remove("open");
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
+
+    // Показываем секцию всех жалоб для привилегированных ролей
+    if (canReadAll) {
+        document.getElementById("all-complaints-section").style.display = "block";
+        loadAllComplaints();
+    }
+
+    loadMyComplaints();
+
+    function renderComplaint(c, canDelete) {
+        const date = c.createdAt ? new Date(c.createdAt).toLocaleDateString("ru-RU", {
+            day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
+        }) : "—";
+        const div = document.createElement("div");
+        div.className = "complaint-card";
+        div.innerHTML = `
+            <div class="complaint-meta">
+                <span>📅 ${date}</span>
+                <span class="badge ${c.isAnonymous ? "gray" : "blue"}">${c.isAnonymous ? "Анонимно" : "Открыто"}</span>
+                ${canDelete ? `<button class="button danger sm" data-id="${c.id}" style="margin-left:auto;">Удалить</button>` : ""}
+            </div>
+            <div class="complaint-text">${c.content}</div>
+        `;
+        if (canDelete) {
+            div.querySelector(".danger").addEventListener("click", () => deleteComplaint(c.id));
+        }
+        return div;
+    }
+
+    function loadAllComplaints() {
+        const container = document.getElementById("all-complaints-container");
+        apiFetch(`/api/${schoolName}/complaints`)
+            .then(r => r.ok ? r.json() : [])
+            .then(list => {
+                container.innerHTML = "";
+                if (!list.length) { container.innerHTML = "<p style='color:#64748b;'>Жалоб нет.</p>"; return; }
+                list.forEach(c => container.appendChild(renderComplaint(c, false)));
+            })
+            .catch(() => { container.innerHTML = "<p style='color:#ef4444;'>Ошибка загрузки.</p>"; });
+    }
+
+    function loadMyComplaints() {
+        const container = document.getElementById("my-complaints-container");
+        apiFetch(`/api/${schoolName}/complaints/my`)
+            .then(r => r.ok ? r.json() : [])
+            .then(list => {
+                container.innerHTML = "";
+                if (!list.length) { container.innerHTML = "<p style='color:#64748b;'>Вы ещё не отправляли жалоб.</p>"; return; }
+                list.forEach(c => container.appendChild(renderComplaint(c, true)));
+            })
+            .catch(() => { container.innerHTML = "<p style='color:#ef4444;'>Ошибка загрузки.</p>"; });
+    }
+
+    function deleteComplaint(id) {
+        if (!confirm("Удалить жалобу?")) return;
+        apiFetch(`/api/${schoolName}/complaints/${id}`, { method: "DELETE" })
+            .then(r => {
+                if (r.ok) { loadMyComplaints(); if (canReadAll) loadAllComplaints(); }
+                else alert("Ошибка при удалении");
+            });
+    }
+
+    form.addEventListener("submit", e => {
+        e.preventDefault();
+        formError.style.display = "none";
+        apiFetch(`/api/${schoolName}/complaints`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                content: document.getElementById("content").value,
+                isAnonymous: document.getElementById("isAnonymous").checked
+            })
+        }).then(r => {
+            if (r.ok) {
+                modal.classList.remove("open");
+                loadMyComplaints();
+                if (canReadAll) loadAllComplaints();
+            } else {
+                r.json().then(err => {
+                    formError.textContent = typeof err === "object" ? Object.values(err).join(", ") : String(err);
+                    formError.style.display = "block";
+                });
+            }
+        });
+    });
+});
+</script>
+</body>
+</html>

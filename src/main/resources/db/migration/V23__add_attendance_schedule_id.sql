@@ -1,0 +1,1 @@
+ALTER TABLE attendance ADD COLUMN schedule_id INTEGER REFERENCES schedule(id) ON DELETE SET NULL;

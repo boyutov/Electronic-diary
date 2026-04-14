@@ -64,17 +64,20 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         })
         .then(data => {
-            resultDiv.hidden = false;
+            resultDiv.style.display = 'block';
             resultDiv.innerHTML = `
-                <p>Школа успешно создана!</p>
-                <p>ID школы: <strong>${data.schoolId}</strong></p>
-                <p>Временный пароль администратора: <strong>${data.adminPassword}</strong></p>
-                <p>Сохраните эти данные! Они нужны для активации.</p>
+                <strong>🎉 Школа успешно создана!</strong>
+                ID школы: <strong>${data.schoolId}</strong><br>
+                Временный пароль: <strong>${data.adminPassword}</strong><br>
+                Сохраните эти данные — они нужны для активации.
             `;
             purchaseForm.reset();
         })
         .catch(error => {
-            alert(error);
+            resultDiv.style.display = 'block';
+            resultDiv.style.background = '#fee2e2';
+            resultDiv.style.color = '#991b1b';
+            resultDiv.textContent = typeof error === 'string' ? error : 'Ошибка при создании школы';
         });
     });
 });
