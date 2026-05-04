@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Новости</title>
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
+    <style>
+        .news-list { display:flex; flex-direction:column; gap:16px; }
+        .news-card { background:#fff; border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow); padding:24px; }
+        .news-card-title { font-size:1.15em; font-weight:700; margin-bottom:8px; }
+        .news-card-meta { font-size:0.82em; color:#94a3b8; margin-bottom:14px; display:flex; gap:16px; flex-wrap:wrap; }
+        .news-card-text { font-size:0.95em; line-height:1.7; color:#334155; white-space:pre-wrap; }
+    </style>
+</head>
+<body class="app-layout">
+<aside class="sidebar">
+    <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge">Пользователь</span></div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer"><button id="logout-btn">🚪 Выйти</button></div>
+</aside>
+
+<div class="app-content">
+    <div class="page-header">
+        <h2>📰 Новости школы</h2>
+        <p style="color:#64748b;margin-top:4px;">Актуальные новости и объявления</p>
+    </div>
+    <div id="news-container" class="news-list">
+        <p style="color:#64748b;">Загрузка...</p>
+    </div>
+</div>
+
+<script src="/js/sidebar.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const schoolName = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
+    const container = document.getElementById("news-container");
+
+    apiFetch(`/api/${schoolName}/news`)
+        .then(r => r.ok ? r.json() : [])
+        .then(newsList => {
+            container.innerHTML = "";
+            if (!newsList.length) {
+                container.innerHTML = "<div class='card'><p style='color:#64748b;'>Новостей пока нет.</p></div>";
+                return;
+            }
+            newsList
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .forEach(n => {
+                    const date = n.createdAt
+                        ? new Date(n.createdAt).toLocaleDateString("ru-RU", { day: "2-digit", month: "long", year: "numeric" })
+                        : "—";
+                    const card = document.createElement("div");
+                    card.className = "news-card";
+                    card.innerHTML = `
+                        <div class="news-card-title">${n.title}</div>
+                        <div class="news-card-meta">
+                            <span>📅 ${date}</span>
+                            ${n.teacherName ? `<span>👨🏫 ${n.teacherName}</span>` : ""}
+                        </div>
+                        <div class="news-card-text">${n.text}</div>
+                    `;
+                    container.appendChild(card);
+                });
+        })
+        .catch(() => {
+            container.innerHTML = "<div class='card'><p style='color:#ef4444;'>Ошибка загрузки новостей.</p></div>";
+        });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои оценки</title>
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
+    <style>
+        .period-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+        .period-tab {
+            padding:8px 16px; border-radius:8px; border:1.5px solid var(--border);
+            background:#fff; cursor:pointer; font-size:0.88em; font-weight:500;
+            transition:all 0.15s; white-space:nowrap;
+        }
+        .period-tab.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+        .period-tab.past   { opacity:0.7; }
+        .period-tab.empty  { color:#94a3b8; }
+        .period-tab:hover:not(.active) { background:#f1f5f9; }
+
+        .period-summary {
+            display:flex; align-items:center; gap:20px; flex-wrap:wrap;
+            padding:16px 20px; background:#f8fafc; border-radius:10px; margin-bottom:16px;
+            border:1px solid var(--border);
+        }
+        .avg-big { font-size:1.6em; font-weight:700; }
+
+        .grades-table { width:100%; border-collapse:collapse; }
+        .grades-table th { background:#f8fafc; padding:10px 14px; text-align:left; font-size:0.82em; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted); border-bottom:2px solid var(--border); }
+        .grades-table td { padding:12px 14px; border-bottom:1px solid var(--border); vertical-align:middle; }
+        .grades-table tr:last-child td { border-bottom:none; }
+        .grades-table tr:hover td { background:#f8fafc; }
+
+        .mark-chip { display:inline-block; padding:3px 9px; border-radius:6px; font-size:0.85em; font-weight:600; margin:2px; }
+    </style>
+</head>
+<body class="app-layout">
+<aside class="sidebar">
+    <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge">Ученик</span></div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer"><button id="logout-btn">🚪 Выйти</button></div>
+</aside>
+
+<div class="app-content">
+    <div class="page-header">
+        <h2>📊 Мои оценки</h2>
+        <p style="color:#64748b;margin-top:4px;" id="period-type-label">Загрузка...</p>
+    </div>
+
+    <div id="period-tabs" class="period-tabs"></div>
+    <div id="grades-content"><p style="color:#64748b;">Загрузка...</p></div>
+</div>
+
+<script src="/js/sidebar.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const schoolName = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
+    let allPeriods = [];
+    let currentIdx = 0;
+
+    const TYPE_LABELS = {
+        QUARTER:  "Четверти",
+        SEMESTER: "Полугодия",
+        YEAR:     "Учебный год"
+    };
+
+    apiFetch(`/api/${schoolName}/grading/my-grades`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+            if (!data) {
+                document.getElementById("grades-content").innerHTML =
+                    "<div class='card'><p style='color:#ef4444;'>Ошибка загрузки.</p></div>";
+                return;
+            }
+
+            document.getElementById("period-type-label").textContent =
+                "Система оценивания: " + (TYPE_LABELS[data.periodType] || data.periodType);
+
+            allPeriods = data.periods; // уже отсортированы: новые сверху
+
+            // Открываем первый период с оценками (или просто первый)
+            currentIdx = allPeriods.findIndex(p => p.totalMarks > 0);
+            if (currentIdx < 0) currentIdx = 0;
+
+            renderTabs();
+            renderPeriod(currentIdx);
+        })
+        .catch(() => {
+            document.getElementById("grades-content").innerHTML =
+                "<div class='card'><p style='color:#ef4444;'>Ошибка загрузки оценок.</p></div>";
+        });
+
+    function renderTabs() {
+        const tabs = document.getElementById("period-tabs");
+        tabs.innerHTML = "";
+        allPeriods.forEach((p, i) => {
+            const tab = document.createElement("button");
+            const hasMarks = p.totalMarks > 0;
+            tab.className = "period-tab"
+                + (i === currentIdx ? " active" : "")
+                + (!hasMarks ? " empty" : "");
+
+            // Короткое название (убираем год если он одинаковый)
+            tab.textContent = p.name;
+            if (hasMarks) {
+                const dot = document.createElement("span");
+                dot.style.cssText = "display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-left:6px;opacity:0.6;vertical-align:middle;";
+                tab.appendChild(dot);
+            }
+
+            tab.title = `${p.from} — ${p.to}${hasMarks ? " · " + p.totalMarks + " оценок" : " · нет оценок"}`;
+            tab.addEventListener("click", () => {
+                currentIdx = i;
+                document.querySelectorAll(".period-tab").forEach((t, j) =>
+                    t.classList.toggle("active", j === i));
+                renderPeriod(i);
+            });
+            tabs.appendChild(tab);
+        });
+    }
+
+    function renderPeriod(idx) {
+        const p = allPeriods[idx];
+        const content = document.getElementById("grades-content");
+        const today = new Date().toISOString().split("T")[0];
+        const isPast = p.to < today;
+        const isCurrent = p.from <= today && p.to >= today;
+
+        if (!p.disciplines || !p.disciplines.length) {
+            content.innerHTML = `
+                <div class="card">
+                    <p style="color:#64748b;">
+                        За период <strong>${p.name}</strong> (${formatDate(p.from)} — ${formatDate(p.to)}) оценок нет.
+                    </p>
+                </div>`;
+            return;
+        }
+
+        const avgColor = p.overallAvg >= 80 ? "#15803d" : p.overallAvg >= 60 ? "#854d0e" : "#b91c1c";
+        const avgBg    = p.overallAvg >= 80 ? "#dcfce7" : p.overallAvg >= 60 ? "#fef9c3" : "#fee2e2";
+
+        const statusBadge = isCurrent
+            ? `<span class="badge green">Текущий период</span>`
+            : isPast
+            ? `<span class="badge gray">Завершён</span>`
+            : `<span class="badge blue">Предстоящий</span>`;
+
+        const rows = p.disciplines.map(d => {
+            const dColor = d.avg >= 80 ? "#15803d" : d.avg >= 60 ? "#854d0e" : "#b91c1c";
+            const dBg    = d.avg >= 80 ? "#dcfce7" : d.avg >= 60 ? "#fef9c3" : "#fee2e2";
+            const chips  = d.marks.map(v => {
+                const c  = v >= 80 ? "#dcfce7" : v >= 60 ? "#fef9c3" : "#fee2e2";
+                const tc = v >= 80 ? "#15803d" : v >= 60 ? "#854d0e" : "#b91c1c";
+                return `<span class="mark-chip" style="background:${c};color:${tc};">${v}</span>`;
+            }).join("");
+            return `<tr>
+                <td><strong>${d.name}</strong></td>
+                <td>${chips}</td>
+                <td class="col-center">
+                    <span style="font-weight:700;font-size:1.1em;color:${dColor};background:${dBg};padding:3px 14px;border-radius:999px;">${d.avg}</span>
+                </td>
+            </tr>`;
+        }).join("");
+
+        content.innerHTML = `
+            <div class="period-summary">
+                <div style="flex:1;">
+                    <div style="font-weight:700;font-size:1.05em;margin-bottom:4px;">${p.name} ${statusBadge}</div>
+                    <div style="color:#64748b;font-size:0.85em;">${formatDate(p.from)} — ${formatDate(p.to)} · ${p.totalMarks} оценок · ${p.disciplines.length} предметов</div>
+                </div>
+                <div style="text-align:center;">
+                    <div class="avg-big" style="color:${avgColor};">${p.overallAvg}</div>
+                    <div style="font-size:0.78em;color:#94a3b8;">средний балл</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="table-wrap">
+                    <table class="grades-table">
+                        <thead>
+                            <tr>
+                                <th>Предмет</th>
+                                <th>Оценки</th>
+                                <th class="col-center">Средний балл</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            </div>`;
+    }
+
+    function formatDate(str) {
+        return new Date(str).toLocaleDateString("ru-RU", { day:"2-digit", month:"long", year:"numeric" });
+    }
+});
+</script>
+</body>
+</html>

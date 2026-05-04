@@ -26,6 +26,7 @@ public class ExamService {
     private final StudentRepository studentRepository;
     private final ParentRepository parentRepository;
     private final TeacherRepository teacherRepository;
+    private final NotificationService notificationService;
 
     /** Все экзамены (для админа/директора) */
     @Transactional(readOnly = true)
@@ -100,7 +101,25 @@ public class ExamService {
             exam.getGroups().addAll(groupRepository.findAllById(groupIds));
         }
 
-        return ExamDto.from(examRepository.save(exam));
+        Exam saved = examRepository.save(exam);
+
+        // Уведомляем студентов и родителей
+        String typeLabel = "HOMEWORK".equals(saved.getType()) ? "📚 Домашнее задание"
+                : "TEST".equals(saved.getType()) ? "📄 Тест"
+                : "QUIZ".equals(saved.getType()) ? "❓ Контрольная" : "📋 Экзамен";
+        String notifTitle = typeLabel + ": " + saved.getTitle();
+        String notifBody = "Дата: " + saved.getExamDate()
+                + (saved.getDiscipline() != null ? " · " + saved.getDiscipline().getName() : "")
+                + (saved.getDescription() != null && !saved.getDescription().isBlank() ? "\n" + saved.getDescription() : "");
+        saved.getGroups().forEach(group ->
+            group.getStudents().forEach(student -> {
+                notificationService.send(student.getUser().getId(), "EXAM", notifTitle, notifBody, "/exams");
+                student.getParents().forEach(parent ->
+                    notificationService.send(parent.getUser().getId(), "EXAM", notifTitle, notifBody, "/exams")
+                );
+            })
+        );
+        return ExamDto.from(saved);
     }
 
     @Transactional

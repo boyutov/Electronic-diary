@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Курсы</title>
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
+    <style>
+        .course-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+        .course-card { background:#fff; border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow); padding:20px; display:flex; flex-direction:column; }
+        .course-title { font-weight:700; font-size:1.05em; margin-bottom:6px; }
+        .course-teacher { font-size:0.85em; color:#64748b; margin-bottom:8px; }
+        .course-desc { font-size:0.88em; color:#64748b; flex:1; margin-bottom:12px; }
+        .course-footer { display:flex; justify-content:space-between; align-items:center; margin-top:auto; }
+        .student-chip { display:inline-flex; align-items:center; gap:4px; background:#f1f5f9; border-radius:999px; padding:3px 10px; font-size:0.82em; color:#475569; }
+
+        /* Учитель: список студентов */
+        .students-list { margin-top:12px; border-top:1px solid var(--border); padding-top:12px; }
+        .student-row { display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f1f5f9; font-size:0.9em; }
+        .student-row:last-child { border-bottom:none; }
+    </style>
+</head>
+<body class="app-layout">
+<aside class="sidebar">
+    <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge">Пользователь</span></div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer"><button id="logout-btn">🚪 Выйти</button></div>
+</aside>
+
+<div class="app-content">
+    <div class="page-header">
+        <h2>🎯 Курсы</h2>
+        <p style="color:#64748b;margin-top:4px;" id="page-subtitle">Загрузка...</p>
+    </div>
+    <div id="courses-container" class="course-grid">
+        <p style="color:#64748b;">Загрузка...</p>
+    </div>
+</div>
+
+<!-- Модал: студенты курса (для учителя) -->
+<div id="students-modal" class="modal">
+    <div class="modal-box" style="max-width:600px;">
+        <div class="modal-header">
+            <h3 id="students-modal-title">Студенты курса</h3>
+            <button class="modal-close" id="students-modal-close">&times;</button>
+        </div>
+        <div id="students-modal-body"></div>
+    </div>
+</div>
+
+<script src="/js/sidebar.js"></script>
+<script src="/js/courses.js"></script>
+</body>
+</html>

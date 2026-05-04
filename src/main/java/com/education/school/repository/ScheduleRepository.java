@@ -17,4 +17,7 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Integer> {
     List<Schedule> findByTeacherIdAndDateBetween(@Param("teacherId") Integer teacherId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
     List<Schedule> findByTeacherId(Integer teacherId);
+
+    @Query("SELECT COUNT(s) > 0 FROM Schedule s WHERE s.teacher.id = :teacherId AND s.group.id = :groupId AND s.discipline.id = :disciplineId AND s.date = :date")
+    boolean hasLessonOnDate(@Param("teacherId") Integer teacherId, @Param("groupId") Integer groupId, @Param("disciplineId") Integer disciplineId, @Param("date") LocalDate date);
 }

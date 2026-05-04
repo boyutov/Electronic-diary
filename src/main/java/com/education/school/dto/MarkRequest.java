@@ -4,6 +4,8 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
+import java.time.LocalDate;
+
 public record MarkRequest(
     @NotNull(message = "Student ID is required")
     Long studentId,
@@ -13,8 +15,11 @@ public record MarkRequest(
 
     @NotNull(message = "Mark value is required")
     @Min(value = 1, message = "Mark must be at least 1")
-    @Max(value = 5, message = "Mark must be at most 5")
+    @Max(value = 100, message = "Mark must be at most 100")
     Integer value,
 
-    String comment
+    String comment,
+
+    // Дата оценки — если null, используется сегодня
+    LocalDate markDate
 ) {}

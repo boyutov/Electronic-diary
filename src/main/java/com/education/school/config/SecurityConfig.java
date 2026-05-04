@@ -63,8 +63,14 @@ public class SecurityConfig {
                         .requestMatchers("/*/polls").permitAll()
                         .requestMatchers("/*/complaints").permitAll()
                         .requestMatchers("/*/canteen").permitAll()
+                        .requestMatchers("/*/news").permitAll()
                         .requestMatchers("/*/attendance").permitAll()
                         .requestMatchers("/*/exams").permitAll()
+                        .requestMatchers("/*/courses").permitAll()
+                        .requestMatchers("/*/notifications").permitAll()
+                        .requestMatchers("/*/admin/grading").permitAll()
+                        .requestMatchers("/*/grades").permitAll()
+                        .requestMatchers("/*/teacher/marks").permitAll()
                         .requestMatchers("/*/curator/**").permitAll()
 
                         // Защита API с проверкой ролей

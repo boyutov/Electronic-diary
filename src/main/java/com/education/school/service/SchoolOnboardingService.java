@@ -64,13 +64,22 @@ public class SchoolOnboardingService {
         String rawPassword = passwordGenerator.generate();
 
         School school = new School();
-        school.setName(request.schoolName());
+        school.setName(toSlug(request.schoolName()));
         school.setContactEmail(request.contactEmail());
         school.setContactPhone(request.contactPhone());
         school.setAccessPasswordHash(passwordEncoder.encode(rawPassword));
         schoolRepository.save(school);
 
         return new PurchaseResponse(school.getId(), null, rawPassword);
+    }
+
+    private String toSlug(String name) {
+        if (name == null) return "";
+        return name.trim()
+                .toLowerCase()
+                .replaceAll("[^a-z0-9а-яё]", "-")
+                .replaceAll("-+", "-")
+                .replaceAll("^-|-$", "");
     }
 
     @Transactional

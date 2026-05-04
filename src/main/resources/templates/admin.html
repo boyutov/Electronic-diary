@@ -1,7 +1,8 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Панель администратора</title>
     <link rel="stylesheet" href="/css/site.css">
     <script src="/js/api.js"></script>
@@ -22,30 +23,41 @@
 
 <div class="app-content">
     <div class="page-header">
-        <h2>Панель управления</h2>
-        <p>Добро пожаловать! Управляйте всеми аспектами школы.</p>
+        <h2 id="admin-greeting">Панель управления</h2>
+        <p style="color:#64748b;margin-top:4px;">Добро пожаловать! Управляйте всеми аспектами школы.</p>
     </div>
 
-    <div class="stats-grid" id="stats-grid">
+    <!-- Статистика -->
+    <div class="stats-grid" style="margin-bottom:24px;">
         <div class="stat-card"><div class="stat-value" id="stat-teachers">—</div><div class="stat-label">Учителей</div></div>
         <div class="stat-card"><div class="stat-value" id="stat-students">—</div><div class="stat-label">Учеников</div></div>
         <div class="stat-card"><div class="stat-value" id="stat-groups">—</div><div class="stat-label">Классов</div></div>
         <div class="stat-card"><div class="stat-value" id="stat-disciplines">—</div><div class="stat-label">Предметов</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-complaints">—</div><div class="stat-label">Жалоб</div></div>
     </div>
 
-    <div class="card">
-        <h3 style="margin-bottom:20px;">Быстрый доступ</h3>
+    <!-- Учебный процесс -->
+    <div class="card" style="margin-bottom:24px;">
+        <h3 style="margin-bottom:16px;">📚 Учебный процесс</h3>
         <div class="nav-grid">
-            <a class="nav-card" href="/admin/director"><span class="nav-icon">👔</span><span class="nav-title">Директора</span><span class="nav-desc">Управление директорами школы</span></a>
-            <a class="nav-card" href="/admin/admin"><span class="nav-icon">🛡</span><span class="nav-title">Администраторы</span><span class="nav-desc">Управление администраторами</span></a>
-            <a class="nav-card" href="/admin/teacher"><span class="nav-icon">👨🏫</span><span class="nav-title">Учителя</span><span class="nav-desc">Управление преподавателями</span></a>
-            <a class="nav-card" href="/admin/parent"><span class="nav-icon">👨👩👧</span><span class="nav-title">Родители</span><span class="nav-desc">Управление родителями</span></a>
-            <a class="nav-card" href="/admin/group"><span class="nav-icon">📚</span><span class="nav-title">Классы и ученики</span><span class="nav-desc">Управление классами и учениками</span></a>
+            <a class="nav-card" href="/admin/group"><span class="nav-icon">📚</span><span class="nav-title">Классы и ученики</span><span class="nav-desc">Управление классами</span></a>
             <a class="nav-card" href="/admin/discipline"><span class="nav-icon">📖</span><span class="nav-title">Предметы</span><span class="nav-desc">Управление дисциплинами</span></a>
             <a class="nav-card" href="/admin/course"><span class="nav-icon">🎯</span><span class="nav-title">Курсы</span><span class="nav-desc">Управление курсами</span></a>
             <a class="nav-card" href="/admin/schedule/view"><span class="nav-icon">📅</span><span class="nav-title">Расписание</span><span class="nav-desc">Управление расписанием</span></a>
+            <a class="nav-card" href="/exams"><span class="nav-icon">📝</span><span class="nav-title">Задания</span><span class="nav-desc">Экзамены, тесты, ДЗ</span></a>
+            <a class="nav-card" href="/admin/attendance"><span class="nav-icon">📋</span><span class="nav-title">Посещаемость</span><span class="nav-desc">Аналитика посещаемости</span></a>
+            <a class="nav-card" href="/admin/grading"><span class="nav-icon">⚙️</span><span class="nav-title">Оценивание</span><span class="nav-desc">Настройка периодов</span></a>
+        </div>
+    </div>
+
+    <!-- Контент и коммуникации -->
+    <div class="card">
+        <h3 style="margin-bottom:16px;">📢 Контент и коммуникации</h3>
+        <div class="nav-grid">
             <a class="nav-card" href="/admin/news"><span class="nav-icon">📰</span><span class="nav-title">Новости</span><span class="nav-desc">Публикация новостей</span></a>
             <a class="nav-card" href="/admin/poll"><span class="nav-icon">📊</span><span class="nav-title">Голосования</span><span class="nav-desc">Управление опросами</span></a>
+            <a class="nav-card" href="/complaints"><span class="nav-icon">📝</span><span class="nav-title">Жалобы</span><span class="nav-desc">Просмотр жалоб</span></a>
+            <a class="nav-card" href="/canteen"><span class="nav-icon">🍽️</span><span class="nav-title">Столовая</span><span class="nav-desc">Меню столовой</span></a>
         </div>
     </div>
 </div>
@@ -56,19 +68,32 @@ document.addEventListener("DOMContentLoaded", () => {
     const schoolName = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
     if (!schoolName || schoolName === "admin") return;
 
+    // Исправляем все ссылки в контенте — добавляем schoolName
+    document.querySelectorAll(".app-content a[href]").forEach(a => {
+        const href = a.getAttribute("href");
+        if (href && href.startsWith("/") && !href.startsWith(`/${schoolName}/`)) {
+            a.setAttribute("href", `/${schoolName}${href}`);
+        }
+    });
+
+    // Исправляем ссылку в footer sidebar
+    const profileLink = document.querySelector(".sidebar-footer a[href='/profile']");
+    if (profileLink) profileLink.setAttribute("href", `/${schoolName}/profile`);
+
     Promise.all([
         apiFetch(`/api/${schoolName}/teachers`).then(r => r.ok ? r.json() : []),
         apiFetch(`/api/${schoolName}/students`).then(r => r.ok ? r.json() : []),
         apiFetch(`/api/${schoolName}/groups`).then(r => r.ok ? r.json() : []),
         apiFetch(`/api/${schoolName}/disciplines`).then(r => r.ok ? r.json() : []),
-    ]).then(([teachers, students, groups, disciplines]) => {
+        apiFetch(`/api/${schoolName}/complaints`).then(r => r.ok ? r.json() : []),
+    ]).then(([teachers, students, groups, disciplines, complaints]) => {
         document.getElementById("stat-teachers").textContent = teachers.length;
         document.getElementById("stat-students").textContent = students.length;
         document.getElementById("stat-groups").textContent = groups.length;
         document.getElementById("stat-disciplines").textContent = disciplines.length;
+        document.getElementById("stat-complaints").textContent = complaints.length;
     }).catch(() => {});
 });
 </script>
 </body>
 </html>
-

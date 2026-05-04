@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Уведомления</title>
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
+    <style>
+        .notif-list { display:flex; flex-direction:column; gap:8px; }
+        .notif-item {
+            display:flex; align-items:flex-start; gap:14px;
+            background:#fff; border-radius:10px; padding:16px;
+            border:1.5px solid var(--border); box-shadow:var(--shadow);
+            cursor:pointer; transition:background 0.15s;
+        }
+        .notif-item.unread { border-left:4px solid var(--primary); background:#f8faff; }
+        .notif-item:hover { background:#f1f5f9; }
+        .notif-icon { font-size:1.5em; flex-shrink:0; margin-top:2px; }
+        .notif-body { flex:1; }
+        .notif-title { font-weight:600; font-size:0.95em; margin-bottom:3px; }
+        .notif-text  { font-size:0.85em; color:#64748b; margin-bottom:4px; white-space:pre-wrap; }
+        .notif-time  { font-size:0.78em; color:#94a3b8; }
+        .notif-dot   { width:8px; height:8px; border-radius:50%; background:var(--primary); flex-shrink:0; margin-top:6px; }
+    </style>
+</head>
+<body class="app-layout">
+<aside class="sidebar">
+    <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge">Пользователь</span></div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer"><button id="logout-btn">🚪 Выйти</button></div>
+</aside>
+
+<div class="app-content">
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+            <h2>🔔 Уведомления</h2>
+            <p style="color:#64748b;margin-top:4px;" id="unread-label">Загрузка...</p>
+        </div>
+        <button class="button ghost sm" id="read-all-btn">✓ Прочитать все</button>
+    </div>
+    <div id="notif-container" class="notif-list">
+        <p style="color:#64748b;">Загрузка...</p>
+    </div>
+</div>
+
+<script src="/js/sidebar.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const schoolName = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
+
+    const TYPE_ICONS = {
+        MARK:       "📊",
+        EXAM:       "📝",
+        NEWS:       "📰",
+        POLL:       "📋",
+        COMPLAINT:  "📩",
+        ATTENDANCE: "📋",
+        CANTEEN:    "🍽️",
+    };
+
+    function timeAgo(dateStr) {
+        const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+        if (diff < 60)    return "только что";
+        if (diff < 3600)  return Math.floor(diff / 60) + " мин. назад";
+        if (diff < 86400) return Math.floor(diff / 3600) + " ч. назад";
+        return new Date(dateStr).toLocaleDateString("ru-RU", { day:"2-digit", month:"long", year:"numeric" });
+    }
+
+    function load() {
+        apiFetch(`/api/${schoolName}/notifications`)
+            .then(r => r.ok ? r.json() : [])
+            .then(list => {
+                const container = document.getElementById("notif-container");
+                const unread = list.filter(n => !n.isRead).length;
+                document.getElementById("unread-label").textContent =
+                    unread > 0 ? `${unread} непрочитанных` : "Все прочитаны";
+
+                if (!list.length) {
+                    container.innerHTML = "<div class='card'><p style='color:#64748b;'>Уведомлений нет.</p></div>";
+                    return;
+                }
+
+                container.innerHTML = "";
+                list.forEach(n => {
+                    const item = document.createElement("div");
+                    item.className = "notif-item" + (n.isRead ? "" : " unread");
+                    item.innerHTML = `
+                        <div class="notif-icon">${TYPE_ICONS[n.type] || "🔔"}</div>
+                        <div class="notif-body">
+                            <div class="notif-title">${n.title}</div>
+                            ${n.body ? `<div class="notif-text">${n.body}</div>` : ""}
+                            <div class="notif-time">${timeAgo(n.createdAt)}</div>
+                        </div>
+                        ${!n.isRead ? '<div class="notif-dot"></div>' : ""}
+                    `;
+                    item.addEventListener("click", () => {
+                        if (!n.isRead) {
+                            apiFetch(`/api/${schoolName}/notifications/${n.id}/read`, { method: "POST" })
+                                .then(() => {
+                                    item.classList.remove("unread");
+                                    item.querySelector(".notif-dot")?.remove();
+                                    const cur = parseInt(document.getElementById("unread-label").textContent);
+                                    const newCount = cur - 1;
+                                    document.getElementById("unread-label").textContent =
+                                        newCount > 0 ? `${newCount} непрочитанных` : "Все прочитаны";
+                                    n.isRead = true;
+                                });
+                        }
+                        if (n.link) {
+                            window.location.href = `/${schoolName}${n.link}`;
+                        }
+                    });
+                    container.appendChild(item);
+                });
+            })
+            .catch(() => {
+                document.getElementById("notif-container").innerHTML =
+                    "<div class='card'><p style='color:#ef4444;'>Ошибка загрузки.</p></div>";
+            });
+    }
+
+    document.getElementById("read-all-btn").addEventListener("click", () => {
+        apiFetch(`/api/${schoolName}/notifications/read-all`, { method: "POST" })
+            .then(() => load());
+    });
+
+    load();
+});
+</script>
+</body>
+</html>

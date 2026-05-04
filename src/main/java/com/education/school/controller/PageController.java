@@ -154,6 +154,11 @@ public class PageController {
         return "canteen";
     }
 
+    @GetMapping("/{schoolName}/news")
+    public String news(@PathVariable String schoolName) {
+        return "news";
+    }
+
     @GetMapping("/{schoolName}/attendance")
     public String attendance(@PathVariable String schoolName) {
         return "attendance";
@@ -167,5 +172,30 @@ public class PageController {
     @GetMapping("/{schoolName}/exams")
     public String exams(@PathVariable String schoolName) {
         return "exams";
+    }
+
+    @GetMapping("/{schoolName}/courses")
+    public String courses(@PathVariable String schoolName) {
+        return "courses";
+    }
+
+    @GetMapping("/{schoolName}/notifications")
+    public String notifications(@PathVariable String schoolName) {
+        return "notifications";
+    }
+
+    @GetMapping("/{schoolName}/admin/grading")
+    public String adminGrading(@PathVariable String schoolName) {
+        return "admin-grading";
+    }
+
+    @GetMapping("/{schoolName}/grades")
+    public String grades(@PathVariable String schoolName) {
+        return "grades";
+    }
+
+    @GetMapping("/{schoolName}/teacher/marks")
+    public String teacherMarks(@PathVariable String schoolName) {
+        return "teacher-marks";
     }
 }

@@ -61,8 +61,8 @@ public class StudentService {
         GroupEntity group = groupRepository.findById(request.groupId())
                 .orElseThrow(() -> new IllegalArgumentException("Group not found"));
 
-        // Security check
-        if (creator.getRole().getName().equals("TEACHER")) {
+        // Security check — только учитель-куратор ограничен своей группой
+        if ("TEACHER".equals(creator.getRole().getName())) {
             Optional<GroupEntity> curatorGroup = groupRepository.findByCuratorId(creator.getId());
             if (curatorGroup.isEmpty() || !curatorGroup.get().getId().equals(group.getId())) {
                 throw new SecurityException("You can only create students in your own group.");

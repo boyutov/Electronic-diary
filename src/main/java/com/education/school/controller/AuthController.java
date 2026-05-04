@@ -31,18 +31,27 @@ public class AuthController {
                         request.getPassword()
                 )
         );
-        
+
         User user = userRepository.findByEmail(request.getEmail());
-        
+
         // В реальном приложении здесь нужно проверить, принадлежит ли пользователь запрошенной школе
         // Для упрощения мы пока доверяем request.getSchoolName(), но лучше проверить user.getSchools()
-        
-        String jwtToken = jwtService.generateToken(user, request.getSchoolName());
-        
+
+        String jwtToken = jwtService.generateToken(user, toSlug(request.getSchoolName()));
+
         return ResponseEntity.ok(AuthenticationResponse.builder()
                 .token(jwtToken)
                 .role(user.getRole().getName())
-                .schoolName(request.getSchoolName())
+                .schoolName(toSlug(request.getSchoolName()))
                 .build());
+    }
+
+    private String toSlug(String name) {
+        if (name == null) return "";
+        return name.trim()
+                .toLowerCase()
+                .replaceAll("[^a-z0-9а-яё]", "-")
+                .replaceAll("-+", "-")
+                .replaceAll("^-|-$", "");
     }
 }

@@ -23,6 +23,7 @@ public class NewsService {
     private final NewsRepository newsRepository;
     private final TeacherRepository teacherRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public List<News> findAll() {
@@ -51,7 +52,19 @@ public class NewsService {
             news.setTeacher(teacher);
         }
 
-        return newsRepository.save(news);
+        News saved = newsRepository.save(news);
+
+        // Уведомляем всех пользователей
+        List<Long> allUserIds = userRepository.findAll().stream()
+                .filter(u -> !u.getId().equals(createdByUser.getId()))
+                .map(u -> u.getId())
+                .collect(java.util.stream.Collectors.toList());
+        notificationService.sendToAll(allUserIds, "NEWS",
+                "📰 Новая новость: " + request.title(),
+                request.text().length() > 100 ? request.text().substring(0, 100) + "..." : request.text(),
+                "/news");
+
+        return saved;
     }
 
     @Transactional

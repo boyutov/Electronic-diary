@@ -22,6 +22,7 @@ public class ComplaintService {
 
     private final ComplaintRepository complaintRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public List<ComplaintDto> findAll() {
@@ -42,8 +43,22 @@ public class ComplaintService {
         complaint.setIsAnonymous(request.isAnonymous() != null ? request.isAnonymous() : false);
         complaint.setCreatedAt(OffsetDateTime.now());
         complaint.setAuthorUser(author);
-
         complaint = complaintRepository.save(complaint);
+
+        // Уведомляем админов и директоров
+        String from = Boolean.TRUE.equals(request.isAnonymous()) ? "Анонимно" : author.getSecondName() + " " + author.getFirstName();
+        userRepository.findAll().stream()
+                .filter(u -> {
+                    String role = u.getRole().getName();
+                    return role.equals("ADMIN") || role.equals("DIRECTOR") || role.equals("MINISTRY");
+                })
+                .forEach(u -> notificationService.send(
+                        u.getId(), "COMPLAINT",
+                        "📝 Новая жалоба",
+                        "От: " + from + ". " + (request.content().length() > 80 ? request.content().substring(0, 80) + "..." : request.content()),
+                        "/complaints"
+                ));
+
         return ComplaintDto.from(complaint);
     }
 

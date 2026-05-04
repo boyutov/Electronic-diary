@@ -38,12 +38,14 @@ public class StudentController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'TEACHER')")
     @Operation(summary = "Создать студента")
     public StudentDto create(@PathVariable String schoolName, @Valid @RequestBody StudentRequest request) {
         return StudentDto.from(service.create(request));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'TEACHER')")
     @Operation(summary = "Обновить студента")
     public StudentDto update(@PathVariable String schoolName, @PathVariable Long id, @Valid @RequestBody StudentRequest request) {
         return StudentDto.from(service.update(id, request));
