@@ -152,12 +152,12 @@ public class TeacherService {
     public List<java.util.Map<String, Object>> getMyGroupsWithDisciplines() {
         String email = org.springframework.security.core.context.SecurityContextHolder
                 .getContext().getAuthentication().getName();
-        com.education.school.entity.User user = userRepository.findByEmail(email);
+        User user = userRepository.findByEmail(email);
         Teacher teacher = teacherRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new IllegalStateException("Teacher not found"));
 
-        // Уникальные пары (группа, дисциплина) из расписания учителя
-        return scheduleRepository.findByTeacherId(teacher.getId()).stream()
+        // Сначала пробуем из расписания
+        List<java.util.Map<String, Object>> fromSchedule = scheduleRepository.findByTeacherId(teacher.getId()).stream()
                 .map(s -> java.util.Map.<String, Object>of(
                         "groupId", s.getGroup().getId(),
                         "groupName", s.getGroup().getName(),
@@ -166,5 +166,24 @@ public class TeacherService {
                 ))
                 .distinct()
                 .collect(Collectors.toList());
+
+        if (!fromSchedule.isEmpty()) return fromSchedule;
+
+        // Если расписания нет — берём предметы учителя + все группы школы
+        List<GroupEntity> allGroups = groupRepository.findAll();
+        if (allGroups.isEmpty() || teacher.getDisciplines().isEmpty()) return List.of();
+
+        List<java.util.Map<String, Object>> result = new java.util.ArrayList<>();
+        for (GroupEntity group : allGroups) {
+            for (Discipline disc : teacher.getDisciplines()) {
+                result.add(java.util.Map.<String, Object>of(
+                        "groupId", group.getId(),
+                        "groupName", group.getName(),
+                        "disciplineId", disc.getId(),
+                        "disciplineName", disc.getName()
+                ));
+            }
+        }
+        return result;
     }
 }

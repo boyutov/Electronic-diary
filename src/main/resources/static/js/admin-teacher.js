@@ -71,12 +71,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         <td>${teacher.phone || "—"}</td>
                         <td>${teacher.groupName || "—"}</td>
                         <td>
-                            <button class="button warning sm">Ред.</button>
-                            <button class="button danger sm" style="margin-left:4px;">Удал.</button>
+                            <div class="action-btns">
+                                <button class="btn-edit">Редактировать</button>
+                                <button class="btn-delete">Удалить</button>
+                            </div>
                         </td>
                     `;
-                    row.querySelector(".warning").addEventListener("click", () => openEditModal(teacher.id));
-                    row.querySelector(".danger").addEventListener("click", () => deleteTeacher(teacher.id));
+                    row.querySelector(".btn-edit").addEventListener("click", () => openEditModal(teacher.id));
+                    row.querySelector(".btn-delete").addEventListener("click", () => deleteTeacher(teacher.id));
                     tableBody.appendChild(row);
                 });
             })

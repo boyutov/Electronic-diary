@@ -34,14 +34,16 @@ document.addEventListener("DOMContentLoaded", () => {
                         <td class="col-center">${funding}</td>
                         <td>${g.curatorName || "—"}</td>
                         <td>
-                            <button class="button sm" style="background:#0ea5e9;">🎓 Ученики</button>
-                            <button class="button warning sm" style="margin-left:4px;">Ред.</button>
-                            <button class="button danger sm" style="margin-left:4px;">Удал.</button>
+                            <div class="action-btns">
+                                <button class="btn-action">Ученики</button>
+                                <button class="btn-edit">Редактировать</button>
+                                <button class="btn-delete">Удалить</button>
+                            </div>
                         </td>
                     `;
-                    tr.querySelector(".button.sm").addEventListener("click", () => openStudentsModal(g.id, g.name));
-                    tr.querySelector(".warning").addEventListener("click", () => openEditModal(g.id));
-                    tr.querySelector(".danger").addEventListener("click", () => deleteGroup(g.id));
+                    tr.querySelector(".btn-action").addEventListener("click", () => openStudentsModal(g.id, g.name));
+                    tr.querySelector(".btn-edit").addEventListener("click", () => openEditModal(g.id));
+                    tr.querySelector(".btn-delete").addEventListener("click", () => deleteGroup(g.id));
                     tableBody.appendChild(tr);
                 });
             })
@@ -155,12 +157,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         <td>${s.email}</td>
                         <td class="col-center">${s.age}</td>
                         <td>
-                            <button class="button warning sm">Ред.</button>
-                            <button class="button danger sm" style="margin-left:4px;">Удал.</button>
+                            <div class="action-btns">
+                                <button class="btn-edit">Редактировать</button>
+                                <button class="btn-delete">Удалить</button>
+                            </div>
                         </td>
                     `;
-                    tr.querySelector(".warning").addEventListener("click", () => openStudentEditModal(s.id));
-                    tr.querySelector(".danger").addEventListener("click", () => deleteStudent(s.id));
+                    tr.querySelector(".btn-edit").addEventListener("click", () => openStudentEditModal(s.id));
+                    tr.querySelector(".btn-delete").addEventListener("click", () => deleteStudent(s.id));
                     studentsTableBody.appendChild(tr);
                 });
             })

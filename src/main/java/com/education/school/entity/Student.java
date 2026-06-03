@@ -22,7 +22,7 @@ public class Student {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "curator", nullable = false)
+    @JoinColumn(name = "curator")
     private User curator;
 
     @Column(nullable = false)

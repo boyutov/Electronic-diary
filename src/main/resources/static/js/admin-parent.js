@@ -62,12 +62,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         <td>${p.phone || "—"}</td>
                         <td style="color:#64748b;font-size:0.88em;">${childrenText}</td>
                         <td>
-                            <button class="button warning sm">Ред.</button>
-                            <button class="button danger sm" style="margin-left:4px;">Удал.</button>
+                            <div class="action-btns">
+                                <button class="btn-edit">Редактировать</button>
+                                <button class="btn-delete">Удалить</button>
+                            </div>
                         </td>
                     `;
-                    tr.querySelector(".warning").addEventListener("click", () => openEditModal(p.id, p));
-                    tr.querySelector(".danger").addEventListener("click", () => deleteParent(p.id));
+                    tr.querySelector(".btn-edit").addEventListener("click", () => openEditModal(p.id, p));
+                    tr.querySelector(".btn-delete").addEventListener("click", () => deleteParent(p.id));
                     tableBody.appendChild(tr);
                 });
             })

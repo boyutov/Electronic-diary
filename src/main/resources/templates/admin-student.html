@@ -16,7 +16,6 @@
     </div>
     <nav id="sidebar-nav"></nav>
     <div class="sidebar-footer">
-        <a href="/profile">👤 Личный кабинет</a>
         <button id="logout-btn">🚪 Выйти</button>
     </div>
 </aside>
@@ -31,6 +30,14 @@
     </div>
 
     <div class="card">
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+            <input id="search-input" placeholder="Поиск по ФИО..." style="flex:1;min-width:180px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9em;">
+            <select id="filter-group" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9em;min-width:160px;">
+                <option value="">-- Все классы --</option>
+            </select>
+            <button class="button ghost sm" id="reset-filter">Сброс</button>
+            <span id="students-count" style="color:#64748b;font-size:0.9em;"></span>
+        </div>
         <div class="table-wrap">
             <table id="students-table">
                 <thead>

@@ -30,11 +30,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Мои группы
     apiFetch(`/api/${schoolName}/teachers/my/groups-disciplines`)
-        .then(r => r.ok ? r.json() : [])
+        .then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(r.status + ': ' + JSON.stringify(e))))
         .then(items => {
             const container = document.getElementById("groups-container");
+            container.innerHTML = "";
             if (!items.length) {
-                container.innerHTML = "<p style='color:#64748b;'>У вас пока нет групп в расписании.</p>";
+                container.innerHTML = "<p style='color:#64748b;'>У вас пока нет групп и предметов.</p>";
                 return;
             }
             const byGroup = {};
@@ -61,14 +62,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 `;
                 container.appendChild(card);
             });
-        }).catch(() => {
+        }).catch(err => {
             document.getElementById("groups-container").innerHTML =
-                "<p style='color:#ef4444;'>Ошибка загрузки групп.</p>";
+                `<p style='color:#ef4444;'>Ошибка: ${err}</p>`;
         });
 
     // Расписание на сегодня
     apiFetch(`/api/${schoolName}/schedules/my/today`)
-        .then(r => r.ok ? r.json() : [])
+        .then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(r.status + ': ' + JSON.stringify(e))))
         .then(schedule => {
             const container = document.getElementById("schedule-container");
             if (!schedule.length) {
@@ -153,6 +154,10 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(() => { markModal.classList.remove("open"); alert("Оценки сохранены!"); })
             .catch(() => alert("Ошибка при сохранении некоторых оценок."));
     });
+
+    // Полное расписание
+    const fullScheduleLink = document.getElementById("full-schedule-link");
+    if (fullScheduleLink) fullScheduleLink.href = `/${schoolName}/schedule`;
 
     // Голосования
     if (window.initPolls) initPolls("polls-container", schoolName);

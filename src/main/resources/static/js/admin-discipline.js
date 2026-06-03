@@ -29,12 +29,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     tr.innerHTML = `
                         <td>${d.name}</td>
                         <td>
-                            <button class="button warning sm" data-id="${d.id}">Ред.</button>
-                            <button class="button danger sm" style="margin-left:4px;" data-id="${d.id}">Удал.</button>
+                            <div class="action-btns">
+                                <button class="btn-edit">Редактировать</button>
+                                <button class="btn-delete">Удалить</button>
+                            </div>
                         </td>
                     `;
-                    tr.querySelector(".warning").addEventListener("click", () => openEditModal(d.id, d.name));
-                    tr.querySelector(".danger").addEventListener("click", () => deleteDiscipline(d.id));
+                    tr.querySelector(".btn-edit").addEventListener("click", () => openEditModal(d.id, d.name));
+                    tr.querySelector(".btn-delete").addEventListener("click", () => deleteDiscipline(d.id));
                     tableBody.appendChild(tr);
                 });
             })

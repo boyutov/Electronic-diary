@@ -30,12 +30,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         <td>${a.firstName} ${a.secondName}${a.thirdName ? ' ' + a.thirdName : ''}</td>
                         <td>${a.email}</td>
                         <td>
-                            <button class="button warning sm" data-id="${a.id}">Ред.</button>
-                            <button class="button danger sm" style="margin-left:4px;" data-id="${a.id}">Удал.</button>
+                            <div class="action-btns">
+                                <button class="btn-edit">Редактировать</button>
+                                <button class="btn-delete">Удалить</button>
+                            </div>
                         </td>
                     `;
-                    tr.querySelector(".warning").addEventListener("click", () => openEditModal(a.id));
-                    tr.querySelector(".danger").addEventListener("click", () => deleteAdmin(a.id));
+                    tr.querySelector(".btn-edit").addEventListener("click", () => openEditModal(a.id));
+                    tr.querySelector(".btn-delete").addEventListener("click", () => deleteAdmin(a.id));
                     tableBody.appendChild(tr);
                 });
             })

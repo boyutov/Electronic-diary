@@ -14,4 +14,7 @@ public interface MarkRepository extends JpaRepository<Mark, Integer> {
 
     @Query("SELECT m FROM Mark m WHERE m.givenByTeacher.id = :teacherId AND m.deletedAt IS NULL ORDER BY m.createdAt DESC")
     List<Mark> findByTeacherId(@Param("teacherId") Integer teacherId);
+
+    @Query("SELECT m FROM Mark m WHERE m.deletedAt IS NULL ORDER BY m.createdAt DESC LIMIT 100")
+    List<Mark> findTop100ByOrderByCreatedAtDesc();
 }

@@ -52,6 +52,12 @@ public class ScheduleController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/my")
+    @Operation(summary = "Получить полное расписание (без ограничений по датам)")
+    public List<ScheduleResponse> getMyFullSchedule(@PathVariable String schoolName) {
+        return service.getMyFullSchedule();
+    }
+
     @GetMapping("/my/today")
     @Operation(summary = "Получить мое расписание на сегодня")
     public List<ScheduleResponse> getMyScheduleForToday(@PathVariable String schoolName) {

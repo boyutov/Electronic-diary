@@ -1,139 +1,115 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const startDateInput = document.getElementById("start-date");
-    const endDateInput = document.getElementById("end-date");
-    const loadButton = document.getElementById("load-schedule");
     const resultsContainer = document.getElementById("schedule-results");
     const prevWeekBtn = document.getElementById("prev-week");
     const nextWeekBtn = document.getElementById("next-week");
     const currentPeriodLabel = document.getElementById("current-period");
-    const manualSelector = document.getElementById("manual-date-selector");
-    const toggleManualBtn = document.getElementById("toggle-manual");
-
     const schoolName = window.location.pathname.split('/')[1];
 
-    let currentStartDate = new Date();
-    let currentEndDate = new Date();
+    let allSchedule = [];
+    let weekOffset = 0;
 
-    // Инициализация: устанавливаем текущую неделю (Пн-Вс)
-    function initCurrentWeek() {
+    function getWeekDates(offset) {
         const today = new Date();
-        const day = today.getDay(); // 0 (Вс) - 6 (Сб)
-
-        // Вычисляем разницу до понедельника
-        // Если сегодня Вс (0), то diff = -6. Если Пн (1), diff = 0.
+        const day = today.getDay();
         const diffToMonday = today.getDate() - day + (day === 0 ? -6 : 1);
-
-        currentStartDate = new Date(today.setDate(diffToMonday));
-        currentEndDate = new Date(today.setDate(currentStartDate.getDate() + 6));
-
-        updateInputs();
-        loadSchedule();
+        const monday = new Date(today);
+        monday.setDate(diffToMonday + offset * 7);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        return { start: monday, end: sunday };
     }
 
-    function updateInputs() {
-        // Форматируем даты для input type="date" (YYYY-MM-DD)
-        startDateInput.valueAsDate = new Date(Date.UTC(currentStartDate.getFullYear(), currentStartDate.getMonth(), currentStartDate.getDate()));
-        endDateInput.valueAsDate = new Date(Date.UTC(currentEndDate.getFullYear(), currentEndDate.getMonth(), currentEndDate.getDate()));
-
-        // Обновляем заголовок периода
-        const options = { day: 'numeric', month: 'long' };
-        currentPeriodLabel.textContent = `${currentStartDate.toLocaleDateString('ru-RU', options)} — ${currentEndDate.toLocaleDateString('ru-RU', options)}`;
+    function toISODate(d) {
+        return d.toISOString().split('T')[0];
     }
 
-    function loadSchedule() {
-        const start = startDateInput.value;
-        const end = endDateInput.value;
+    function updatePeriodLabel() {
+        const { start, end } = getWeekDates(weekOffset);
+        const opts = { day: 'numeric', month: 'long' };
+        const label = `${start.toLocaleDateString('ru-RU', opts)} — ${end.toLocaleDateString('ru-RU', opts)}`;
+        if (currentPeriodLabel) currentPeriodLabel.textContent = label;
+    }
 
-        resultsContainer.innerHTML = "<p>Загрузка...</p>";
+    function renderSchedule() {
+        const { start, end } = getWeekDates(weekOffset);
+        const startStr = toISODate(start);
+        const endStr = toISODate(end);
 
-        fetch(`/api/${schoolName}/schedules/my/period?start=${start}&end=${end}`)
-            .then(response => response.json())
-            .then(schedule => {
-                resultsContainer.innerHTML = "";
-                if (schedule.length === 0) {
-                    resultsContainer.innerHTML = "<p style='text-align: center; color: #64748b;'>На эту неделю расписания нет.</p>";
-                    return;
-                }
+        const filtered = allSchedule.filter(item => item.date >= startStr && item.date <= endStr);
 
-                // Группируем по датам
-                const grouped = {};
-                schedule.forEach(item => {
-                    if (!grouped[item.date]) {
-                        grouped[item.date] = [];
-                    }
-                    grouped[item.date].push(item);
-                });
+        resultsContainer.innerHTML = "";
 
-                // Сортируем даты
-                const sortedDates = Object.keys(grouped).sort();
+        if (filtered.length === 0) {
+            resultsContainer.innerHTML = "<p style='text-align:center;color:#64748b;margin-top:20px;'>На эту неделю уроков нет.</p>";
+            return;
+        }
 
-                sortedDates.forEach(date => {
-                    const dateObj = new Date(date);
-                    const dateHeader = document.createElement("h3");
-                    dateHeader.style.marginTop = "20px";
-                    dateHeader.style.borderBottom = "1px solid #e2e8f0";
-                    dateHeader.style.paddingBottom = "8px";
-                    dateHeader.textContent = dateObj.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
-                    // Делаем первую букву заглавной
-                    dateHeader.textContent = dateHeader.textContent.charAt(0).toUpperCase() + dateHeader.textContent.slice(1);
+        const grouped = {};
+        filtered.forEach(item => {
+            if (!grouped[item.date]) grouped[item.date] = [];
+            grouped[item.date].push(item);
+        });
 
-                    resultsContainer.appendChild(dateHeader);
+        Object.keys(grouped).sort().forEach(date => {
+            const dateObj = new Date(date + "T00:00:00");
+            const h3 = document.createElement("h3");
+            h3.style.cssText = "margin-top:20px;border-bottom:1px solid #e2e8f0;padding-bottom:8px;";
+            let label = dateObj.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+            h3.textContent = label.charAt(0).toUpperCase() + label.slice(1);
+            resultsContainer.appendChild(h3);
 
-                    const grid = document.createElement("div");
-                    grid.className = "schedule-grid";
+            const grid = document.createElement("div");
+            grid.className = "schedule-grid";
 
-                    // Сортируем уроки внутри дня
-                    grouped[date].sort((a, b) => a.startTime.localeCompare(b.startTime));
+            grouped[date].sort((a, b) => a.startTime.localeCompare(b.startTime)).forEach(item => {
+                const div = document.createElement("div");
+                div.className = "schedule-item";
+                div.innerHTML = `
+                    <div class="schedule-time">${item.startTime.slice(0,5)} - ${item.endTime.slice(0,5)}</div>
+                    <div class="schedule-subject">${item.disciplineName}</div>
+                    <div class="schedule-details">
+                        Каб. ${item.classroom || "—"}<br>
+                        ${item.teacherName || item.groupName || ""}
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+            resultsContainer.appendChild(grid);
+        });
+    }
 
-                    grouped[date].forEach(item => {
-                        const div = document.createElement("div");
-                        div.className = "schedule-item";
-                        div.innerHTML = `
-                            <div class="schedule-time">${item.startTime.slice(0, 5)} - ${item.endTime.slice(0, 5)}</div>
-                            <div class="schedule-subject">${item.disciplineName}</div>
-                            <div class="schedule-details">
-                                Каб. ${item.classroom || "—"}<br>
-                                ${item.teacherName || item.groupName}
-                            </div>
-                        `;
-                        grid.appendChild(div);
-                    });
-                    resultsContainer.appendChild(grid);
-                });
+    function loadAll() {
+        resultsContainer.innerHTML = "<p style='color:#64748b;'>Загрузка...</p>";
+        apiFetch(`/api/${schoolName}/schedules/my`)
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
             })
-            .catch(error => {
-                console.error("Error:", error);
-                resultsContainer.innerHTML = "<p>Ошибка загрузки.</p>";
+            .then(data => {
+                allSchedule = data;
+                updatePeriodLabel();
+                renderSchedule();
+            })
+            .catch(err => {
+                resultsContainer.innerHTML = `<p style='color:red;'>Ошибка загрузки: ${err.message}</p>`;
             });
     }
 
-    // Обработчики событий
-    prevWeekBtn.addEventListener("click", () => {
-        currentStartDate.setDate(currentStartDate.getDate() - 7);
-        currentEndDate.setDate(currentEndDate.getDate() - 7);
-        updateInputs();
-        loadSchedule();
-    });
+    if (prevWeekBtn) {
+        prevWeekBtn.addEventListener("click", () => {
+            weekOffset--;
+            updatePeriodLabel();
+            renderSchedule();
+        });
+    }
 
-    nextWeekBtn.addEventListener("click", () => {
-        currentStartDate.setDate(currentStartDate.getDate() + 7);
-        currentEndDate.setDate(currentEndDate.getDate() + 7);
-        updateInputs();
-        loadSchedule();
-    });
+    if (nextWeekBtn) {
+        nextWeekBtn.addEventListener("click", () => {
+            weekOffset++;
+            updatePeriodLabel();
+            renderSchedule();
+        });
+    }
 
-    loadButton.addEventListener("click", loadSchedule);
-
-    toggleManualBtn.addEventListener("click", () => {
-        if (manualSelector.style.display === "none") {
-            manualSelector.style.display = "grid";
-            toggleManualBtn.textContent = "Скрыть выбор дат";
-        } else {
-            manualSelector.style.display = "none";
-            toggleManualBtn.textContent = "Выбрать произвольный период";
-        }
-    });
-
-    // Запуск
-    initCurrentWeek();
+    loadAll();
 });

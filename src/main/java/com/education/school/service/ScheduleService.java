@@ -86,6 +86,34 @@ public class ScheduleService {
     }
 
     @Transactional(readOnly = true)
+    public List<ScheduleResponse> getMyFullSchedule() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email);
+        String role = user.getRole().getName();
+
+        try {
+            if (role.equals("STUDENT")) {
+                return studentRepository.findByUserId(user.getId())
+                        .map(student -> scheduleRepository.findByGroupId(student.getGroup().getId()).stream()
+                                .map(ScheduleResponse::from)
+                                .collect(Collectors.toList()))
+                        .orElse(List.of());
+            } else if (role.equals("TEACHER")) {
+                return teacherRepository.findByUserId(user.getId())
+                        .map(teacher -> scheduleRepository.findByTeacherId(teacher.getId()).stream()
+                                .map(ScheduleResponse::from)
+                                .collect(Collectors.toList()))
+                        .orElse(List.of());
+            }
+        } catch (Exception e) {
+            return List.of();
+        }
+        return scheduleRepository.findAll().stream()
+                .map(ScheduleResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public List<ScheduleResponse> getMyScheduleForToday() {
         return getMyScheduleForPeriod(LocalDate.now(), LocalDate.now());
     }

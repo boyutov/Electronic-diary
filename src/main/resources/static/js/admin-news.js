@@ -37,12 +37,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         <td>${n.title}</td>
                         <td>${date}</td>
                         <td>
-                            <button class="button warning sm" data-id="${n.id}">Ред.</button>
-                            <button class="button danger sm" style="margin-left:4px;" data-id="${n.id}">Удал.</button>
+                            <div class="action-btns">
+                                <button class="btn-edit">Редактировать</button>
+                                <button class="btn-delete">Удалить</button>
+                            </div>
                         </td>
                     `;
-                    tr.querySelector(".warning").addEventListener("click", () => openEditModal(n.id));
-                    tr.querySelector(".danger").addEventListener("click", () => deleteNews(n.id));
+                    tr.querySelector(".btn-edit").addEventListener("click", () => openEditModal(n.id));
+                    tr.querySelector(".btn-delete").addEventListener("click", () => deleteNews(n.id));
                     tableBody.appendChild(tr);
                 });
             });

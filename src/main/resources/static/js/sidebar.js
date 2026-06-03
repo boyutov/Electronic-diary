@@ -28,6 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <a href="/${sn}/admin/director"${active('/admin/director')}>👔 Директора</a>
             <a href="/${sn}/admin/admin"${active('/admin/admin')}>🛡 Администраторы</a>
             <a href="/${sn}/admin/teacher"${active('/admin/teacher')}>👨🏫 Учителя</a>
+            <a href="/${sn}/admin/student"${active('/admin/student')}>👨‍🎓 Ученики</a>
             <a href="/${sn}/admin/parent"${active('/admin/parent')}>👨👩👧 Родители</a>
             <span class="nav-section">Учебный процесс</span>
             <a href="/${sn}/admin/group"${active('/admin/group')}>📚 Группы/Классы</a>
@@ -42,7 +43,9 @@ document.addEventListener("DOMContentLoaded", () => {
             <a href="/${sn}/admin/poll"${active('/admin/poll')}>📊 Голосования</a>
             <a href="/${sn}/complaints"${active('/complaints')}>📝 Жалобы</a>
             <a href="/${sn}/canteen"${active('/canteen')}>🍽️ Столовая</a>
-            ${notifLink}`,
+            ${notifLink}
+            <span class="nav-section">Прочее</span>
+            <a href="/${sn}/profile"${active('/profile')}>👤 Профиль</a>`,
         MINISTRY: `
             <span class="nav-section">Главное</span>
             <a href="/${sn}/polls"${active('/polls')}>📋 Голосования</a>
@@ -171,4 +174,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("hamburger-btn").addEventListener("click", openSidebar);
     overlay.addEventListener("click", closeSidebar);
     nav.addEventListener("click", e => { if (e.target.tagName === "A" && window.innerWidth <= 768) closeSidebar(); });
+
+    // ── AI чат ──
+    const aiScript = document.createElement("script");
+    aiScript.src = "/js/ai-chat.js";
+    document.body.appendChild(aiScript);
 });
