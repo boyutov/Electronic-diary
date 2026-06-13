@@ -198,4 +198,19 @@ public class PageController {
     public String teacherMarks(@PathVariable String schoolName) {
         return "teacher-marks";
     }
+
+    @GetMapping("/{schoolName}/import-students")
+    public String importStudents(@PathVariable String schoolName) {
+        return "import-students";
+    }
+
+    @GetMapping("/{schoolName}/ai-analysis")
+    public String aiAnalysis(@PathVariable String schoolName) {
+        return "ai-analysis";
+    }
+
+    @GetMapping("/{schoolName}/test-data")
+    public String testData(@PathVariable String schoolName) {
+        return "test-data";
+    }
 }

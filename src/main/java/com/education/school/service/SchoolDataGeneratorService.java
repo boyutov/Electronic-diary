@@ -30,6 +30,7 @@ public class SchoolDataGeneratorService {
     private final RoleRepository roleRepository;
     private final MarkRepository markRepository;
     private final NewsRepository newsRepository;
+    private final ScheduleRepository scheduleRepository;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
@@ -66,7 +67,8 @@ public class SchoolDataGeneratorService {
               "create_parents": true,
               "marks_per_student": 5,
               "news_count": 3,
-              "complaints_count": 2
+              "create_schedule": true,
+              "schedule_weeks": 2
             }
             
             Правила:
@@ -74,6 +76,8 @@ public class SchoolDataGeneratorService {
             - Если не указано количество — используй разумные значения
             - Если не указаны предметы — используй стандартные школьные
             - Если не указаны группы — придумай реалистичные названия классов
+            - create_schedule = true если упоминается расписание
+            - schedule_weeks = на сколько недель вперёд генерировать расписание (по умолчанию 2)
             - Отвечай ТОЛЬКО JSON
             """;
 
@@ -249,6 +253,14 @@ public class SchoolDataGeneratorService {
                 result.append("✅ Новости: ").append(count).append("\n");
             }
 
+            // 8. Расписание
+            if (plan.has("create_schedule") && plan.get("create_schedule").asBoolean()
+                    && !groupIds.isEmpty() && !teacherIds.isEmpty() && !disciplineIds.isEmpty()) {
+                int weeks = plan.has("schedule_weeks") ? plan.get("schedule_weeks").asInt() : 2;
+                int scheduleCount = createSchedule(groupIds, teacherIds, disciplineIds, weeks);
+                result.append("✅ Расписание: ").append(scheduleCount).append(" уроков\n");
+            }
+
             result.append("\n🎉 Готово!");
         } catch (Exception e) {
             result.append("❌ Ошибка: ").append(e.getMessage());
@@ -406,6 +418,60 @@ public class SchoolDataGeneratorService {
                 mark.setGivenByTeacher(teachers.get(random.nextInt(teachers.size())));
                 markRepository.save(mark);
                 count++;
+            }
+        }
+        return count;
+    }
+
+    private int createSchedule(List<Integer> groupIds, List<Integer> teacherIds,
+                                List<Integer> disciplineIds, int weeks) {
+        // Временные слоты уроков
+        java.time.LocalTime[][] slots = {
+            {java.time.LocalTime.of(8, 0),  java.time.LocalTime.of(8, 45)},
+            {java.time.LocalTime.of(8, 55), java.time.LocalTime.of(9, 40)},
+            {java.time.LocalTime.of(9, 55), java.time.LocalTime.of(10, 40)},
+            {java.time.LocalTime.of(10, 55),java.time.LocalTime.of(11, 40)},
+            {java.time.LocalTime.of(11, 50),java.time.LocalTime.of(12, 35)},
+            {java.time.LocalTime.of(12, 45),java.time.LocalTime.of(13, 30)}
+        };
+        String[] classrooms = {"101", "102", "103", "201", "202", "203", "301", "302"};
+
+        List<Teacher> teachers = teacherRepository.findAllById(teacherIds);
+        List<Discipline> disciplines = disciplineRepository.findAllById(disciplineIds);
+        List<GroupEntity> groups = groupRepository.findAllById(groupIds);
+
+        int count = 0;
+        java.time.LocalDate startDate = java.time.LocalDate.now();
+        // Начинаем с ближайшего понедельника
+        startDate = startDate.with(java.time.temporal.TemporalAdjusters.nextOrSame(java.time.DayOfWeek.MONDAY));
+
+        for (int week = 0; week < weeks; week++) {
+            for (int dayOffset = 0; dayOffset < 5; dayOffset++) { // пн-пт
+                java.time.LocalDate date = startDate.plusDays((long) week * 7 + dayOffset);
+                for (GroupEntity group : groups) {
+                    int lessonsPerDay = 4 + random.nextInt(3); // 4-6 уроков
+                    for (int lessonNum = 0; lessonNum < Math.min(lessonsPerDay, slots.length); lessonNum++) {
+                        Teacher teacher = teachers.get(random.nextInt(teachers.size()));
+                        Discipline discipline = disciplines.get(random.nextInt(disciplines.size()));
+                        // Предпочитаем предмет учителя если есть
+                        if (!teacher.getDisciplines().isEmpty()) {
+                            discipline = teacher.getDisciplines().iterator().next();
+                        }
+
+                        Schedule schedule = new Schedule();
+                        schedule.setGroup(group);
+                        schedule.setTeacher(teacher);
+                        schedule.setDiscipline(discipline);
+                        schedule.setLessonNumber(lessonNum + 1);
+                        schedule.setClassroom(classrooms[random.nextInt(classrooms.length)]);
+                        schedule.setDate(date);
+                        schedule.setStartTime(slots[lessonNum][0]);
+                        schedule.setEndTime(slots[lessonNum][1]);
+                        schedule.setDayOfWeek(date.getDayOfWeek().getValue());
+                        scheduleRepository.save(schedule);
+                        count++;
+                    }
+                }
             }
         }
         return count;

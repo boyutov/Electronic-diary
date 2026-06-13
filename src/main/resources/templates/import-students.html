@@ -1,388 +1,255 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Импорт учеников из Excel</title>
-    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Импорт из Excel</title>
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
 </head>
-<body>
-<div class="container">
-    <h1>Импорт учеников из Excel</h1>
-    
-    <!-- Этапы -->
-    <div class="steps">
-        <div class="step active" id="step1">
-            <span class="step-number">1</span>
-            <span class="step-title">Загрузка Excel</span>
-        </div>
-        <div class="step" id="step2">
-            <span class="step-number">2</span>
-            <span class="step-title">AI распознавание колонок</span>
-        </div>
-        <div class="step" id="step3">
-            <span class="step-number">3</span>
-            <span class="step-title">Автосоздание учеников</span>
+<body class="app-layout">
+
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <h1>Electronic Diary</h1>
+        <span class="role-badge">Администратор</span>
+    </div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+        <button id="logout-btn">🚪 Выйти</button>
+    </div>
+</aside>
+
+<div class="app-content">
+    <div class="page-header">
+        <h2>📤 Импорт учеников из Excel</h2>
+        <p style="color:#64748b;margin-top:4px;">Загрузите файл Excel — AI автоматически распознает колонки</p>
+    </div>
+
+    <!-- Прогресс шаги -->
+    <div class="card" style="margin-bottom:20px;">
+        <div style="display:flex;gap:8px;align-items:center;">
+            <div class="step-badge active" id="badge1">1</div>
+            <span id="label1" style="font-weight:600;color:var(--primary)">Загрузка файла</span>
+            <div style="flex:1;height:2px;background:#e2e8f0;margin:0 8px;"></div>
+            <div class="step-badge" id="badge2">2</div>
+            <span id="label2" style="color:#94a3b8;">Проверка колонок</span>
+            <div style="flex:1;height:2px;background:#e2e8f0;margin:0 8px;"></div>
+            <div class="step-badge" id="badge3">3</div>
+            <span id="label3" style="color:#94a3b8;">Результат</span>
         </div>
     </div>
 
-    <!-- Этап 1: Загрузка файла -->
-    <div id="stage1" class="stage active">
-        <h2>Этап 1: Загрузка Excel файла</h2>
-        <form id="uploadForm" enctype="multipart/form-data">
-            <input type="file" id="excelFile" accept=".xlsx,.xls" required>
-            <button type="submit">Загрузить и анализировать</button>
-        </form>
-        <div id="uploadProgress" style="display:none;">Анализируем файл...</div>
+    <!-- Этап 1 -->
+    <div class="card" id="stage1">
+        <h3 style="margin-bottom:16px;">Выберите Excel файл</h3>
+        <div id="drop-zone" style="border:2px dashed #cbd5e1;border-radius:12px;padding:48px;text-align:center;cursor:pointer;transition:all .2s;">
+            <div style="font-size:48px;margin-bottom:12px;">📊</div>
+            <p style="color:#64748b;margin-bottom:16px;">Перетащите файл сюда или нажмите для выбора</p>
+            <p style="font-size:12px;color:#94a3b8;">Поддерживаются: .xlsx, .xls</p>
+            <input type="file" id="excelFile" accept=".xlsx,.xls" style="display:none;">
+            <button onclick="document.getElementById('excelFile').click()" style="margin-top:16px;">Выбрать файл</button>
+        </div>
+        <div id="file-info" style="display:none;margin-top:16px;padding:12px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;">
+            <span id="file-name" style="font-weight:600;color:#15803d;"></span>
+            <button onclick="uploadFile()" style="margin-left:16px;background:#16a34a;">📤 Загрузить и анализировать</button>
+        </div>
+        <div id="upload-progress" style="display:none;margin-top:16px;text-align:center;color:#64748b;">
+            <div style="font-size:24px;animation:spin 1s linear infinite;display:inline-block;">⏳</div>
+            <p>AI анализирует файл...</p>
+        </div>
     </div>
 
-    <!-- Этап 2: Маппинг колонок -->
-    <div id="stage2" class="stage">
-        <h2>Этап 2: AI распознавание колонок</h2>
-        <p>AI автоматически определил назначение колонок. Проверьте и исправьте при необходимости:</p>
-        
-        <div id="mappingContainer"></div>
-        
-        <div class="default-settings">
-            <label>Группа по умолчанию:
-                <select id="defaultGroup">
-                    <option value="">Выберите группу</option>
+    <!-- Этап 2 -->
+    <div class="card" id="stage2" style="display:none;">
+        <h3 style="margin-bottom:8px;">Настройка колонок</h3>
+        <p style="color:#64748b;margin-bottom:16px;">AI определил назначение колонок. Проверьте и при необходимости исправьте.</p>
+
+        <div id="preview-table-wrap" style="overflow-x:auto;margin-bottom:20px;"></div>
+
+        <h4 style="margin-bottom:12px;">Назначение колонок:</h4>
+        <div id="mapping-container" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px;"></div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+            <div>
+                <label style="font-weight:600;display:block;margin-bottom:6px;">Группа по умолчанию</label>
+                <select id="defaultGroup" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;">
+                    <option value="">— Выберите группу —</option>
                 </select>
-            </label>
-            <label>Пароль по умолчанию:
-                <input type="text" id="defaultPassword" value="password123">
-            </label>
+            </div>
+            <div>
+                <label style="font-weight:600;display:block;margin-bottom:6px;">Пароль по умолчанию</label>
+                <input type="text" id="defaultPassword" value="password123" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;box-sizing:border-box;">
+            </div>
         </div>
-        
-        <button onclick="proceedToImport()">Продолжить импорт</button>
+
+        <div style="display:flex;gap:12px;">
+            <button onclick="goBack()" style="background:#64748b;">← Назад</button>
+            <button onclick="proceedToImport()">✅ Импортировать</button>
+        </div>
     </div>
 
-    <!-- Этап 3: Результат -->
-    <div id="stage3" class="stage">
-        <h2>Этап 3: Результат импорта</h2>
-        <div id="importResults"></div>
-        <button onclick="startOver()">Импортировать еще файл</button>
+    <!-- Этап 3 -->
+    <div class="card" id="stage3" style="display:none;">
+        <div id="import-result"></div>
+        <button onclick="startOver()" style="margin-top:16px;">🔄 Импортировать ещё файл</button>
     </div>
 </div>
 
 <style>
-.steps {
-    display: flex;
-    justify-content: space-between;
-    margin: 20px 0;
-    padding: 0 50px;
+.step-badge {
+    width:32px;height:32px;border-radius:50%;background:#e2e8f0;color:#94a3b8;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;
 }
-
-.step {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 20px;
-    border-radius: 8px;
-    background: #f5f5f5;
-    color: #666;
-    transition: all 0.3s;
-}
-
-.step.active {
-    background: #007bff;
-    color: white;
-}
-
-.step.completed {
-    background: #28a745;
-    color: white;
-}
-
-.step-number {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-}
-
-.stage {
-    display: none;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    margin: 20px 0;
-}
-
-.stage.active {
-    display: block;
-}
-
-.mapping-row {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin: 10px 0;
-    padding: 10px;
-    border: 1px solid #eee;
-    border-radius: 4px;
-}
-
-.default-settings {
-    margin: 20px 0;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 4px;
-}
-
-.default-settings label {
-    display: block;
-    margin: 10px 0;
-}
-
-.preview-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 15px 0;
-}
-
-.preview-table th, .preview-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-}
-
-.preview-table th {
-    background: #f5f5f5;
-}
-
-.result-success {
-    color: #28a745;
-    font-weight: bold;
-}
-
-.result-error {
-    color: #dc3545;
-    font-weight: bold;
-}
+.step-badge.active { background:var(--primary);color:#fff; }
+.step-badge.done { background:#16a34a;color:#fff; }
+#drop-zone:hover, #drop-zone.dragover { border-color:var(--primary);background:#f0f9ff; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.mapping-card { background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px; }
+.mapping-card label { font-size:12px;color:#64748b;display:block;margin-bottom:4px; }
+.mapping-card select { width:100%;padding:6px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px; }
 </style>
 
 <script>
-let fileData = null;
-let previewData = null;
+let previewData = null, fileData = null;
+const sn = () => sessionStorage.getItem('schoolName') || location.pathname.split('/')[1];
+const token = () => sessionStorage.getItem('jwtToken');
 
-document.getElementById('uploadForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const fileInput = document.getElementById('excelFile');
-    const file = fileInput.files[0];
-    
-    if (!file) {
-        alert('Выберите файл');
-        return;
-    }
-    
-    document.getElementById('uploadProgress').style.display = 'block';
-    
+// Drag & drop
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+document.getElementById('excelFile').addEventListener('change', e => handleFile(e.target.files[0]));
+
+function handleFile(file) {
+    if (!file) return;
+    document.getElementById('file-name').textContent = `📄 ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+    document.getElementById('file-info').style.display = 'block';
+    window._selectedFile = file;
+}
+
+async function uploadFile() {
+    const file = window._selectedFile;
+    if (!file) return;
+    document.getElementById('file-info').style.display = 'none';
+    document.getElementById('upload-progress').style.display = 'block';
+
     const formData = new FormData();
     formData.append('file', file);
-    
     try {
-        const response = await fetch('/api/' + getSchoolName() + '/excel/preview', {
+        const r = await fetch(`/api/${sn()}/excel/preview`, {
             method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + getToken()
-            },
+            headers: { 'Authorization': 'Bearer ' + token() },
             body: formData
         });
-        
-        if (!response.ok) throw new Error('Ошибка загрузки');
-        
-        previewData = await response.json();
-        
-        // Сохраняем файл как base64
+        if (!r.ok) throw new Error(await r.text());
+        previewData = await r.json();
         const reader = new FileReader();
-        reader.onload = function(e) {
-            fileData = e.target.result.split(',')[1]; // убираем data:...;base64,
-            showMappingStage();
-        };
+        reader.onload = e => { fileData = e.target.result.split(',')[1]; showStage2(); };
         reader.readAsDataURL(file);
-        
-    } catch (error) {
-        alert('Ошибка: ' + error.message);
-        document.getElementById('uploadProgress').style.display = 'none';
+    } catch (e) {
+        document.getElementById('upload-progress').style.display = 'none';
+        document.getElementById('file-info').style.display = 'block';
+        alert('Ошибка: ' + e.message);
     }
-});
+}
 
-function showMappingStage() {
-    // Переключаем этапы
-    document.getElementById('step1').classList.remove('active');
-    document.getElementById('step1').classList.add('completed');
-    document.getElementById('step2').classList.add('active');
-    
-    document.getElementById('stage1').classList.remove('active');
-    document.getElementById('stage2').classList.add('active');
-    
-    // Показываем маппинг
-    const container = document.getElementById('mappingContainer');
-    container.innerHTML = '';
-    
-    // Превью данных
-    let html = '<h3>Превью данных (' + previewData.totalRows + ' строк):</h3>';
-    html += '<table class="preview-table"><thead><tr>';
-    previewData.headers.forEach(h => html += '<th>' + h + '</th>');
+function showStage2() {
+    setStep(2);
+    document.getElementById('stage1').style.display = 'none';
+    document.getElementById('stage2').style.display = 'block';
+
+    // Превью таблица
+    let html = `<table style="border-collapse:collapse;font-size:13px;min-width:100%;"><thead><tr>`;
+    previewData.headers.forEach(h => html += `<th style="border:1px solid #e2e8f0;padding:6px 10px;background:#f8fafc;">${h}</th>`);
     html += '</tr></thead><tbody>';
-    
-    previewData.preview.forEach(row => {
+    (previewData.preview || []).forEach(row => {
         html += '<tr>';
-        row.forEach(cell => html += '<td>' + cell + '</td>');
+        row.forEach(cell => html += `<td style="border:1px solid #e2e8f0;padding:5px 10px;">${cell ?? ''}</td>`);
         html += '</tr>';
     });
     html += '</tbody></table>';
-    
-    // Маппинг колонок
-    html += '<h3>Назначение колонок:</h3>';
-    previewData.headers.forEach((header, index) => {
-        const suggested = previewData.suggestedMapping[header] || 'ignore';
-        html += '<div class="mapping-row">';
-        html += '<strong>' + header + ':</strong>';
-        html += '<select id="mapping_' + index + '">';
-        html += '<option value="ignore"' + (suggested === 'ignore' ? ' selected' : '') + '>Игнорировать</option>';
-        html += '<option value="firstName"' + (suggested === 'firstName' ? ' selected' : '') + '>Имя</option>';
-        html += '<option value="secondName"' + (suggested === 'secondName' ? ' selected' : '') + '>Фамилия</option>';
-        html += '<option value="thirdName"' + (suggested === 'thirdName' ? ' selected' : '') + '>Отчество</option>';
-        html += '<option value="email"' + (suggested === 'email' ? ' selected' : '') + '>Email</option>';
-        html += '<option value="password"' + (suggested === 'password' ? ' selected' : '') + '>Пароль</option>';
-        html += '<option value="age"' + (suggested === 'age' ? ' selected' : '') + '>Возраст</option>';
-        html += '<option value="groupName"' + (suggested === 'groupName' ? ' selected' : '') + '>Группа</option>';
-        html += '</select>';
-        html += '</div>';
-    });
-    
-    container.innerHTML = html;
-    
-    // Загружаем группы
-    loadGroups();
-}
+    document.getElementById('preview-table-wrap').innerHTML = html;
 
-async function loadGroups() {
-    try {
-        const response = await fetch('/api/' + getSchoolName() + '/groups', {
-            headers: { 'Authorization': 'Bearer ' + getToken() }
-        });
-        const groups = await response.json();
-        
-        const select = document.getElementById('defaultGroup');
-        select.innerHTML = '<option value="">Выберите группу</option>';
-        groups.forEach(group => {
-            select.innerHTML += '<option value="' + group.name + '">' + group.name + '</option>';
-        });
-    } catch (error) {
-        console.error('Ошибка загрузки групп:', error);
-    }
+    // Маппинг
+    const fields = [
+        ['ignore','Игнорировать'],['firstName','Имя'],['secondName','Фамилия'],
+        ['thirdName','Отчество'],['email','Email'],['password','Пароль'],
+        ['age','Возраст'],['groupName','Группа']
+    ];
+    const mc = document.getElementById('mapping-container');
+    mc.innerHTML = previewData.headers.map((h, i) => {
+        const sug = previewData.suggestedMapping?.[h] || 'ignore';
+        const opts = fields.map(([v, l]) => `<option value="${v}"${v===sug?' selected':''}>${l}</option>`).join('');
+        return `<div class="mapping-card"><label>${h}</label><select id="map_${i}">${opts}</select></div>`;
+    }).join('');
+
+    // Группы
+    apiFetch(`/api/${sn()}/groups`).then(r => r.json()).then(groups => {
+        const sel = document.getElementById('defaultGroup');
+        groups.forEach(g => sel.innerHTML += `<option value="${g.name}">${g.name}</option>`);
+    });
 }
 
 async function proceedToImport() {
-    // Собираем маппинг
+    const group = document.getElementById('defaultGroup').value;
+    if (!group) { alert('Выберите группу по умолчанию'); return; }
     const mapping = {};
-    previewData.headers.forEach((header, index) => {
-        const select = document.getElementById('mapping_' + index);
-        mapping[header] = select.value;
-    });
-    
-    const defaultGroup = document.getElementById('defaultGroup').value;
-    const defaultPassword = document.getElementById('defaultPassword').value;
-    
-    if (!defaultGroup) {
-        alert('Выберите группу по умолчанию');
-        return;
-    }
-    
-    // Переключаем этапы
-    document.getElementById('step2').classList.remove('active');
-    document.getElementById('step2').classList.add('completed');
-    document.getElementById('step3').classList.add('active');
-    
-    document.getElementById('stage2').classList.remove('active');
-    document.getElementById('stage3').classList.add('active');
-    
-    // Показываем прогресс
-    document.getElementById('importResults').innerHTML = '<p>Импортируем учеников...</p>';
-    
+    previewData.headers.forEach((h, i) => mapping[h] = document.getElementById(`map_${i}`).value);
+
+    setStep(3);
+    document.getElementById('stage2').style.display = 'none';
+    document.getElementById('stage3').style.display = 'block';
+    document.getElementById('import-result').innerHTML = '<p style="color:#64748b;">⏳ Импортируем учеников...</p>';
+
     try {
-        const response = await fetch('/api/' + getSchoolName() + '/excel/import', {
+        const r = await fetch(`/api/${sn()}/excel/import`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + getToken()
-            },
-            body: JSON.stringify({
-                fileData: fileData,
-                mapping: mapping,
-                defaultGroup: defaultGroup,
-                defaultPassword: defaultPassword
-            })
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token() },
+            body: JSON.stringify({ fileData, mapping, defaultGroup: group, defaultPassword: document.getElementById('defaultPassword').value })
         });
-        
-        if (!response.ok) throw new Error('Ошибка импорта');
-        
-        const result = await response.json();
-        showResults(result);
-        
-    } catch (error) {
-        document.getElementById('importResults').innerHTML = 
-            '<p class="result-error">Ошибка импорта: ' + error.message + '</p>';
+        const res = await r.json();
+        let html = `<div style="padding:16px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;margin-bottom:16px;">
+            <div style="font-size:24px;font-weight:700;color:#15803d;">${res.added} учеников добавлено ✅</div>
+            ${res.errors > 0 ? `<div style="color:#dc2626;margin-top:8px;">❌ Ошибок: ${res.errors}</div>` : ''}
+        </div>`;
+        if (res.addedNames?.length) html += `<details><summary style="cursor:pointer;font-weight:600;">Добавленные ученики (${res.addedNames.length})</summary><ul style="margin-top:8px;">${res.addedNames.map(n=>`<li>${n}</li>`).join('')}</ul></details>`;
+        if (res.errorDetails?.length) html += `<details style="margin-top:8px;"><summary style="cursor:pointer;font-weight:600;color:#dc2626;">Ошибки</summary><ul style="margin-top:8px;">${res.errorDetails.map(e=>`<li style="color:#dc2626;">${e}</li>`).join('')}</ul></details>`;
+        document.getElementById('import-result').innerHTML = html;
+    } catch (e) {
+        document.getElementById('import-result').innerHTML = `<p style="color:#dc2626;">❌ Ошибка: ${e.message}</p>`;
     }
 }
 
-function showResults(result) {
-    let html = '<h3>Результат импорта:</h3>';
-    html += '<p class="result-success">Успешно добавлено: ' + result.added + ' учеников</p>';
-    
-    if (result.errors > 0) {
-        html += '<p class="result-error">Ошибок: ' + result.errors + '</p>';
-        html += '<details><summary>Подробности ошибок</summary><ul>';
-        result.errorDetails.forEach(error => {
-            html += '<li>' + error + '</li>';
-        });
-        html += '</ul></details>';
-    }
-    
-    if (result.addedNames.length > 0) {
-        html += '<details><summary>Добавленные ученики</summary><ul>';
-        result.addedNames.forEach(name => {
-            html += '<li>' + name + '</li>';
-        });
-        html += '</ul></details>';
-    }
-    
-    document.getElementById('importResults').innerHTML = html;
+function goBack() {
+    setStep(1);
+    document.getElementById('stage2').style.display = 'none';
+    document.getElementById('stage1').style.display = 'block';
+    document.getElementById('upload-progress').style.display = 'none';
+    document.getElementById('file-info').style.display = window._selectedFile ? 'block' : 'none';
 }
 
 function startOver() {
-    // Сброс всех этапов
-    document.querySelectorAll('.step').forEach(step => {
-        step.classList.remove('active', 'completed');
-    });
-    document.getElementById('step1').classList.add('active');
-    
-    document.querySelectorAll('.stage').forEach(stage => {
-        stage.classList.remove('active');
-    });
-    document.getElementById('stage1').classList.add('active');
-    
-    // Очистка данных
+    setStep(1);
+    document.getElementById('stage3').style.display = 'none';
+    document.getElementById('stage1').style.display = 'block';
+    document.getElementById('upload-progress').style.display = 'none';
+    document.getElementById('file-info').style.display = 'none';
     document.getElementById('excelFile').value = '';
-    document.getElementById('uploadProgress').style.display = 'none';
-    fileData = null;
-    previewData = null;
+    window._selectedFile = null; fileData = null; previewData = null;
 }
 
-function getSchoolName() {
-    return window.location.pathname.split('/')[1];
-}
-
-function getToken() {
-    return localStorage.getItem('token') || sessionStorage.getItem('token');
+function setStep(n) {
+    [1,2,3].forEach(i => {
+        const b = document.getElementById(`badge${i}`);
+        const l = document.getElementById(`label${i}`);
+        if (i < n) { b.className='step-badge done'; b.textContent='✓'; l.style.color='#16a34a'; }
+        else if (i === n) { b.className='step-badge active'; b.textContent=i; l.style.color='var(--primary)'; l.style.fontWeight='600'; }
+        else { b.className='step-badge'; b.textContent=i; l.style.color='#94a3b8'; l.style.fontWeight='400'; }
+    });
 }
 </script>
+<script src="/js/sidebar.js"></script>
 </body>
 </html>

@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
             resultDiv.innerHTML = `
                 <strong>🎉 Школа успешно создана!</strong>
                 ID школы: <strong>${data.schoolId}</strong><br>
-                Временный пароль: <strong>${data.adminPassword}</strong><br>
+                Временный пароль: <strong>${data.generatedPassword}</strong><br>
                 Сохраните эти данные — они нужны для активации.
             `;
             purchaseForm.reset();

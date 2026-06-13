@@ -1,198 +1,125 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Генератор данных</title>
-    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
 </head>
-<body>
-<div class="container">
-    <h1>AI Генератор школьных данных</h1>
-    
-    <div class="card">
-        <h2>Опишите что создать</h2>
-        <p>Напишите AI что нужно создать в школе. Например:</p>
-        
-        <div class="examples">
-            <button class="example-btn" onclick="setPrompt('Создай 5 предметов: математика, физика, химия, биология, история')">Предметы</button>
-            <button class="example-btn" onclick="setPrompt('Создай 3 класса: 9А, 10Б, 11В')">Классы</button>
-            <button class="example-btn" onclick="setPrompt('Создай 5 учителей с русскими именами для разных предметов')">Учителя</button>
-            <button class="example-btn" onclick="setPrompt('Создай 20 учеников в класс 9А с русскими именами')">Ученики</button>
-            <button class="example-btn" onclick="setPrompt('Создай родителей для всех учеников')">Родители</button>
-            <button class="example-btn" onclick="setPrompt('Поставь случайные оценки всем ученикам по всем предметам')">Оценки</button>
-            <button class="example-btn" onclick="setPrompt('Создай полную маленькую школу со всеми данными')">Всё сразу</button>
+<body class="app-layout">
+
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <h1>Electronic Diary</h1>
+        <span class="role-badge">Администратор</span>
+    </div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+        <button id="logout-btn">🚪 Выйти</button>
+    </div>
+</aside>
+
+<div class="app-content">
+    <div class="page-header">
+        <h2>🤖 AI Генератор данных</h2>
+        <p style="color:#64748b;margin-top:4px;">Опишите что нужно создать — AI сгенерирует данные автоматически</p>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+        <h3 style="margin-bottom:12px;">Быстрые действия</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <button class="chip-btn" onclick="setPrompt('Создай предметы: математика, физика, химия, биология, история, русский язык, английский язык, география')">📚 Предметы</button>
+            <button class="chip-btn" onclick="setPrompt('Создай 3 класса: 9А, 10А, 11А')">🏫 Классы</button>
+            <button class="chip-btn" onclick="setPrompt('Создай 8 учителей с русскими именами, назначь каждому предмет')">👨🏫 Учителя</button>
+            <button class="chip-btn" onclick="setPrompt('Создай 25 учеников в каждый класс с русскими именами')">🎒 Ученики</button>
+            <button class="chip-btn" onclick="setPrompt('Создай родителей для всех учеников')">👨‍👩‍👧 Родители</button>
+            <button class="chip-btn" onclick="setPrompt('Поставь случайные оценки всем ученикам по всем предметам')">📝 Оценки</button>
+            <button class="chip-btn" onclick="setPrompt('Создай расписание на 2 недели для всех классов')">📅 Расписание</button>
+            <button class="chip-btn" onclick="setPrompt('Создай предметы, 8 учителей и расписание на 2 недели для существующих классов')" style="background:#dbeafe;color:#1d4ed8;border-color:#93c5fd;">📚+👨🏫+📅 Предметы+Учителя+Расписание</button>
+            <button class="chip-btn" onclick="setPrompt('Создай полную школу: предметы математика физика история русский английский, классы 9А 10А 11А, 8 учителей, 25 учеников в каждом классе, родителей, оценки и расписание на 2 недели')" style="background:#dcfce7;color:#15803d;border-color:#86efac;">🏫 Всё сразу</button>
         </div>
-        
-        <div class="form-group">
-            <label>Ваша задача для AI:</label>
-            <textarea id="aiPrompt" placeholder="Например: Создай полную школу с 3 классами, 6 учителями, 30 учениками и их родителями. Добавь оценки и новости."></textarea>
-        </div>
-        
-        <button onclick="generateWithAI()">🤖 Поручить AI</button>
-        
-        <div id="result" class="result-area"></div>
     </div>
 
     <div class="card">
-        <h2>Примеры команд для AI</h2>
-        <ul>
-            <li>"Создай школу с 5 предметами и 4 классами"</li>
-            <li>"Добавь 10 учителей с разными предметами"</li>
-            <li>"Создай 50 учеников распредели по классам"</li>
-            <li>"Создай родителей для всех учеников"</li>
-            <li>"Поставь оценки всем ученикам"</li>
-            <li>"Создай расписание на неделю"</li>
-            <li>"Добавь новости и объявления"</li>
-            <li>"Создай полную школу №5 со всеми данными"</li>
-        </ul>
+        <h3 style="margin-bottom:12px;">Задача для AI</h3>
+        <textarea id="aiPrompt" rows="4" placeholder="Например: Создай полную школу с 3 классами, 8 учителями, 25 учениками в каждом классе, родителями, оценками и расписанием на 2 недели."
+            style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;font-size:14px;box-sizing:border-box;"></textarea>
+
+        <div style="display:flex;gap:12px;margin-top:12px;align-items:center;">
+            <button onclick="generateWithAI()" id="gen-btn" style="padding:10px 24px;">🤖 Поручить AI</button>
+            <button onclick="clearResult()" style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;padding:10px 16px;">🗑 Очистить</button>
+            <span id="gen-status" style="font-size:13px;color:#64748b;"></span>
+        </div>
+
+        <div id="result" style="display:none;margin-top:16px;padding:16px;border-radius:8px;background:#f8fafc;border-left:4px solid var(--primary);white-space:pre-wrap;font-size:13px;line-height:1.6;max-height:500px;overflow-y:auto;font-family:monospace;"></div>
     </div>
 </div>
 
 <style>
-.card {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px 0;
+.chip-btn {
+    background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;
+    padding:6px 14px;border-radius:999px;font-size:12px;cursor:pointer;transition:all .15s;
 }
-
-.form-group {
-    margin: 15px 0;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-.form-group textarea {
-    width: 100%;
-    min-height: 100px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    resize: vertical;
-}
-
-button {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-button:hover {
-    background: #0056b3;
-}
-
-button:disabled {
-    background: #6c757d;
-    cursor: not-allowed;
-}
-
-.examples {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin: 15px 0;
-}
-
-.example-btn {
-    background: #6c757d;
-    font-size: 12px;
-    padding: 6px 12px;
-}
-
-.example-btn:hover {
-    background: #545b62;
-}
-
-.result-area {
-    margin-top: 20px;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 4px;
-    border-left: 4px solid #007bff;
-    display: none;
-    white-space: pre-wrap;
-    font-family: monospace;
-    max-height: 500px;
-    overflow-y: auto;
-}
-
-.result-area.show {
-    display: block;
-}
-
-.result-area.loading {
-    background: #fff3cd;
-    border-left-color: #ffc107;
-}
-
-.result-area.success {
-    background: #d4edda;
-    border-left-color: #28a745;
-}
-
-.result-area.error {
-    background: #f8d7da;
-    border-left-color: #dc3545;
-}
+.chip-btn:hover { background:#e2e8f0; }
 </style>
 
 <script>
+const sn = () => sessionStorage.getItem('schoolName') || location.pathname.split('/')[1];
+const token = () => sessionStorage.getItem('jwtToken');
+
+function setPrompt(text) { document.getElementById('aiPrompt').value = text; }
+
+function clearResult() {
+    document.getElementById('result').style.display = 'none';
+    document.getElementById('gen-status').textContent = '';
+}
+
 async function generateWithAI() {
     const prompt = document.getElementById('aiPrompt').value.trim();
-    if (!prompt) {
-        alert('Опишите что нужно создать');
-        return;
-    }
-    
+    if (!prompt) { alert('Опишите что нужно создать'); return; }
+
+    const btn = document.getElementById('gen-btn');
+    const status = document.getElementById('gen-status');
     const result = document.getElementById('result');
-    result.className = 'result-area show loading';
-    result.textContent = 'AI анализирует задачу и создает данные...\nЭто может занять 10-30 секунд.';
-    
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Генерирую...';
+    status.textContent = 'AI анализирует задачу, это может занять 10–30 секунд...';
+    result.style.display = 'block';
+    result.style.borderLeftColor = '#f59e0b';
+    result.style.background = '#fffbeb';
+    result.textContent = '⏳ Генерирую данные...';
+
     try {
-        const response = await fetch('/api/' + getSchoolName() + '/ai-generator/generate', {
+        const r = await fetch(`/api/${sn()}/ai-generator/generate`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + getToken()
-            },
-            body: JSON.stringify({ prompt: prompt })
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token() },
+            body: JSON.stringify({ prompt })
         });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            result.className = 'result-area show success';
+        const data = await r.json();
+        if (r.ok) {
+            result.style.borderLeftColor = '#22c55e';
+            result.style.background = '#f0fdf4';
             result.textContent = data.result;
+            status.textContent = '✅ Готово';
         } else {
-            result.className = 'result-area show error';
-            result.textContent = 'Ошибка: ' + (data.error || 'Неизвестная ошибка');
+            result.style.borderLeftColor = '#ef4444';
+            result.style.background = '#fef2f2';
+            result.textContent = '❌ ' + (data.error || 'Ошибка');
+            status.textContent = '';
         }
-    } catch (error) {
-        result.className = 'result-area show error';
-        result.textContent = 'Ошибка сети: ' + error.message;
+    } catch (e) {
+        result.style.borderLeftColor = '#ef4444';
+        result.style.background = '#fef2f2';
+        result.textContent = '❌ Ошибка сети: ' + e.message;
+        status.textContent = '';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🤖 Поручить AI';
     }
-}
-
-function setPrompt(text) {
-    document.getElementById('aiPrompt').value = text;
-}
-
-function getSchoolName() {
-    return window.location.pathname.split('/')[1];
-}
-
-function getToken() {
-    return localStorage.getItem('token') || sessionStorage.getItem('token');
 }
 </script>
+<script src="/js/sidebar.js"></script>
 </body>
 </html>

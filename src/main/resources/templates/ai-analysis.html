@@ -1,304 +1,189 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Анализ данных</title>
-    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
 </head>
-<body>
-<div class="container">
-    <h1>AI Анализ школьных данных</h1>
-    
-    <!-- Анализ данных школы -->
-    <div class="card">
-        <h2>Анализ данных школы</h2>
-        <p>Задайте вопрос о школьных данных. AI проанализирует информацию из базы данных.</p>
-        
-        <div class="form-group">
-            <label>Ваш вопрос или команда:</label>
-            <textarea id="schoolQuery" placeholder="Например: Какая средняя успеваемость? Создай 5 предметов. Добавь 20 учеников."></textarea>
-        </div>
-        
-        <button onclick="analyzeOrExecute()">🤖 Выполнить</button>
-        
-        <div id="schoolAnalysis" class="analysis-result"></div>
+<body class="app-layout">
+
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <h1>Electronic Diary</h1>
+        <span class="role-badge">Администратор</span>
+    </div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+        <button id="logout-btn">🚪 Выйти</button>
+    </div>
+</aside>
+
+<div class="app-content">
+    <div class="page-header">
+        <h2>🤖 AI Анализ данных</h2>
+        <p style="color:#64748b;margin-top:4px;">Анализ успеваемости, статистика и работа с файлами</p>
     </div>
 
-    <!-- Анализ файлов -->
-    <div class="card">
-        <h2>Анализ файлов</h2>
-        <p>Загрузите файл (PDF, Excel, изображение) и задайте вопрос для анализа.</p>
-        
-        <div class="form-group">
-            <label>Выберите файл:</label>
-            <input type="file" id="analysisFile" accept=".pdf,.xlsx,.xls,.jpg,.jpeg,.png,.bmp,.txt">
-            <small>Поддерживаются: PDF, Excel, изображения (JPG, PNG), текстовые файлы</small>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+
+        <!-- Анализ данных школы -->
+        <div class="card">
+            <h3 style="margin-bottom:8px;">📊 Анализ данных школы</h3>
+            <p style="color:#64748b;font-size:14px;margin-bottom:16px;">Задайте вопрос — AI проанализирует данные из базы</p>
+
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+                <button class="chip" onclick="setQ('schoolQuery','Какая средняя успеваемость в школе?')">📈 Успеваемость</button>
+                <button class="chip" onclick="setQ('schoolQuery','Сколько учеников, учителей и классов?')">📋 Статистика</button>
+                <button class="chip" onclick="setQ('schoolQuery','Кто из учеников имеет оценки ниже 3?')">⚠️ Слабые ученики</button>
+                <button class="chip" onclick="setQ('schoolQuery','Какие предметы существуют в школе?')">📚 Предметы</button>
+                <button class="chip" onclick="setQ('schoolQuery','Средняя оценка по каждому предмету?')">📊 По предметам</button>
+            </div>
+
+            <textarea id="schoolQuery" rows="3" placeholder="Например: Какая успеваемость в 9А? Кто лучший ученик?" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;box-sizing:border-box;font-size:14px;"></textarea>
+
+            <button onclick="analyzeSchool()" style="margin-top:10px;width:100%;">🤖 Анализировать</button>
+
+            <div id="schoolResult" class="ai-result" style="display:none;"></div>
         </div>
-        
-        <div class="form-group">
-            <label>Вопрос о файле:</label>
-            <textarea id="fileQuery" placeholder="Например: Проанализируй успеваемость учеников. Извлеки текст из документа. Что изображено на фото?"></textarea>
+
+        <!-- Анализ файла -->
+        <div class="card">
+            <h3 style="margin-bottom:8px;">📁 Анализ файла</h3>
+            <p style="color:#64748b;font-size:14px;margin-bottom:16px;">Загрузите PDF, Excel или изображение для анализа</p>
+
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+                <button class="chip" onclick="setQ('fileQuery','Извлеки все данные из файла')">📄 Извлечь данные</button>
+                <button class="chip" onclick="setQ('fileQuery','Проанализируй успеваемость учеников')">📊 Анализ оценок</button>
+                <button class="chip" onclick="setQ('fileQuery','Составь список всех имён из документа')">👥 Список имён</button>
+                <button class="chip" onclick="setQ('fileQuery','Опиши содержимое файла')">🔍 Описание</button>
+            </div>
+
+            <div id="file-drop" style="border:2px dashed #cbd5e1;border-radius:8px;padding:20px;text-align:center;cursor:pointer;margin-bottom:12px;transition:all .2s;" onclick="document.getElementById('analysisFile').click()">
+                <input type="file" id="analysisFile" accept=".pdf,.xlsx,.xls,.jpg,.jpeg,.png,.txt" style="display:none;" onchange="showFileName()">
+                <div id="file-drop-text">
+                    <div style="font-size:28px;">📎</div>
+                    <p style="color:#64748b;font-size:13px;margin:4px 0;">Нажмите для выбора файла</p>
+                    <p style="color:#94a3b8;font-size:11px;">PDF, Excel, JPG, PNG, TXT</p>
+                </div>
+            </div>
+
+            <textarea id="fileQuery" rows="2" placeholder="Вопрос о файле..." style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;box-sizing:border-box;font-size:14px;"></textarea>
+
+            <button onclick="analyzeFile()" style="margin-top:10px;width:100%;">📂 Анализировать файл</button>
+
+            <div id="fileResult" class="ai-result" style="display:none;"></div>
         </div>
-        
-        <button onclick="analyzeFile()">Анализировать файл</button>
-        
-        <div id="fileAnalysis" class="analysis-result"></div>
     </div>
 
-    <!-- Примеры вопросов -->
+    <!-- Быстрая статистика -->
     <div class="card">
-        <h2>Примеры вопросов</h2>
-        
-        <h3>Для анализа и создания данных:</h3>
-        <div class="examples">
-            <button class="example-btn" onclick="setQuery('schoolQuery', 'Какая средняя успеваемость в школе?')">Средняя успеваемость</button>
-            <button class="example-btn" onclick="setQuery('schoolQuery', 'Создай 5 предметов: математика, физика, химия, биология, история')">Создать предметы</button>
-            <button class="example-btn" onclick="setQuery('schoolQuery', 'Создай 3 класса: 9А, 10Б, 11В')">Создать классы</button>
-            <button class="example-btn" onclick="setQuery('schoolQuery', 'Добавь 20 учеников с русскими именами')">Добавить учеников</button>
-            <button class="example-btn" onclick="setQuery('schoolQuery', 'Поставь случайные оценки всем ученикам')">Поставить оценки</button>
-            <button class="example-btn" onclick="setQuery('schoolQuery', 'Создай полную школу со всеми данными')">Полная школа</button>
-        </div>
-        
-        <h3>Для анализа файлов:</h3>
-        <div class="examples">
-            <button class="example-btn" onclick="setQuery('fileQuery', 'Извлеки и проанализируй данные из таблицы')">Анализ таблицы</button>
-            <button class="example-btn" onclick="setQuery('fileQuery', 'Что написано в документе?')">Извлечение текста</button>
-            <button class="example-btn" onclick="setQuery('fileQuery', 'Проанализируй успеваемость учеников')">Анализ оценок</button>
-            <button class="example-btn" onclick="setQuery('fileQuery', 'Опиши что изображено на фото')">Описание изображения</button>
+        <h3 style="margin-bottom:16px;">📈 Быстрая статистика</h3>
+        <div class="stats-grid" id="quick-stats">
+            <div class="stat-card"><div class="stat-value" id="qs-students">—</div><div class="stat-label">Учеников</div></div>
+            <div class="stat-card"><div class="stat-value" id="qs-teachers">—</div><div class="stat-label">Учителей</div></div>
+            <div class="stat-card"><div class="stat-value" id="qs-groups">—</div><div class="stat-label">Классов</div></div>
+            <div class="stat-card"><div class="stat-value" id="qs-disciplines">—</div><div class="stat-label">Предметов</div></div>
+            <div class="stat-card"><div class="stat-value" id="qs-marks">—</div><div class="stat-label">Оценок</div></div>
         </div>
     </div>
 </div>
 
 <style>
-.card {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px 0;
+.chip {
+    background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;
+    padding:4px 10px;border-radius:999px;font-size:12px;cursor:pointer;
 }
-
-.form-group {
-    margin: 15px 0;
+.chip:hover { background:#e2e8f0; }
+.ai-result {
+    margin-top:14px;padding:14px;border-radius:8px;
+    background:#f8fafc;border-left:4px solid var(--primary);
+    white-space:pre-wrap;font-size:13px;line-height:1.6;max-height:300px;overflow-y:auto;
 }
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-.form-group textarea {
-    width: 100%;
-    min-height: 80px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    resize: vertical;
-}
-
-.form-group input[type="file"] {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.form-group small {
-    color: #666;
-    font-size: 12px;
-}
-
-button {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-button:hover {
-    background: #0056b3;
-}
-
-.analysis-result {
-    margin-top: 20px;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 4px;
-    border-left: 4px solid #007bff;
-    display: none;
-    white-space: pre-wrap;
-}
-
-.analysis-result.show {
-    display: block;
-}
-
-.analysis-result.loading {
-    background: #fff3cd;
-    border-left-color: #ffc107;
-}
-
-.analysis-result.error {
-    background: #f8d7da;
-    border-left-color: #dc3545;
-}
-
-.examples {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 10px 0;
-}
-
-.example-btn {
-    background: #6c757d;
-    font-size: 12px;
-    padding: 5px 10px;
-}
-
-.example-btn:hover {
-    background: #545b62;
-}
+.ai-result.loading { background:#fffbeb;border-left-color:#f59e0b; }
+.ai-result.error { background:#fef2f2;border-left-color:#ef4444;color:#dc2626; }
+#file-drop:hover { border-color:var(--primary);background:#f0f9ff; }
 </style>
 
 <script>
-async function analyzeOrExecute() {
-    const query = document.getElementById('schoolQuery').value.trim();
-    if (!query) {
-        alert('Введите вопрос или команду');
-        return;
-    }
-    
-    const resultDiv = document.getElementById('schoolAnalysis');
-    resultDiv.className = 'analysis-result show loading';
-    
-    // Определяем тип запроса
-    const isCreationRequest = query.toLowerCase().includes('созда') || 
-                             query.toLowerCase().includes('добав') || 
-                             query.toLowerCase().includes('постав');
-    
-    if (isCreationRequest) {
-        resultDiv.textContent = 'AI создает данные...';
-        await executeAction(query, resultDiv);
-    } else {
-        resultDiv.textContent = 'Анализирую данные школы...';
-        await analyzeData(query, resultDiv);
-    }
+const sn = () => sessionStorage.getItem('schoolName') || location.pathname.split('/')[1];
+const token = () => sessionStorage.getItem('jwtToken');
+
+function setQ(id, text) { document.getElementById(id).value = text; }
+
+function showFileName() {
+    const f = document.getElementById('analysisFile').files[0];
+    if (f) document.getElementById('file-drop-text').innerHTML =
+        `<div style="font-size:20px;">✅</div><p style="color:#15803d;font-size:13px;font-weight:600;">${f.name}</p><p style="color:#94a3b8;font-size:11px;">${(f.size/1024).toFixed(1)} KB</p>`;
 }
 
-async function executeAction(query, resultDiv) {
+async function analyzeSchool() {
+    const q = document.getElementById('schoolQuery').value.trim();
+    if (!q) { alert('Введите вопрос'); return; }
+    const el = document.getElementById('schoolResult');
+    el.style.display = 'block';
+    el.className = 'ai-result loading';
+    el.textContent = '⏳ Анализирую данные школы...';
     try {
-        const response = await fetch('/api/' + getSchoolName() + '/ai/execute', {
+        const r = await apiFetch(`/api/${sn()}/ai/analyze`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + getToken()
-            },
-            body: JSON.stringify({ action: query })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: q })
         });
-        
-        const result = await response.json();
-        
-        if (response.ok) {
-            resultDiv.className = 'analysis-result show';
-            resultDiv.textContent = result.result;
-        } else {
-            resultDiv.className = 'analysis-result show error';
-            resultDiv.textContent = 'Ошибка: ' + (result.error || 'Неизвестная ошибка');
-        }
-    } catch (error) {
-        resultDiv.className = 'analysis-result show error';
-        resultDiv.textContent = 'Ошибка сети: ' + error.message;
-    }
-}
-
-async function analyzeData(query, resultDiv) {
-    try {
-        const response = await fetch('/api/' + getSchoolName() + '/ai/analyze', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + getToken()
-            },
-            body: JSON.stringify({ query: query })
-        });
-        
-        const result = await response.json();
-        
-        if (response.ok) {
-            resultDiv.className = 'analysis-result show';
-            resultDiv.textContent = result.analysis;
-        } else {
-            resultDiv.className = 'analysis-result show error';
-            resultDiv.textContent = 'Ошибка: ' + (result.error || 'Неизвестная ошибка');
-        }
-    } catch (error) {
-        resultDiv.className = 'analysis-result show error';
-        resultDiv.textContent = 'Ошибка сети: ' + error.message;
+        const data = await r.json();
+        el.className = 'ai-result';
+        el.textContent = data.analysis || data.result || JSON.stringify(data);
+    } catch (e) {
+        el.className = 'ai-result error';
+        el.textContent = '❌ Ошибка: ' + e.message;
     }
 }
 
 async function analyzeFile() {
     const fileInput = document.getElementById('analysisFile');
-    const query = document.getElementById('fileQuery').value.trim();
-    
-    if (!fileInput.files[0]) {
-        alert('Выберите файл');
-        return;
-    }
-    
-    if (!query) {
-        alert('Введите вопрос о файле');
-        return;
-    }
-    
-    const resultDiv = document.getElementById('fileAnalysis');
-    resultDiv.className = 'analysis-result show loading';
-    resultDiv.textContent = 'Анализирую файл...';
-    
-    const formData = new FormData();
-    formData.append('file', fileInput.files[0]);
-    formData.append('query', query);
-    
+    const q = document.getElementById('fileQuery').value.trim();
+    if (!fileInput.files[0]) { alert('Выберите файл'); return; }
+    if (!q) { alert('Введите вопрос о файле'); return; }
+
+    const el = document.getElementById('fileResult');
+    el.style.display = 'block';
+    el.className = 'ai-result loading';
+    el.textContent = '⏳ Анализирую файл...';
+
+    const fd = new FormData();
+    fd.append('file', fileInput.files[0]);
+    fd.append('query', q);
     try {
-        const response = await fetch('/api/' + getSchoolName() + '/ai/analyze-file', {
+        const r = await fetch(`/api/${sn()}/ai/analyze-file`, {
             method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + getToken()
-            },
-            body: formData
+            headers: { 'Authorization': 'Bearer ' + token() },
+            body: fd
         });
-        
-        const result = await response.json();
-        
-        if (response.ok) {
-            resultDiv.className = 'analysis-result show';
-            resultDiv.textContent = `Файл: ${result.fileName} (${result.fileSize} байт)\n\nАнализ:\n${result.analysis}`;
-        } else {
-            resultDiv.className = 'analysis-result show error';
-            resultDiv.textContent = 'Ошибка: ' + (result.error || 'Неизвестная ошибка');
-        }
-    } catch (error) {
-        resultDiv.className = 'analysis-result show error';
-        resultDiv.textContent = 'Ошибка сети: ' + error.message;
+        const data = await r.json();
+        el.className = r.ok ? 'ai-result' : 'ai-result error';
+        el.textContent = r.ok
+            ? `📄 ${data.fileName}\n\n${data.analysis}`
+            : '❌ ' + (data.error || 'Ошибка');
+    } catch (e) {
+        el.className = 'ai-result error';
+        el.textContent = '❌ Ошибка: ' + e.message;
     }
 }
 
-function setQuery(elementId, text) {
-    document.getElementById(elementId).value = text;
-}
-
-function getSchoolName() {
-    return window.location.pathname.split('/')[1];
-}
-
-function getToken() {
-    return localStorage.getItem('token') || sessionStorage.getItem('token');
-}
+// Быстрая статистика
+Promise.all([
+    apiFetch(`/api/${sn()}/students`).then(r => r.json()),
+    apiFetch(`/api/${sn()}/teachers`).then(r => r.json()),
+    apiFetch(`/api/${sn()}/groups`).then(r => r.json()),
+    apiFetch(`/api/${sn()}/disciplines`).then(r => r.json()),
+]).then(([s, t, g, d]) => {
+    document.getElementById('qs-students').textContent = s.length;
+    document.getElementById('qs-teachers').textContent = t.length;
+    document.getElementById('qs-groups').textContent = g.length;
+    document.getElementById('qs-disciplines').textContent = d.length;
+}).catch(() => {});
 </script>
+<script src="/js/sidebar.js"></script>
 </body>
 </html>

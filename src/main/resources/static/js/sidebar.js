@@ -38,21 +38,21 @@ document.addEventListener("DOMContentLoaded", () => {
             <a href="/${sn}/exams"${active('/exams')}>📚 Задания</a>
             <a href="/${sn}/admin/attendance"${active('/admin/attendance')}>📋 Посещаемость</a>
             <a href="/${sn}/admin/grading"${active('/admin/grading')}>⚙️ Оценивание</a>
+            <a href="/${sn}/import-students"${active('/import-students')}>📤 Импорт Excel</a>
+            <span class="nav-section">AI</span>
+            <a href="/${sn}/ai-analysis"${active('/ai-analysis')}>🔍 AI Анализ</a>
+            <a href="/${sn}/test-data"${active('/test-data')}>🤖 AI Генератор</a>
             <span class="nav-section">Контент</span>
             <a href="/${sn}/admin/news"${active('/admin/news')}>📰 Новости</a>
             <a href="/${sn}/admin/poll"${active('/admin/poll')}>📊 Голосования</a>
             <a href="/${sn}/complaints"${active('/complaints')}>📝 Жалобы</a>
             <a href="/${sn}/canteen"${active('/canteen')}>🍽️ Столовая</a>
-            ${notifLink}
-            <span class="nav-section">Прочее</span>
-            <a href="/${sn}/profile"${active('/profile')}>👤 Профиль</a>`,
+            ${notifLink}`,
         MINISTRY: `
             <span class="nav-section">Главное</span>
             <a href="/${sn}/polls"${active('/polls')}>📋 Голосования</a>
             <a href="/${sn}/complaints"${active('/complaints')}>📝 Жалобы</a>
-            ${notifLink}
-            <span class="nav-section">Прочее</span>
-            <a href="/${sn}/profile"${active('/profile')}>👤 Профиль</a>`,
+            ${notifLink}`,
         DIRECTOR: `
             <span class="nav-section">Главное</span>
             <a href="/${sn}/director"${active('/director')}>🏠 Панель</a>

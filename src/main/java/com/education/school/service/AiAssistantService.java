@@ -43,6 +43,7 @@ public class AiAssistantService {
     private final ScheduleRepository scheduleRepository;
     private final SchoolDataGeneratorService generatorService;
     private final CourseRepository courseRepository;
+    private final RoleRepository roleRepository;
 
     private final Map<Long, List<Map<String, String>>> conversationHistory = new HashMap<>();
     private final Random random = new Random();
@@ -174,6 +175,7 @@ public class AiAssistantService {
             6. Для анализа успеваемости — используй analyze_performance.
             7. Отвечай ТОЛЬКО на вопросы связанные со школой. Отвечай кратко на русском языке.
             8. Не выполняй массовое удаление без подтверждения.
+            9. Когда просят создать УЧИТЕЛЯ — ИСПОЛЬЗУЙ ТОЛЬКО add_teacher, НИКОГДА не add_student или add_students_random.
             
             Текущее состояние БД:
             - Группы: %s
@@ -217,8 +219,8 @@ public class AiAssistantService {
         // ── ЗАПИСЬ (только для ADMIN/DIRECTOR/TEACHER) ──
         if (List.of("ADMIN", "DIRECTOR", "TEACHER").contains(role)) {
 
-            // Добавить одного ученика
-            addTool(tools, "add_student", "Добавить одного нового ученика",
+            // Добавить одного ученика — только если явно указаны ФИО
+            addTool(tools, "add_student", "Добавить одного ученика с явно указанными ФИО и группой. НЕ использовать для учителей!",
                 Map.of(
                     "firstName",  strProp("Имя"),
                     "secondName", strProp("Фамилия"),
@@ -229,29 +231,6 @@ public class AiAssistantService {
                     "groupName",  strProp("Название группы")
                 ),
                 List.of("firstName", "secondName", "email", "password", "age", "groupName"));
-
-            // Добавить нескольких учеников
-            ObjectNode addMany = tools.addObject();
-            addMany.put("type", "function");
-            ObjectNode fn = addMany.putObject("function");
-            fn.put("name", "add_multiple_students");
-            fn.put("description", "Добавить сразу несколько учеников одним вызовом");
-            ObjectNode params = fn.putObject("parameters");
-            params.put("type", "object");
-            ObjectNode props = params.putObject("properties");
-            props.putObject("groupName").put("type", "string").put("description", "Название группы");
-            ObjectNode arr = props.putObject("students");
-            arr.put("type", "array");
-            ObjectNode item = arr.putObject("items");
-            item.put("type", "object");
-            ObjectNode ip = item.putObject("properties");
-            ip.putObject("firstName").put("type", "string");
-            ip.putObject("secondName").put("type", "string");
-            ip.putObject("thirdName").put("type", "string");
-            ip.putObject("email").put("type", "string");
-            ip.putObject("password").put("type", "string");
-            ip.putObject("age").put("type", "integer");
-            params.putArray("required").add("groupName").add("students");
         }
 
         if (List.of("ADMIN", "DIRECTOR").contains(role)) {
@@ -292,10 +271,36 @@ public class AiAssistantService {
                 Map.of("name", strProp("Название предмета")),
                 List.of("name"));
 
+            // Создать учителя
+            addTool(tools, "add_teacher",
+                "Создать одного или несколько учителей с привязкой к предметам. НИКОГДА не используй add_student или add_students_random для учителей!",
+                Map.of(
+                    "disciplineNames", objectMapper.createObjectNode()
+                        .put("type", "array")
+                        .<ObjectNode>set("items", objectMapper.createObjectNode().put("type", "string"))
+                        .<ObjectNode>put("description", "Список предметов для назначения учителю"),
+                    "count", intProp("Количество учителей (1 если не указано)")
+                ),
+                List.of());
+
             // Удалить ученика
-            addTool(tools, "delete_student", "Удалить ученика по имени",
+            addTool(tools, "delete_student", "Удалить одного ученика по имени",
                 Map.of("studentName", strProp("ФИО ученика")),
                 List.of("studentName"));
+
+            // Удалить всех учеников
+            addTool(tools, "delete_all_students",
+                "Удалить учеников. Можно указать группу и/или количество. Если ничего не указано — удаляются все.",
+                Map.of(
+                    "groupName", strProp("Название группы (необязательно)"),
+                    "count", intProp("Количество учеников для удаления (необязательно, если не указано — все)")
+                ),
+                List.of());
+
+            // Удалить всех учителей
+            addTool(tools, "delete_all_teachers",
+                "Удалить всех учителей из школы.",
+                Map.of(), List.of());
 
             // Сгенерировать расписание для группы
             addTool(tools, "generate_schedule",
@@ -358,6 +363,24 @@ public class AiAssistantService {
         while (used.contains(email)) email = base + (++attempt) + "@student.school.ru";
         used.add(email);
         return email;
+    }
+
+    private String transliterate(String text) {
+        Map<Character, String> tr = Map.ofEntries(
+            Map.entry('\u0430',"a"),Map.entry('\u0431',"b"),Map.entry('\u0432',"v"),Map.entry('\u0433',"g"),
+            Map.entry('\u0434',"d"),Map.entry('\u0435',"e"),Map.entry('\u0451',"yo"),Map.entry('\u0436',"zh"),
+            Map.entry('\u0437',"z"),Map.entry('\u0438',"i"),Map.entry('\u0439',"y"),Map.entry('\u043a',"k"),
+            Map.entry('\u043b',"l"),Map.entry('\u043c',"m"),Map.entry('\u043d',"n"),Map.entry('\u043e',"o"),
+            Map.entry('\u043f',"p"),Map.entry('\u0440',"r"),Map.entry('\u0441',"s"),Map.entry('\u0442',"t"),
+            Map.entry('\u0443',"u"),Map.entry('\u0444',"f"),Map.entry('\u0445',"kh"),Map.entry('\u0446',"ts"),
+            Map.entry('\u0447',"ch"),Map.entry('\u0448',"sh"),Map.entry('\u0449',"sch"),Map.entry('\u044a',""),
+            Map.entry('\u044b',"y"),Map.entry('\u044c',""),Map.entry('\u044d',"e"),Map.entry('\u044e',"yu"),
+            Map.entry('\u044f',"ya")
+        );
+        StringBuilder sb = new StringBuilder();
+        for (char c : text.toLowerCase().toCharArray())
+            sb.append(tr.getOrDefault(c, String.valueOf(c)));
+        return sb.toString();
     }
 
     // Хелперы для построения tools
@@ -562,6 +585,68 @@ public class AiAssistantService {
                     yield Map.of("success", true, "message", "Предмет '" + d.getName() + "' добавлен");
                 }
 
+                case "add_teacher" -> {
+                    int count = args.path("count").asInt(1);
+                    Role teacherRole = roleRepository.findByName("TEACHER")
+                        .orElseThrow(() -> new IllegalStateException("Роль TEACHER не найдена"));
+
+                    // Собираем предметы
+                    Set<Discipline> disciplines = new HashSet<>();
+                    if (args.has("disciplineNames") && args.path("disciplineNames").isArray()) {
+                        for (JsonNode dn : args.path("disciplineNames")) {
+                            String dname = dn.asText();
+                            disciplineRepository.findAll().stream()
+                                .filter(d -> d.getName().equalsIgnoreCase(dname))
+                                .findFirst()
+                                .ifPresent(disciplines::add);
+                        }
+                    }
+                    if (disciplines.isEmpty()) {
+                        // если не нашли по имени — берём первые доступные
+                        disciplines.addAll(disciplineRepository.findAll().stream().limit(2).toList());
+                    }
+
+                    List<String> created = new ArrayList<>();
+                    for (int i = 0; i < count; i++) {
+                        boolean female = random.nextBoolean();
+                        String firstName = args.has("firstName") && i == 0
+                            ? args.path("firstName").asText()
+                            : (female ? FIRST_NAMES_F : FIRST_NAMES_M).get(random.nextInt(female ? FIRST_NAMES_F.size() : FIRST_NAMES_M.size()));
+                        String secondName = args.has("secondName") && i == 0
+                            ? args.path("secondName").asText()
+                            : (female ? LAST_NAMES_F : LAST_NAMES_M).get(random.nextInt(female ? LAST_NAMES_F.size() : LAST_NAMES_M.size()));
+                        String thirdName = args.has("thirdName") && i == 0
+                            ? args.path("thirdName").asText()
+                            : (female ? PATRONYMICS_F : PATRONYMICS_M).get(random.nextInt(female ? PATRONYMICS_F.size() : PATRONYMICS_M.size()));
+                        String email = args.has("email") && i == 0
+                            ? args.path("email").asText()
+                            : transliterate(firstName + "." + secondName + i) + "@teacher.school.ru";
+
+                        User user = new User();
+                        user.setFirstName(firstName);
+                        user.setSecondName(secondName);
+                        user.setThirdName(thirdName);
+                        user.setEmail(email);
+                        user.setPassword(org.springframework.security.crypto.bcrypt.BCrypt.hashpw("Pass123!", org.springframework.security.crypto.bcrypt.BCrypt.gensalt()));
+                        user.setRole(teacherRole);
+                        user = userRepository.save(user);
+
+                        Teacher teacher = new Teacher();
+                        teacher.setUser(user);
+                        teacher.setPhone("+7900" + String.format("%07d", random.nextInt(10000000)));
+                        teacher.setBio("Преподаватель");
+                        teacher.setHasOffice(true);
+                        teacher.setOffice(OFFICES.get(random.nextInt(OFFICES.size())));
+                        teacher.setDisciplines(disciplines);
+                        teacher.setHasGroup(false);
+                        teacherRepository.save(teacher);
+                        created.add(secondName + " " + firstName);
+                    }
+                    String discNames = disciplines.stream().map(Discipline::getName).collect(Collectors.joining(", "));
+                    yield Map.of("success", true, "message",
+                        "Учителя (" + created.size() + ") созданы: " + String.join(", ", created) + ". Предметы: " + discNames);
+                }
+
                 case "delete_student" -> {
                     String name = args.path("studentName").asText("").toLowerCase();
                     List<Student> found = studentRepository.findAll().stream()
@@ -576,6 +661,29 @@ public class AiAssistantService {
                     String fullName = s.getUser().getSecondName() + " " + s.getUser().getFirstName();
                     studentRepository.deleteById(s.getId());
                     yield Map.of("success", true, "message", "Ученик " + fullName + " удалён");
+                }
+
+                case "delete_all_students" -> {
+                    String groupName = args.path("groupName").asText("");
+                    int count = args.path("count").asInt(0);
+                    List<Student> toDelete = studentRepository.findAll();
+                    if (!groupName.isBlank()) {
+                        toDelete = toDelete.stream()
+                            .filter(s -> s.getGroup() != null && s.getGroup().getName().equalsIgnoreCase(groupName))
+                            .collect(Collectors.toList());
+                    }
+                    if (count > 0) toDelete = toDelete.subList(0, Math.min(count, toDelete.size()));
+                    int deleted = toDelete.size();
+                    toDelete.forEach(s -> studentRepository.deleteById(s.getId()));
+                    yield Map.of("success", true, "message",
+                        "Удалено " + deleted + " учеников" + (groupName.isBlank() ? "" : " из группы " + groupName));
+                }
+
+                case "delete_all_teachers" -> {
+                    List<Teacher> allTeachers = teacherRepository.findAll();
+                    int count = allTeachers.size();
+                    allTeachers.forEach(t -> teacherRepository.deleteById(t.getId()));
+                    yield Map.of("success", true, "message", "Удалено " + count + " учителей");
                 }
 
                 case "generate_schedule" -> {
