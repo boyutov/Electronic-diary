@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+// Сервис управления учениками
 @Service
 @RequiredArgsConstructor
 public class StudentService {
@@ -34,20 +35,21 @@ public class StudentService {
         return studentRepository.findAll();
     }
 
+    // Получить профиль текущего ученика — читаем email из JWT-контекста
     @Transactional(readOnly = true)
     public StudentDto getCurrentStudent() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email);
-        
+
         Student student = studentRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new IllegalStateException("Student not found"));
-                
+
         return StudentDto.from(student);
     }
 
+    // Создать нового ученика
     @Transactional
     public Student create(StudentRequest request) {
-        // Проверка пароля при создании
         if (request.password() == null || request.password().isBlank()) {
             throw new IllegalArgumentException("Password is required for new student");
         }
@@ -55,13 +57,14 @@ public class StudentService {
         Role studentRole = roleRepository.findByName("STUDENT")
                 .orElseThrow(() -> new IllegalStateException("Role STUDENT not found"));
 
+        // Определяем кто создаёт — для проверки прав и наследования школы
         String creatorEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User creator = userRepository.findByEmail(creatorEmail);
 
         GroupEntity group = groupRepository.findById(request.groupId())
                 .orElseThrow(() -> new IllegalArgumentException("Group not found"));
 
-        // Security check — только учитель-куратор ограничен своей группой
+        // Учитель-куратор может создавать учеников только в своей группе
         if ("TEACHER".equals(creator.getRole().getName())) {
             Optional<GroupEntity> curatorGroup = groupRepository.findByCuratorId(creator.getId());
             if (curatorGroup.isEmpty() || !curatorGroup.get().getId().equals(group.getId())) {
@@ -69,6 +72,7 @@ public class StudentService {
             }
         }
 
+        // Создаём User (аккаунт для входа)
         User user = new User();
         user.setFirstName(request.firstName());
         user.setSecondName(request.secondName());
@@ -76,39 +80,42 @@ public class StudentService {
         user.setEmail(request.email());
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setRole(studentRole);
-        
+
+        // Ученик наследует школу создателя
         if (creator != null) {
             user.getSchools().addAll(creator.getSchools());
         }
-        
+
         user = userRepository.save(user);
 
+        // Создаём Student (профиль ученика)
         Student student = new Student();
         student.setUser(user);
         student.setAge(request.age());
         student.setGroup(group);
-        student.setCurator(group.getCurator());
+        student.setCurator(group.getCurator()); // куратор берётся из группы
         student.setEmail(request.email());
 
         return studentRepository.save(student);
     }
 
+    // Обновить данные ученика
     @Transactional
     public Student update(Long id, StudentRequest request) {
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Student not found"));
-        
+
         User user = student.getUser();
         user.setFirstName(request.firstName());
         user.setSecondName(request.secondName());
         user.setThirdName(request.thirdName());
         user.setEmail(request.email());
-        
-        // Обновляем пароль ТОЛЬКО если он передан
+
+        // Меняем пароль только если передан
         if (request.password() != null && !request.password().isBlank()) {
             user.setPassword(passwordEncoder.encode(request.password()));
         }
-        
+
         userRepository.save(user);
 
         GroupEntity group = groupRepository.findById(request.groupId())

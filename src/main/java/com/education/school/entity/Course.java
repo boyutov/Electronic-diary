@@ -7,6 +7,8 @@ import lombok.Setter;
 import java.util.HashSet;
 import java.util.Set;
 
+// Дополнительный курс — факультатив или кружок, который ведёт учитель
+// Ученики записываются добровольно через Many-to-Many
 @Setter
 @Getter
 @Entity
@@ -18,15 +20,17 @@ public class Course {
     private Integer id;
 
     @Column(nullable = false)
-    private String name;
+    private String name;  // название курса
 
+    // Учитель который ведёт этот курс
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher_id", nullable = false)
     private Teacher teacher;
 
     @Column(columnDefinition = "TEXT")
-    private String description;
+    private String description;  // описание курса
 
+    // Ученики записанные на курс — Many-to-Many через таблицу student_course
     @ManyToMany
     @JoinTable(
         name = "student_course",

@@ -7,6 +7,7 @@ import lombok.Setter;
 import java.util.HashSet;
 import java.util.Set;
 
+// Родитель — расширяет пользователя, привязан к одному или нескольким ученикам
 @Setter
 @Getter
 @Entity
@@ -17,12 +18,15 @@ public class Parent {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    // Аккаунт пользователя для входа в систему
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
     private String phone;
 
+    // Дети этого родителя — Many-to-Many через таблицу parent_student
+    // Один родитель может иметь несколько детей, один ребёнок может иметь нескольких родителей
     @ManyToMany
     @JoinTable(
         name = "parent_student",

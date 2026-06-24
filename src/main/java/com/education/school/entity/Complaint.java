@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.time.OffsetDateTime;
 
+// Жалоба — может быть анонимной или именной
 @Setter
 @Getter
 @Entity
@@ -17,17 +18,20 @@ public class Complaint {
     private Integer id;
 
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;
+    private String content;  // текст жалобы
 
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
 
+    // Мягкое удаление — директор может скрыть жалобу не удаляя из БД
     @Column(name = "deleted_at")
     private OffsetDateTime deletedAt;
 
+    // Анонимная жалоба: true — автор скрыт от просматривающих
     @Column(name = "is_anonymous", nullable = false)
     private Boolean isAnonymous;
 
+    // Автор (null если анонимная, но в БД всё равно сохраняется для внутренних нужд)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_user_id")
     private User authorUser;

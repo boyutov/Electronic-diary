@@ -162,7 +162,7 @@ public class SchoolDataGeneratorService {
                     user.setSecondName(lastName);
                     user.setThirdName(patronymic);
                     user.setEmail(email);
-                    user.setPassword(passwordEncoder.encode("Pass123!"));
+                    user.setPassword(passwordEncoder.encode(email));
                     user.setRole(teacherRole);
                     user = userRepository.save(user);
 
@@ -218,7 +218,7 @@ public class SchoolDataGeneratorService {
                         user.setSecondName(lastName);
                         user.setThirdName(patronymic);
                         user.setEmail(email);
-                        user.setPassword(passwordEncoder.encode("Pass123!"));
+                        user.setPassword(passwordEncoder.encode(email));
                         user.setRole(studentRole);
                         user = userRepository.save(user);
 
@@ -302,7 +302,7 @@ public class SchoolDataGeneratorService {
                 user.setSecondName(lastName);
                 user.setThirdName(russianPatronymic(female));
                 user.setEmail(email);
-                user.setPassword(passwordEncoder.encode("Pass123!"));
+                user.setPassword(passwordEncoder.encode(email));
                 user.setRole(studentRole);
                 user = userRepository.save(user);
 
@@ -352,7 +352,7 @@ public class SchoolDataGeneratorService {
             user.setSecondName(lastName);
             user.setThirdName(russianPatronymic(female));
             user.setEmail(email);
-            user.setPassword(passwordEncoder.encode("Pass123!"));
+            user.setPassword(passwordEncoder.encode(email));
             user.setRole(studentRole);
             user = userRepository.save(user);
 
@@ -382,7 +382,7 @@ public class SchoolDataGeneratorService {
             user.setSecondName(lastName);
             user.setThirdName(russianPatronymic(female));
             user.setEmail(email);
-            user.setPassword(passwordEncoder.encode("Pass123!"));
+            user.setPassword(passwordEncoder.encode(email));
             user.setRole(parentRole);
             user = userRepository.save(user);
 

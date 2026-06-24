@@ -18,40 +18,54 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+// Главный класс конфигурации безопасности — все правила доступа к URL
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity  // активируем Spring Security
 @RequiredArgsConstructor
 public class SecurityConfig {
-    
+
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
 
+    // Настраиваем цепочку фильтров безопасности
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // CSRF отключаем — при JWT не нужен (CSRF атаки возможны только при сессиях + cookies)
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
+
+                // STATELESS: сервер не хранит сессии — каждый запрос аутентифицируется по токену
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+
+                // Подключаем наш провайдер (проверяет пароль + принадлежность к школе)
                 .authenticationProvider(authenticationProvider())
+
+                // JWT-фильтр должен отработать ДО стандартного фильтра логина
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .formLogin(AbstractHttpConfigurer::disable) // Отключаем стандартную форму логина
+
+                // Отключаем стандартную Spring-форму логина — у нас своя HTML-страница
+                .formLogin(AbstractHttpConfigurer::disable)
+
+                // При logout перенаправляем на страницу логина
                 .logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/login"))
+
                 .authorizeHttpRequests(auth -> auth
-                        // разрешаем главную страницу и статику
+                        // Публичные страницы — открыты всем без токена
                         .requestMatchers(
                                 "/", "/index", "/about", "/pricing", "/login", "/activate", "/error",
                                 "/css/**", "/js/**", "/images/**", "/webjars/**"
                         ).permitAll()
 
-                        // разрешаем swagger
+                        // Swagger — открыт для тестирования API
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
-                        // Эндпоинты авторизации и публичные API
+                        // Публичные API: вход и регистрация школы не требуют токена
                         .requestMatchers("/api/auth/**", "/api/purchase/**").permitAll()
 
-                        // Страницы приложения — разрешаем все не-API пути, JWT проверяется на уровне API
+                        // HTML-страницы — permitAll, реальная защита идёт через JWT при API-запросах
                         .requestMatchers("/admin", "/admin/**").permitAll()
                         .requestMatchers("/*/admin", "/*/admin/**").permitAll()
                         .requestMatchers("/*/director", "/*/director/**").permitAll()
@@ -73,18 +87,21 @@ public class SecurityConfig {
                         .requestMatchers("/*/teacher/marks").permitAll()
                         .requestMatchers("/*/curator/**").permitAll()
 
-                        // Защита API с проверкой ролей
+                        // API управления администраторами — только роль ADMIN
                         .requestMatchers("/api/*/admins/**").hasAuthority("ADMIN")
+                        // API директора — ADMIN или DIRECTOR
                         .requestMatchers("/api/*/directors/**").hasAnyAuthority("ADMIN", "DIRECTOR")
+                        // Все остальные API — любой авторизованный пользователь
                         .requestMatchers("/api/**").authenticated()
 
-                        // все остальные пути (HTML-страницы) — разрешаем
+                        // Все прочие пути (HTML-страницы) — открыты
                         .anyRequest().permitAll()
                 );
 
         return http.build();
     }
 
+    // Провайдер аутентификации: связываем UserDetailsService (загрузка из БД) с BCrypt (проверка пароля)
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(passwordEncoder());
@@ -92,11 +109,13 @@ public class SecurityConfig {
         return authProvider;
     }
 
+    // AuthenticationManager нужен в AuthController для ручной аутентификации через REST API
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
+    // BCrypt — стандарт хэширования паролей с солью. Нельзя расшифровать, можно только сравнить
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

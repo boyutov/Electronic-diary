@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+// Дополнительное право доступа привязанное к роли
+// Позволяет гранулярно настраивать разрешения внутри роли
 @Setter
 @Getter
 @Entity
@@ -15,8 +17,9 @@ public class Permission {
     private Integer id;
 
     @Column(nullable = false)
-    private String name;
+    private String name;  // название права: например "READ_MARKS", "EDIT_SCHEDULE"
 
+    // К какой роли привязано это право
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;

@@ -7,6 +7,7 @@ import lombok.Setter;
 import java.util.HashSet;
 import java.util.Set;
 
+// Учебный предмет: Математика, Физика, История и т.д.
 @Setter
 @Getter
 @Entity
@@ -18,8 +19,9 @@ public class Discipline {
     private Integer id;
 
     @Column(nullable = false)
-    private String name;
+    private String name;  // название предмета
 
+    // Все учителя которые преподают этот предмет (обратная сторона Many-to-Many)
     @ManyToMany(mappedBy = "disciplines")
     private Set<Teacher> teachers = new HashSet<>();
 }

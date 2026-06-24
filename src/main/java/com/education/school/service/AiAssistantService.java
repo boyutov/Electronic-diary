@@ -44,6 +44,7 @@ public class AiAssistantService {
     private final SchoolDataGeneratorService generatorService;
     private final CourseRepository courseRepository;
     private final RoleRepository roleRepository;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     private final Map<Long, List<Map<String, String>>> conversationHistory = new HashMap<>();
     private final Random random = new Random();
@@ -176,6 +177,7 @@ public class AiAssistantService {
             7. Отвечай ТОЛЬКО на вопросы связанные со школой. Отвечай кратко на русском языке.
             8. Не выполняй массовое удаление без подтверждения.
             9. Когда просят создать УЧИТЕЛЯ — ИСПОЛЬЗУЙ ТОЛЬКО add_teacher, НИКОГДА не add_student или add_students_random.
+            10. Если пользователь просит чтобы email и пароль совпадали — указывай одинаковое значение в полях email и password.
             
             Текущее состояние БД:
             - Группы: %s
@@ -220,7 +222,7 @@ public class AiAssistantService {
         if (List.of("ADMIN", "DIRECTOR", "TEACHER").contains(role)) {
 
             // Добавить одного ученика — только если явно указаны ФИО
-            addTool(tools, "add_student", "Добавить одного ученика с явно указанными ФИО и группой. НЕ использовать для учителей!",
+            addTool(tools, "add_student", "Добавить одного ученика с явно указанными ФИО и группой. НЕ использовать для учителей! Если просят email=пароль, ставь одинаковое значение.",
                 Map.of(
                     "firstName",  strProp("Имя"),
                     "secondName", strProp("Фамилия"),
@@ -273,13 +275,15 @@ public class AiAssistantService {
 
             // Создать учителя
             addTool(tools, "add_teacher",
-                "Создать одного или несколько учителей с привязкой к предметам. НИКОГДА не используй add_student или add_students_random для учителей!",
+                "Создать одного или несколько учителей с привязкой к предметам. НИКОГДА не используй add_student или add_students_random для учителей! Если просят email=пароль, ставь email и в поле email и в поле password.",
                 Map.of(
                     "disciplineNames", objectMapper.createObjectNode()
                         .put("type", "array")
                         .<ObjectNode>set("items", objectMapper.createObjectNode().put("type", "string"))
                         .<ObjectNode>put("description", "Список предметов для назначения учителю"),
-                    "count", intProp("Количество учителей (1 если не указано)")
+                    "count", intProp("Количество учителей (1 если не указано)"),
+                    "email", strProp("Email учителя (если нужно указать конкретный)"),
+                    "password", strProp("Пароль. Если нужно чтобы совпадал с email — указывай тот же email.")
                 ),
                 List.of());
 
@@ -500,12 +504,15 @@ public class AiAssistantService {
                         .filter(g -> g.getName().equalsIgnoreCase(groupName))
                         .findFirst()
                         .orElseThrow(() -> new IllegalArgumentException("Группа '" + groupName + "' не найдена"));
+                    String studentEmail = args.path("email").asText();
+                    String studentPassword = args.path("password").asText("");
+                    if (studentPassword.isBlank()) studentPassword = studentEmail;
                     StudentRequest req = new StudentRequest(
                         args.path("firstName").asText(),
                         args.path("secondName").asText(),
                         args.path("thirdName").asText(""),
-                        args.path("email").asText(),
-                        args.path("password").asText(),
+                        studentEmail,
+                        studentPassword,
                         args.path("age").asInt(18),
                         group.getId()
                     );
@@ -621,13 +628,16 @@ public class AiAssistantService {
                         String email = args.has("email") && i == 0
                             ? args.path("email").asText()
                             : transliterate(firstName + "." + secondName + i) + "@teacher.school.ru";
+                        String password = args.has("password") && i == 0
+                            ? args.path("password").asText()
+                            : email; // по умолчанию пароль = email
 
                         User user = new User();
                         user.setFirstName(firstName);
                         user.setSecondName(secondName);
                         user.setThirdName(thirdName);
                         user.setEmail(email);
-                        user.setPassword(org.springframework.security.crypto.bcrypt.BCrypt.hashpw("Pass123!", org.springframework.security.crypto.bcrypt.BCrypt.gensalt()));
+                        user.setPassword(passwordEncoder.encode(password));
                         user.setRole(teacherRole);
                         user = userRepository.save(user);
 
@@ -682,7 +692,21 @@ public class AiAssistantService {
                 case "delete_all_teachers" -> {
                     List<Teacher> allTeachers = teacherRepository.findAll();
                     int count = allTeachers.size();
-                    allTeachers.forEach(t -> teacherRepository.deleteById(t.getId()));
+                    for (Teacher t : allTeachers) {
+                        // Убираем расписание
+                        scheduleRepository.findByTeacherId(t.getId())
+                            .forEach(s -> scheduleRepository.deleteById(s.getId()));
+                        // Снимаем кураторство
+                        if (Boolean.TRUE.equals(t.getHasGroup()) && t.getGroup() != null) {
+                            GroupEntity g = t.getGroup();
+                            g.setCurator(null);
+                            groupRepository.save(g);
+                        }
+                        t.setGroup(null);
+                        t.setHasGroup(false);
+                        teacherRepository.save(t);
+                        teacherRepository.deleteById(t.getId());
+                    }
                     yield Map.of("success", true, "message", "Удалено " + count + " учителей");
                 }
 

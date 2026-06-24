@@ -11,6 +11,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
+// Обработчик успешного входа через HTML-форму
+// Определяет роль пользователя и делает редирект на нужную панель управления
 @Component
 public class RoleBasedSuccessHandler implements AuthenticationSuccessHandler {
 
@@ -20,23 +22,30 @@ public class RoleBasedSuccessHandler implements AuthenticationSuccessHandler {
             HttpServletResponse response,
             Authentication authentication
     ) throws IOException, ServletException {
-        
+
+        // Получаем schoolName из деталей запроса
         String schoolName = null;
         Object details = authentication.getDetails();
         if (details instanceof SchoolWebAuthenticationDetails) {
             schoolName = ((SchoolWebAuthenticationDetails) details).getSchoolName();
         }
-        
+
+        // Сохраняем школу в сессию — используется в шаблонах Thymeleaf
         if (schoolName != null) {
             request.getSession().setAttribute("currentSchool", schoolName);
         }
 
-        String prefix = (schoolName != null && !schoolName.isEmpty()) ? "/" + schoolName.replaceAll("/", "") : "";
+        // Префикс URL: "/SchoolA" или пустая строка
+        String prefix = (schoolName != null && !schoolName.isEmpty())
+                ? "/" + schoolName.replaceAll("/", "")
+                : "";
 
+        // Собираем все роли пользователя в набор
         Set<String> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toSet());
 
+        // Редирект по роли: каждая роль → своя панель управления
         if (roles.contains("ADMIN")) {
             response.sendRedirect(prefix + "/admin");
             return;
@@ -57,6 +66,8 @@ public class RoleBasedSuccessHandler implements AuthenticationSuccessHandler {
             response.sendRedirect(prefix + "/student");
             return;
         }
+
+        // Роль неизвестна — на главную страницу
         response.sendRedirect("/");
     }
 }

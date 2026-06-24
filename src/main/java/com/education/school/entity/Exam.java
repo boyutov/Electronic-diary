@@ -10,6 +10,7 @@ import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 
+// Экзамен или контрольная работа
 @Setter
 @Getter
 @Entity
@@ -21,24 +22,27 @@ public class Exam {
     private Integer id;
 
     @Column(nullable = false)
-    private String title;
+    private String title;  // название: "Итоговый экзамен по математике"
 
+    // Тип: EXAM (экзамен), TEST (тест), QUIZ (контрольная)
     @Column(nullable = false)
-    private String type; // EXAM, TEST, QUIZ
+    private String type;
 
     @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "exam_date", nullable = false)
-    private LocalDate examDate;
+    private LocalDate examDate;  // дата проведения
 
     @Column(name = "exam_time")
-    private LocalTime examTime;
+    private LocalTime examTime;  // время начала
 
+    // Предмет экзамена
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "discipline_id")
     private Discipline discipline;
 
+    // Кто создал экзамен
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id")
     private User createdByUser;
@@ -46,6 +50,7 @@ public class Exam {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    // Группы которые пишут этот экзамен — Many-to-Many через таблицу exam_groups
     @ManyToMany
     @JoinTable(
         name = "exam_groups",
