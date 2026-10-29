@@ -179,9 +179,6 @@ JWT_SECRET=yourJwtSecretKeyThatIsAtLeast32CharactersLong
 # OpenAI API key (required for the AI assistant feature)
 OPENAI_API_KEY=sk-...
 
-# Optional: free access promo code
-PROMOTIONAL_CODE=FREE_SCHOOL_2025
-
 # Mail server for sending temporary passwords to new students and teachers
 # (Gmail: smtp.gmail.com + an app password from your Google account settings)
 MAIL_HOST=smtp.gmail.com

@@ -1,9 +1,7 @@
 package com.education.school.dto;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 public record PurchaseRequest(
     @NotBlank(message = "School name is required")
@@ -15,11 +13,9 @@ public record PurchaseRequest(
 
     String contactPhone,
 
-    @NotNull(message = "Student count is required")
-    @Min(value = 1, message = "At least 1 student required")
+    // Регистрация бесплатная: поля оставлены для совместимости со старыми клиентами и не обязательны
     Integer studentCount,
 
-    @NotNull(message = "Duration is required")
     Integer durationMonths,
 
     String promoCode

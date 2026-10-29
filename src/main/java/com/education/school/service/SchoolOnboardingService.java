@@ -17,8 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class SchoolOnboardingService {
 
     private static final String DEFAULT_ADMIN_ROLE = "ADMIN";
-    private static final String FREE_PROMO_CODE = "FREE_SCHOOL_2025";
-    private static final double BASE_PRICE_PER_STUDENT = 2.0;
 
     private final SchoolRepository schoolRepository;
     private final UserRepository userRepository;
@@ -40,31 +38,19 @@ public class SchoolOnboardingService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // Регистрация школы бесплатная — цена всегда 0
     public double calculatePrice(int students, int months, String promoCode) {
-        if (FREE_PROMO_CODE.equalsIgnoreCase(promoCode)) {
-            return 0.0;
-        }
-
-        double discount = 0.0;
-        if (months >= 12) discount = 0.20;
-        else if (months >= 9) discount = 0.15;
-        else if (months >= 6) discount = 0.10;
-        else if (months >= 3) discount = 0.05;
-
-        double total = students * BASE_PRICE_PER_STUDENT * months;
-        return total * (1.0 - discount);
+        return 0.0;
     }
 
     @Transactional
     public PurchaseResponse createSchoolAccount(PurchaseRequest request) {
-        // Здесь можно было бы добавить интеграцию с платежной системой
-        // double price = calculatePrice(request.studentCount(), request.durationMonths(), request.promoCode());
-        // if (price > 0) { ... process payment ... }
-
         // slug — это идентификатор школы в URL и токене, поэтому он должен быть уникальным
         String slug = toSlug(request.schoolName());
         if (slug.isEmpty() || schoolRepository.findByNameIgnoreCase(slug).isPresent()) {
-            throw new IllegalStateException("School with this name already exists");
+            throw new IllegalArgumentException(slug.isEmpty()
+                    ? "Укажите название школы латиницей"
+                    : "Школа с таким названием уже зарегистрирована");
         }
 
         String rawPassword = passwordGenerator.generate();

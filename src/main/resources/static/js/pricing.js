@@ -1,83 +1,49 @@
+// Регистрация школы — бесплатная: только название, почта и телефон
 document.addEventListener("DOMContentLoaded", () => {
-    const studentsInput = document.getElementById("calc-students");
-    const durationSelect = document.getElementById("calc-duration");
-    const promoInput = document.getElementById("calc-promo");
-    const totalPriceElement = document.getElementById("total-price");
     const purchaseForm = document.getElementById("purchase-form");
     const resultDiv = document.getElementById("purchase-result");
 
-    function calculatePrice() {
-        const students = parseInt(studentsInput.value) || 0;
-        const duration = parseInt(durationSelect.value) || 0;
-        const promoCode = promoInput.value;
-
-        fetch("/api/purchase/calculate", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                schoolName: "Test", // Dummy data for validation
-                contactEmail: "test@test.com", // Dummy data
-                studentCount: students,
-                durationMonths: duration,
-                promoCode: promoCode
-            })
-        })
-        .then(response => response.json())
-        .then(price => {
-            totalPriceElement.textContent = `$${price.toFixed(2)}`;
-        });
-    }
-
-    studentsInput.addEventListener("input", calculatePrice);
-    durationSelect.addEventListener("change", calculatePrice);
-    promoInput.addEventListener("input", calculatePrice);
-
-    // Initial calculation
-    calculatePrice();
-
     purchaseForm.addEventListener("submit", (e) => {
         e.preventDefault();
-        
+        const button = purchaseForm.querySelector("button[type=submit]");
+        button.disabled = true;
+
         const data = {
             schoolName: document.getElementById("schoolName").value,
             contactEmail: document.getElementById("contactEmail").value,
-            contactPhone: document.getElementById("contactPhone").value,
-            studentCount: parseInt(studentsInput.value),
-            durationMonths: parseInt(durationSelect.value),
-            promoCode: promoInput.value
+            contactPhone: document.getElementById("contactPhone").value
         };
 
         fetch("/api/purchase", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
         })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                return Promise.reject("Ошибка при покупке");
-            }
+        .then(async response => {
+            if (response.ok) return response.json();
+            // 400 — понятная причина текстом (например, название занято); иначе общая ошибка
+            const text = await response.text().catch(() => "");
+            return Promise.reject(response.status === 400 && text && !text.startsWith("{")
+                ? text : "Не удалось зарегистрировать школу. Проверьте данные.");
         })
         .then(data => {
-            resultDiv.style.display = 'block';
+            resultDiv.style.display = "block";
+            resultDiv.style.background = "";
+            resultDiv.style.color = "";
             resultDiv.innerHTML = `
-                <strong>🎉 Школа успешно создана!</strong>
-                ID школы: <strong>${data.schoolId}</strong><br>
-                Временный пароль: <strong>${data.generatedPassword}</strong><br>
-                Сохраните эти данные — они нужны для активации.
+                <strong>Школа зарегистрирована!</strong>
+                Временный пароль: <strong></strong><br>
+                Сохраните его — он нужен для <a href="/activate">активации</a>.
             `;
+            resultDiv.querySelector("strong:nth-of-type(2)").textContent = data.generatedPassword;
             purchaseForm.reset();
         })
         .catch(error => {
-            resultDiv.style.display = 'block';
-            resultDiv.style.background = '#fee2e2';
-            resultDiv.style.color = '#991b1b';
-            resultDiv.textContent = typeof error === 'string' ? error : 'Ошибка при создании школы';
-        });
+            resultDiv.style.display = "block";
+            resultDiv.style.background = "#fee2e2";
+            resultDiv.style.color = "#991b1b";
+            resultDiv.textContent = typeof error === "string" ? error : "Не удалось зарегистрировать школу";
+        })
+        .finally(() => { button.disabled = false; });
     });
 });

@@ -6,7 +6,7 @@
     <script src="/js/i18n-ky.js"></script>
     <script src="/js/i18n.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Прайс — Electronic Diary</title>
+    <title>Регистрация школы — Electronic Diary</title>
     <link rel="stylesheet" href="/css/site.css">
     <link rel="stylesheet" href="/css/landing.css">
 </head>
@@ -16,62 +16,44 @@
     <a class="brand" href="/"><span class="brand-mark" data-icon="book"></span>Electronic Diary</a>
     <nav class="links" data-lang-slot>
         <a href="/about">О проекте</a>
-        <a href="/pricing" class="active">Прайс</a>
+        <a href="/pricing" class="active">Регистрация</a>
         <a href="/login" class="button">Войти</a>
     </nav>
 </header>
 
 <section class="page-hero">
     <div class="wrap">
-        <span class="eyebrow"><span class="dot"></span>Прайс</span>
-        <h1>Простое и честное ценообразование</h1>
-        <p>$2 за ученика в месяц. Никаких скрытых платежей.</p>
+        <span class="eyebrow"><span class="dot"></span>Бесплатно</span>
+        <h1>Регистрация школы бесплатная</h1>
+        <p>Без оплаты, промокодов и ограничений по числу учеников. Зарегистрируйте школу и начните работу сегодня.</p>
     </div>
 </section>
 
 <section class="wrap">
     <div class="pricing">
         <div class="panel">
-            <h2>Калькулятор стоимости</h2>
-            <p class="sub">Рассчитайте стоимость подписки для вашей школы</p>
-            <div class="calc-grid">
-                <div class="calc-group">
-                    <label for="calc-students">Количество учеников</label>
-                    <input id="calc-students" type="number" value="100" min="1">
-                </div>
-                <div class="calc-group">
-                    <label for="calc-duration">Период подписки</label>
-                    <select id="calc-duration">
-                        <option value="1">1 месяц</option>
-                        <option value="3">3 месяца (−5%)</option>
-                        <option value="6">6 месяцев (−10%)</option>
-                        <option value="9">9 месяцев (−15%)</option>
-                        <option value="12" selected>1 год (−20%)</option>
-                    </select>
-                </div>
-                <div class="calc-group">
-                    <label for="calc-promo">Промокод</label>
-                    <input id="calc-promo" placeholder="Введите код">
-                </div>
-            </div>
+            <h2>Что входит</h2>
+            <p class="sub">Все возможности электронного дневника — бесплатно для каждой школы</p>
             <div class="price-result">
                 <div>
-                    <div class="label">Итоговая стоимость</div>
-                    <div class="amount" id="total-price">$0.00</div>
+                    <div class="label">Стоимость</div>
+                    <div class="amount">Бесплатно</div>
                 </div>
-                <div class="base">Базовая цена: $2 / ученик / месяц</div>
+                <div class="base">Навсегда, для любого числа учеников</div>
             </div>
             <ul class="perks">
                 <li><span data-icon="check"></span>Расписание</li>
                 <li><span data-icon="check"></span>Оценки и успеваемость</li>
+                <li><span data-icon="check"></span>Посещаемость</li>
                 <li><span data-icon="check"></span>Новости и объявления</li>
                 <li><span data-icon="check"></span>Голосования</li>
+                <li><span data-icon="check"></span>Импорт учеников и учителей из Excel</li>
             </ul>
         </div>
 
         <div class="panel">
             <h2>Зарегистрировать школу</h2>
-            <p class="sub">Заполните форму — мы создадим аккаунт и пришлём данные для входа</p>
+            <p class="sub">Заполните форму — мы создадим аккаунт школы и выдадим пароль для активации</p>
             <form id="purchase-form">
                 <div class="form-group">
                     <label for="schoolName">Название школы (латиницей, без пробелов)</label>
@@ -83,14 +65,14 @@
                 </div>
                 <div class="form-group">
                     <label for="contactPhone">Телефон (необязательно)</label>
-                    <input id="contactPhone" name="contactPhone" type="tel" placeholder="+7 700 000 00 00">
+                    <input id="contactPhone" name="contactPhone" type="tel" placeholder="+996 700 000 000">
                 </div>
-                <button class="button block lg" type="submit">Купить и создать аккаунт →</button>
+                <button class="button block lg" type="submit">Зарегистрировать школу бесплатно →</button>
             </form>
             <div id="purchase-result" class="result-box"></div>
             <div class="notice">
-                После покупки вы получите временный пароль для активации школы.<br>
-                Перейдите на страницу <a href="/activate">активации</a> после получения пароля.
+                После регистрации вы получите временный пароль для активации школы.<br>
+                Перейдите на страницу <a href="/activate">активации</a> и создайте первого администратора.
             </div>
         </div>
     </div>
@@ -99,7 +81,7 @@
 <footer class="site-footer">
     <div class="wrap">
         <span>© 2025 Electronic Diary</span>
-        <nav><a href="/">Главная</a><a href="/about">О проекте</a><a href="/pricing">Прайс</a><a href="/login">Войти</a></nav>
+        <nav><a href="/">Главная</a><a href="/about">О проекте</a><a href="/pricing">Регистрация</a><a href="/login">Войти</a></nav>
     </div>
 </footer>
 
