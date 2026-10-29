@@ -49,9 +49,34 @@ public class SchoolDataGeneratorService {
         try {
             AiPrivacy privacy = AiPrivacy.forSchool(schoolName, currentSchoolService.findUsers());
             String json = privacy.restore(parseIntentWithGPT(privacy.mask(userPrompt)));
-            return executeGenerationPlan(json.replaceAll("(?s)^```(?:json)?\\s*|\\s*```$", ""));
+            json = json.replaceAll("(?s)^```(?:json)?\\s*|\\s*```$", "");
+            return executeGenerationPlan(onlyRequested(json, userPrompt));
         } catch (Exception e) {
             return "❌ Ошибка: " + e.getMessage();
+        }
+    }
+
+    // Ключ плана → слова в запросе (рус./кырг.), без которых его не выполняем: ИИ не должен «додумывать» людей и данные
+    private static final Map<String, java.util.regex.Pattern> PLAN_KEYWORDS = Map.of(
+        "disciplines", java.util.regex.Pattern.compile("(?iu)предмет|дисциплин|сабак"),
+        "groups", java.util.regex.Pattern.compile("(?iu)класс|групп|\\b\\d{1,2}\\s*[а-яё]\\b"),
+        "teachers_count", java.util.regex.Pattern.compile("(?iu)учител|преподав|мугалим"),
+        "students_per_group", java.util.regex.Pattern.compile("(?iu)учени|школьник|студент|окуучу"),
+        "create_parents", java.util.regex.Pattern.compile("(?iu)родител|ата-?эне"),
+        "marks_per_student", java.util.regex.Pattern.compile("(?iu)оцен|балл|баа"),
+        "news_count", java.util.regex.Pattern.compile("(?iu)новост|жаңылык"),
+        "create_schedule", java.util.regex.Pattern.compile("(?iu)расписан|урок|жадыбал"));
+
+    /** Убирает из плана всё, о чём в запросе не было ни слова */
+    String onlyRequested(String json, String userPrompt) {
+        try {
+            var plan = (com.fasterxml.jackson.databind.node.ObjectNode) objectMapper.readTree(json);
+            PLAN_KEYWORDS.forEach((key, words) -> {
+                if (plan.has(key) && !words.matcher(userPrompt).find()) plan.remove(key);
+            });
+            return objectMapper.writeValueAsString(plan);
+        } catch (Exception e) {
+            return json;
         }
     }
 
@@ -73,11 +98,13 @@ public class SchoolDataGeneratorService {
             }
 
             Правила:
+            - Включай в JSON ТОЛЬКО то, что пользователь прямо просит создать. Остальные ключи не пиши совсем.
+              «Создай расписание» → только {"create_schedule": true, "schedule_weeks": 2}: учителя, ученики,
+              классы и предметы для него берутся из уже существующих в школе.
+            - Не придумывай учеников, учителей, родителей, оценки, новости или классы, если о них не просили.
             - course = номер класса из названия (5А→5, 10Б→10, 11А→11)
-            - Если не указано количество — используй разумные значения
-            - Если не указаны предметы — используй стандартные школьные
-            - Если не указаны группы — придумай реалистичные названия классов
-            - create_schedule = true если упоминается расписание
+            - Если просят создать что-то без количества — используй разумное количество
+            - Если просят предметы, но не называют их — используй стандартные школьные
             - schedule_weeks = на сколько недель вперёд генерировать расписание (по умолчанию 2)
             - Значения PRIVATE_* копируй дословно
             - Отвечай ТОЛЬКО JSON
@@ -236,11 +263,21 @@ public class SchoolDataGeneratorService {
             }
 
             // 8. Расписание
-            if (plan.has("create_schedule") && plan.get("create_schedule").asBoolean()
-                    && !groupIds.isEmpty() && !teacherIds.isEmpty() && !disciplineIds.isEmpty()) {
-                int weeks = plan.has("schedule_weeks") ? plan.get("schedule_weeks").asInt() : 2;
-                int scheduleCount = createSchedule(groupIds, teacherIds, disciplineIds, weeks);
-                result.append("✅ Расписание: ").append(scheduleCount).append(" уроков\n");
+            if (plan.has("create_schedule") && plan.get("create_schedule").asBoolean()) {
+                // Для расписания хватает того, что уже есть в школе — новых людей и классов не создаём
+                List<Integer> schedGroups = !groupIds.isEmpty() ? groupIds
+                        : groupRepository.findAll().stream().map(GroupEntity::getId).collect(Collectors.toList());
+                List<Integer> schedTeachers = !teacherIds.isEmpty() ? teacherIds
+                        : teacherRepository.findAll().stream().map(Teacher::getId).collect(Collectors.toList());
+                List<Integer> schedDisciplines = !disciplineIds.isEmpty() ? disciplineIds
+                        : disciplineRepository.findAll().stream().map(Discipline::getId).collect(Collectors.toList());
+                if (schedGroups.isEmpty() || schedTeachers.isEmpty() || schedDisciplines.isEmpty()) {
+                    result.append("❌ Расписание: сначала нужны классы, учителя и предметы\n");
+                } else {
+                    int weeks = plan.has("schedule_weeks") ? Math.max(1, Math.min(8, plan.get("schedule_weeks").asInt())) : 2;
+                    int scheduleCount = createSchedule(schedGroups, schedTeachers, schedDisciplines, weeks);
+                    result.append("✅ Расписание: ").append(scheduleCount).append(" уроков\n");
+                }
             }
 
             result.append("\n🎉 Готово!");
@@ -434,15 +471,30 @@ public class SchoolDataGeneratorService {
         for (int week = 0; week < weeks; week++) {
             for (int dayOffset = 0; dayOffset < 5; dayOffset++) { // пн-пт
                 java.time.LocalDate date = startDate.plusDays((long) week * 7 + dayOffset);
+                // Уже занятые уроки этого дня: класс не получает второй урок с тем же номером,
+                // учитель не ведёт два урока одновременно
+                Set<String> groupBusy = new HashSet<>(), teacherBusy = new HashSet<>();
+                for (Schedule existing : scheduleRepository.findByDate(date)) {
+                    if (existing.getLessonNumber() == null) continue;
+                    if (existing.getGroup() != null) groupBusy.add(existing.getGroup().getId() + ":" + existing.getLessonNumber());
+                    if (existing.getTeacher() != null) teacherBusy.add(existing.getTeacher().getId() + ":" + existing.getLessonNumber());
+                }
                 for (GroupEntity group : groups) {
                     int lessonsPerDay = 4 + random.nextInt(3); // 4-6 уроков
                     for (int lessonNum = 0; lessonNum < Math.min(lessonsPerDay, slots.length); lessonNum++) {
-                        Teacher teacher = teachers.get(random.nextInt(teachers.size()));
-                        Discipline discipline = disciplines.get(random.nextInt(disciplines.size()));
-                        // Предпочитаем предмет учителя если есть
-                        if (!teacher.getDisciplines().isEmpty()) {
-                            discipline = teacher.getDisciplines().iterator().next();
-                        }
+                        int number = lessonNum + 1;
+                        if (groupBusy.contains(group.getId() + ":" + number)) continue;
+                        List<Teacher> free = teachers.stream()
+                                .filter(t -> !teacherBusy.contains(t.getId() + ":" + number))
+                                .collect(Collectors.toList());
+                        if (free.isEmpty()) continue;
+                        Teacher teacher = free.get(random.nextInt(free.size()));
+                        teacherBusy.add(teacher.getId() + ":" + number);
+                        groupBusy.add(group.getId() + ":" + number);
+                        // Учитель ведёт свой предмет; если предметов у него нет — любой из школы
+                        Discipline discipline = !teacher.getDisciplines().isEmpty()
+                                ? new ArrayList<>(teacher.getDisciplines()).get(random.nextInt(teacher.getDisciplines().size()))
+                                : disciplines.get(random.nextInt(disciplines.size()));
 
                         Schedule schedule = new Schedule();
                         schedule.setGroup(group);

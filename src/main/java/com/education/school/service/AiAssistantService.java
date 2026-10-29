@@ -184,7 +184,7 @@ public class AiAssistantService {
             2. Если пользователь говорит "рандомно", "сам", "любые" или не указывает данные студентов — ИСПОЛЬЗУЙ add_students_random, НИКОГДА не проси данные.
             3. Если нужно добавить студентов в несколько групп — вызывай add_students_random для каждой группы последовательно.
             4. Если группы ещё не существуют — сначала создай их, потом добавляй студентов.
-            5. Для создания расписания — используй generate_schedule, он автоматически распределит учителей и предметы.
+            5. Для создания расписания — используй ТОЛЬКО generate_schedule для каждого существующего класса: он берёт уже существующих учителей и предметы. Не создавай учеников, учителей, родителей или классы, если пользователь об этом прямо не просил.
             6. Для анализа успеваемости — используй analyze_performance.
             7. Отвечай ТОЛЬКО на вопросы связанные со школой. Отвечай кратко и на том языке, на котором пишет пользователь: по-русски или по-кыргызски.
             8. Не выполняй массовое удаление без подтверждения.
@@ -771,19 +771,37 @@ public class AiAssistantService {
                     };
 
                     int created = 0;
-                    for (int day = 0; day < 5; day++) {
-                        java.time.LocalDate date = start.plusDays(day);
+                    // 5 учебных дней подряд (выходные пропускаем); занятые уроки класса и учителя не трогаем
+                    java.time.LocalDate date = start;
+                    for (int day = 0; day < 5; date = date.plusDays(1)) {
+                        if (date.getDayOfWeek().getValue() > 5) continue;
+                        day++;
+                        Set<Integer> groupBusy = new HashSet<>();
+                        Set<String> teacherBusy = new HashSet<>();
+                        for (Schedule existing : scheduleRepository.findByDate(date)) {
+                            if (existing.getLessonNumber() == null) continue;
+                            if (existing.getGroup() != null && existing.getGroup().getId().equals(group.getId())) groupBusy.add(existing.getLessonNumber());
+                            if (existing.getTeacher() != null) teacherBusy.add(existing.getTeacher().getId() + ":" + existing.getLessonNumber());
+                        }
                         for (int lesson = 0; lesson < Math.min(lessonsPerDay, startTimes.length); lesson++) {
-                            Schedule s = new Schedule();
-                            s.setGroup(group);
+                            int number = lesson + 1;
+                            if (groupBusy.contains(number)) continue;
                             Discipline disc = disciplines.get((day * lessonsPerDay + lesson) % disciplines.size());
+                            // Свободный учитель этого предмета, иначе любой свободный
                             Teacher teacher = teachers.stream()
+                                .filter(t -> !teacherBusy.contains(t.getId() + ":" + number))
                                 .filter(t -> t.getDisciplines().contains(disc))
                                 .findFirst()
-                                .orElse(teachers.get(lesson % teachers.size()));
-                            s.setDiscipline(disc);
+                                .orElse(teachers.stream().filter(t -> !teacherBusy.contains(t.getId() + ":" + number)).findFirst().orElse(null));
+                            if (teacher == null) continue;
+                            teacherBusy.add(teacher.getId() + ":" + number);
+                            Discipline lessonDiscipline = teacher.getDisciplines().contains(disc) || teacher.getDisciplines().isEmpty()
+                                ? disc : teacher.getDisciplines().iterator().next();
+                            Schedule s = new Schedule();
+                            s.setGroup(group);
+                            s.setDiscipline(lessonDiscipline);
                             s.setTeacher(teacher);
-                            s.setLessonNumber(lesson + 1);
+                            s.setLessonNumber(number);
                             s.setDate(date);
                             s.setStartTime(startTimes[lesson]);
                             s.setEndTime(startTimes[lesson].plusMinutes(45));
