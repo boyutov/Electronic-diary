@@ -24,7 +24,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Sidebar role badge
             const badge = document.getElementById("sidebar-role");
-            if (badge) badge.textContent = user.role || "Профиль";
+            const roleLabels = { ADMIN: "Администратор", DIRECTOR: "Директор", TEACHER: "Учитель", STUDENT: "Ученик", PARENT: "Родитель" };
+            if (badge) badge.textContent = roleLabels[user.role] || "Профиль";
 
             // Dashboard link
             const dashLink = document.getElementById("nav-dashboard");

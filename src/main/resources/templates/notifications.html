@@ -31,16 +31,16 @@
 <aside class="sidebar">
     <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge">Пользователь</span></div>
     <nav id="sidebar-nav"></nav>
-    <div class="sidebar-footer"><button id="logout-btn">🚪 Выйти</button></div>
+    <div class="sidebar-footer"><button id="logout-btn">Выйти</button></div>
 </aside>
 
 <div class="app-content">
     <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-            <h2>🔔 Уведомления</h2>
+            <h2>Уведомления</h2>
             <p style="color:#64748b;margin-top:4px;" id="unread-label">Загрузка...</p>
         </div>
-        <button class="button ghost sm" id="read-all-btn">✓ Прочитать все</button>
+        <button class="button ghost sm" id="read-all-btn">Прочитать все</button>
     </div>
     <div id="notif-container" class="notif-list">
         <p style="color:#64748b;">Загрузка...</p>
@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     unread > 0 ? `${unread} непрочитанных` : "Все прочитаны";
 
                 if (!list.length) {
-                    container.innerHTML = "<div class='card'><p style='color:#64748b;'>Уведомлений нет.</p></div>";
+                    container.innerHTML = "<div class='empty-state'>Уведомлений нет.</div>";
                     return;
                 }
 

@@ -10,7 +10,7 @@
     const fab = document.createElement("button");
     fab.className = "ai-fab";
     fab.title = "AI Ассистент";
-    fab.innerHTML = "🤖";
+    fab.innerHTML = window.icon ? window.icon("bot") : "🤖";
     document.body.appendChild(fab);
 
     // Создаём окно чата
@@ -19,7 +19,7 @@
     chatWindow.innerHTML = `
         <div class="ai-chat-header">
             <div>
-                <h4>🤖 AI Ассистент</h4>
+                <h4>AI Ассистент</h4>
                 <span>Чат с защитой контактов · локальный импорт</span>
             </div>
             <div class="ai-chat-header-right">

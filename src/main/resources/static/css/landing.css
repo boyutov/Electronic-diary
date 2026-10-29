@@ -1,0 +1,229 @@
+/* Публичные страницы: главная, «О проекте», «Прайс». Базовые цвета и шрифты — из site.css */
+body.landing { background: var(--surface); }
+
+.site-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px max(24px, calc((100vw - 1160px) / 2));
+    background: rgba(255, 255, 255, .85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+}
+.site-nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 17px; color: var(--text); text-decoration: none; }
+.site-nav .links { display: flex; align-items: center; gap: 4px; }
+.site-nav .links a { color: var(--text-2); text-decoration: none; font-weight: 500; font-size: 14.5px; padding: 8px 12px; border-radius: 9px; }
+.site-nav .links a:hover { background: var(--surface-3); color: var(--text); }
+.site-nav .links a.active { color: var(--primary); }
+.site-nav .links a.button { color: #fff; margin-left: 8px; padding: 9px 18px; }
+.site-nav .links a.button:hover { background: var(--primary-hover); }
+.site-nav .lang-switch { margin-left: 8px; }
+.site-nav .lang-switch button { padding: 5px 9px; }
+
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+
+/* ── Первый экран ── */
+.hero {
+    position: relative;
+    overflow: hidden;
+    padding: 72px 0 80px;
+    background:
+        radial-gradient(800px 420px at 85% 10%, #ede9fe 0%, transparent 60%),
+        radial-gradient(900px 500px at 0% 0%, #dbeafe 0%, transparent 60%);
+}
+.hero .wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; }
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--primary-text);
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: var(--shadow-xs);
+}
+.eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px var(--success-soft); }
+.hero h1 { font-size: clamp(36px, 5vw, 56px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.05; margin: 20px 0 18px; }
+.hero h1 .grad { background: linear-gradient(90deg, #2563eb, #7c3aed); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero p.lead { font-size: 18px; color: var(--text-muted); max-width: 520px; line-height: 1.6; }
+.hero .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 30px; }
+.hero .trust { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 30px; color: var(--text-muted); font-size: 14px; }
+.hero .trust span { display: inline-flex; align-items: center; gap: 7px; }
+.hero .trust .icon { color: var(--success); width: 17px; height: 17px; }
+
+/* Макет интерфейса на первом экране */
+.mock {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: 0 30px 80px rgba(15, 23, 42, .18);
+    overflow: hidden;
+    transform: perspective(1400px) rotateY(-6deg) rotateX(2deg);
+}
+.mock-bar { display: flex; gap: 6px; padding: 12px 14px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+.mock-bar i { width: 10px; height: 10px; border-radius: 50%; background: #e2e8f0; }
+.mock-bar i:nth-child(1) { background: #fca5a5; } .mock-bar i:nth-child(2) { background: #fcd34d; } .mock-bar i:nth-child(3) { background: #86efac; }
+.mock-body { display: grid; grid-template-columns: 120px 1fr; min-height: 330px; }
+.mock-side { border-right: 1px solid var(--border); padding: 14px 10px; display: flex; flex-direction: column; gap: 8px; }
+.mock-side b { height: 9px; border-radius: 6px; background: var(--surface-3); }
+.mock-side b.on { background: var(--primary-soft-2); }
+.mock-main { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.mock-title { font-weight: 800; font-size: 15px; }
+.mock-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.mock-stat { border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
+.mock-stat strong { display: block; font-size: 20px; font-weight: 800; }
+.mock-stat span { font-size: 11px; color: var(--text-muted); }
+.mock-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; font-size: 13px; font-weight: 600; }
+.mock-row small { color: var(--text-muted); font-weight: 500; display: block; font-size: 11px; }
+.grade { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; padding: 0 4px; height: 28px; border-radius: 8px; font-weight: 800; font-size: 13px; }
+.grade.g5 { background: var(--success-soft); color: var(--success-text); }
+.grade.g4 { background: var(--primary-soft); color: var(--primary-text); }
+.grade.g3 { background: var(--warning-soft); color: var(--warning-text); }
+.grades { display: flex; gap: 5px; }
+
+/* ── Цифры ── */
+.numbers { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface-2); }
+.numbers .wrap { display: grid; grid-template-columns: repeat(4, 1fr); }
+.numbers .item { padding: 28px 16px; text-align: center; }
+.numbers .item + .item { border-left: 1px solid var(--border); }
+.numbers .num { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; }
+.numbers .lbl { color: var(--text-muted); font-size: 14px; margin-top: 2px; }
+
+/* ── Секции ── */
+.section { padding: 88px 0; }
+.section.alt { background: var(--surface-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.section-head { text-align: center; max-width: 640px; margin: 0 auto 48px; }
+.section-label { color: var(--primary); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: .1em; }
+.section-title { font-size: clamp(28px, 3.5vw, 38px); font-weight: 800; letter-spacing: -0.025em; margin: 10px 0 12px; line-height: 1.15; }
+.section-sub, .section-text { color: var(--text-muted); font-size: 17px; line-height: 1.65; }
+.section-text { max-width: 760px; margin: 0 auto 40px; text-align: center; }
+
+.features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.feature {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    transition: box-shadow .15s, transform .15s, border-color .15s;
+}
+.feature:hover { box-shadow: var(--shadow); transform: translateY(-2px); border-color: var(--primary-soft-2); }
+.feature .ficon {
+    width: 46px; height: 46px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-soft);
+    color: var(--primary);
+    margin-bottom: 16px;
+}
+.feature .ficon .icon { width: 22px; height: 22px; }
+.feature:nth-child(6n+2) .ficon { background: var(--violet-soft); color: var(--violet); }
+.feature:nth-child(6n+3) .ficon { background: var(--success-soft); color: var(--success); }
+.feature:nth-child(6n+4) .ficon { background: var(--warning-soft); color: var(--warning); }
+.feature:nth-child(6n+5) .ficon { background: #fce7f3; color: #db2777; }
+.feature:nth-child(6n+6) .ficon { background: #e0f2fe; color: #0284c7; }
+.feature h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.feature p { color: var(--text-muted); font-size: 14.5px; line-height: 1.6; }
+
+.roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.role {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+}
+.role .ficon { width: 40px; height: 40px; border-radius: 11px; background: var(--surface-3); color: var(--text-2); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.role h4 { font-size: 15.5px; font-weight: 700; margin-bottom: 3px; }
+.role p { color: var(--text-muted); font-size: 14px; }
+
+.tech { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.tech span { padding: 7px 14px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); font-size: 13.5px; font-weight: 600; color: var(--text-2); }
+
+/* ── Призыв ── */
+.cta {
+    margin: 0 auto;
+    max-width: 1112px;
+    border-radius: 24px;
+    padding: 56px 32px;
+    text-align: center;
+    color: #fff;
+    background: radial-gradient(600px 300px at 80% 0%, rgba(255, 255, 255, .18), transparent 60%), linear-gradient(135deg, #2563eb, #7c3aed);
+    box-shadow: 0 30px 70px rgba(79, 70, 229, .3);
+}
+.cta h2 { color: #fff; font-size: clamp(26px, 3.5vw, 36px); font-weight: 800; letter-spacing: -0.02em; }
+.cta p { opacity: .9; font-size: 17px; margin: 12px auto 26px; max-width: 520px; }
+.cta .button { background: #fff; color: var(--primary-text); box-shadow: none; }
+.cta .button:hover { background: #eef2ff; }
+
+/* ── Подвал ── */
+.site-footer { padding: 40px 0; margin-top: 88px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 14px; }
+.site-footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.site-footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
+.site-footer a { color: var(--text-muted); text-decoration: none; }
+.site-footer a:hover { color: var(--text); }
+
+/* ── Заголовок внутренних страниц ── */
+.page-hero { text-align: center; padding: 72px 0 40px; background: radial-gradient(800px 360px at 50% 0%, #e0e7ff 0%, transparent 70%); }
+.page-hero h1 { font-size: clamp(32px, 4.5vw, 48px); font-weight: 800; letter-spacing: -0.03em; margin: 16px auto 14px; max-width: 760px; line-height: 1.1; }
+.page-hero p { color: var(--text-muted); font-size: 18px; max-width: 620px; margin: 0 auto; line-height: 1.6; }
+
+/* ── Прайс ── */
+.pricing { display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px; align-items: start; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 28px; box-shadow: var(--shadow); }
+.panel h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+.panel .sub { color: var(--text-muted); margin: 6px 0 22px; font-size: 15px; }
+.calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.calc-grid .calc-group:last-child { grid-column: span 2; }
+.calc-group label { display: block; font-weight: 600; font-size: 13.5px; margin-bottom: 6px; color: var(--text-2); }
+.price-result {
+    margin-top: 22px;
+    padding: 22px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--primary-soft), #f5f3ff);
+    border: 1px solid var(--primary-soft-2);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.price-result .label { font-size: 13.5px; color: var(--text-muted); font-weight: 600; }
+.price-result .amount { font-size: 40px; font-weight: 800; letter-spacing: -0.03em; color: var(--text); line-height: 1.1; }
+.price-result .base { color: var(--text-muted); font-size: 13px; }
+.perks { list-style: none; display: grid; gap: 10px; margin-top: 22px; }
+.perks li { display: flex; gap: 10px; align-items: center; color: var(--text-2); font-size: 14.5px; }
+.perks .icon { color: var(--success); }
+
+@media (max-width: 960px) {
+    .hero .wrap, .pricing { grid-template-columns: 1fr; }
+    .mock { transform: none; }
+    .features, .roles { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+    .site-nav { padding: 10px 16px; }
+    .site-nav .links a:not(.button) { display: none; }
+    .hero { padding: 40px 0 56px; }
+    .wrap { padding: 0 16px; }
+    .numbers .wrap { grid-template-columns: 1fr 1fr; }
+    .numbers .item:nth-child(3) { border-left: none; }
+    .numbers .item:nth-child(n+3) { border-top: 1px solid var(--border); }
+    .features, .roles { grid-template-columns: 1fr; }
+    .section { padding: 56px 0; }
+    .mock-body { grid-template-columns: 1fr; }
+    .mock-side { display: none; }
+    .calc-grid { grid-template-columns: 1fr; }
+    .calc-grid .calc-group:last-child { grid-column: auto; }
+    .cta { border-radius: 0; padding: 44px 20px; }
+    .panel { padding: 20px; }
+}

@@ -15,14 +15,14 @@
     <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge">Пользователь</span></div>
     <nav id="sidebar-nav"></nav>
     <div class="sidebar-footer">
-        <button id="logout-btn">🚪 Выйти</button>
+        <button id="logout-btn">Выйти</button>
     </div>
 </aside>
 
 <div class="app-content">
     <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
         <div>
-            <h2>📝 Жалобы</h2>
+            <h2>Жалобы</h2>
             <p style="color:#64748b;margin-top:4px;" id="page-subtitle">Загрузка...</p>
         </div>
         <button class="button" id="add-btn">+ Написать жалобу</button>
@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(r => r.ok ? r.json() : [])
             .then(list => {
                 container.innerHTML = "";
-                if (!list.length) { container.innerHTML = "<p style='color:#64748b;'>Вы ещё не отправляли жалоб.</p>"; return; }
+                if (!list.length) { container.innerHTML = "<p class='empty-inline'>Вы ещё не отправляли жалоб.</p>"; return; }
                 list.forEach(c => container.appendChild(renderComplaint(c, true)));
             })
             .catch(() => { container.innerHTML = "<p style='color:#ef4444;'>Ошибка загрузки.</p>"; });

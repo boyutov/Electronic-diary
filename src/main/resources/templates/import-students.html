@@ -19,13 +19,13 @@
     </div>
     <nav id="sidebar-nav"></nav>
     <div class="sidebar-footer">
-        <button id="logout-btn">🚪 Выйти</button>
+        <button id="logout-btn">Выйти</button>
     </div>
 </aside>
 
 <div class="app-content">
     <div class="page-header">
-        <h2>📤 Импорт учеников и учителей из Excel</h2>
+        <h2>Импорт учеников и учителей из Excel</h2>
         <p style="color:#64748b;margin-top:4px;">Загрузите файл Excel — AI автоматически распознает колонки</p>
     </div>
 
@@ -65,7 +65,7 @@
         </div>
         <div id="file-info" style="display:none;margin-top:16px;padding:12px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;">
             <span id="file-name" style="font-weight:600;color:#15803d;"></span>
-            <button onclick="uploadFile()" style="margin-left:16px;background:#16a34a;">📤 Загрузить и анализировать</button>
+            <button onclick="uploadFile()" style="margin-left:16px;background:#16a34a;">Загрузить и анализировать</button>
         </div>
         <div id="upload-progress" style="display:none;margin-top:16px;text-align:center;color:#64748b;">
             <div style="font-size:24px;animation:spin 1s linear infinite;display:inline-block;">⏳</div>
@@ -99,14 +99,14 @@
 
         <div style="display:flex;gap:12px;">
             <button onclick="goBack()" style="background:#64748b;">← Назад</button>
-            <button onclick="proceedToImport()">✅ Импортировать</button>
+            <button onclick="proceedToImport()">Импортировать</button>
         </div>
     </div>
 
     <!-- Этап 3 -->
     <div class="card" id="stage3" style="display:none;">
         <div id="import-result"></div>
-        <button onclick="startOver()" style="margin-top:16px;">🔄 Импортировать ещё файл</button>
+        <button onclick="startOver()" style="margin-top:16px;">Импортировать ещё файл</button>
     </div>
 </div>
 
@@ -122,6 +122,11 @@
 .mapping-card { background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px; }
 .mapping-card label { font-size:12px;color:#64748b;display:block;margin-bottom:4px; }
 .mapping-card select { width:100%;padding:6px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px; }
+/* На телефоне подписываем только текущий шаг, иначе шкала не помещается */
+@media (max-width: 600px) {
+    #label1, #label2, #label3 { display:none; font-size:13px; }
+    .step-badge.active + span { display:inline !important; }
+}
 </style>
 
 <script>

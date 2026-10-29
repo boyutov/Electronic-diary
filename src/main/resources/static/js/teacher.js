@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const container = document.getElementById("groups-container");
             container.innerHTML = "";
             if (!items.length) {
-                container.innerHTML = "<p style='color:#64748b;'>У вас пока нет групп и предметов.</p>";
+                container.innerHTML = "<div class='empty-state'>У вас пока нет групп и предметов.</div>";
                 return;
             }
             const byGroup = {};
@@ -46,14 +46,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
             container.innerHTML = "";
+            container.className = "group-tiles";
             Object.entries(byGroup).forEach(([groupId, group]) => {
                 const card = document.createElement("div");
-                card.style.cssText = "border:1.5px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;";
+                card.className = "group-tile";
                 card.innerHTML = `
-                    <div style="font-weight:700;font-size:1em;margin-bottom:10px;">📚 ${esc(group.name)}</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                    <div class="group-tile-head"><span class="group-mark">${esc(group.name)}</span><span>Класс</span></div>
+                    <div class="action-btns">
                         ${group.disciplines.map(d => `
-                            <button class="button sm" style="background:#0ea5e9;"
+                            <button class="btn-action"
                                 onclick="openMassMarkModal(${Number(groupId)}, ${escJs(group.name)}, ${Number(d.id)}, ${escJs(d.name)})">
                                 ${esc(d.name)} — Оценить
                             </button>

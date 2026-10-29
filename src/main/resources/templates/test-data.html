@@ -19,28 +19,28 @@
     </div>
     <nav id="sidebar-nav"></nav>
     <div class="sidebar-footer">
-        <button id="logout-btn">🚪 Выйти</button>
+        <button id="logout-btn">Выйти</button>
     </div>
 </aside>
 
 <div class="app-content">
     <div class="page-header">
-        <h2>🤖 AI Генератор данных</h2>
+        <h2>AI Генератор данных</h2>
         <p style="color:#64748b;margin-top:4px;">Опишите что нужно создать — AI сгенерирует данные автоматически</p>
     </div>
 
     <div class="card" style="margin-bottom:20px;">
         <h3 style="margin-bottom:12px;">Быстрые действия</h3>
         <div style="display:flex;flex-wrap:wrap;gap:8px;">
-            <button class="chip-btn" onclick="setPrompt('Создай предметы: математика, физика, химия, биология, история, русский язык, английский язык, география')">📚 Предметы</button>
-            <button class="chip-btn" onclick="setPrompt('Создай 3 класса: 9А, 10А, 11А')">🏫 Классы</button>
-            <button class="chip-btn" onclick="setPrompt('Создай 8 учителей с русскими именами, назначь каждому предмет')">👨🏫 Учителя</button>
-            <button class="chip-btn" onclick="setPrompt('Создай 25 учеников в каждый класс с русскими именами')">🎒 Ученики</button>
-            <button class="chip-btn" onclick="setPrompt('Создай родителей для всех учеников')">👨‍👩‍👧 Родители</button>
-            <button class="chip-btn" onclick="setPrompt('Поставь случайные оценки всем ученикам по всем предметам')">📝 Оценки</button>
-            <button class="chip-btn" onclick="setPrompt('Создай расписание на 2 недели для всех классов')">📅 Расписание</button>
-            <button class="chip-btn" onclick="setPrompt('Создай предметы, 8 учителей и расписание на 2 недели для существующих классов')" style="background:#dbeafe;color:#1d4ed8;border-color:#93c5fd;">📚+👨🏫+📅 Предметы+Учителя+Расписание</button>
-            <button class="chip-btn" onclick="setPrompt('Создай полную школу: предметы математика физика история русский английский, классы 9А 10А 11А, 8 учителей, 25 учеников в каждом классе, родителей, оценки и расписание на 2 недели')" style="background:#dcfce7;color:#15803d;border-color:#86efac;">🏫 Всё сразу</button>
+            <button class="chip-btn" onclick="setPrompt('Создай предметы: математика, физика, химия, биология, история, русский язык, английский язык, география')">Предметы</button>
+            <button class="chip-btn" onclick="setPrompt('Создай 3 класса: 9А, 10А, 11А')">Классы</button>
+            <button class="chip-btn" onclick="setPrompt('Создай 8 учителей с русскими именами, назначь каждому предмет')">Учителя</button>
+            <button class="chip-btn" onclick="setPrompt('Создай 25 учеников в каждый класс с русскими именами')">Ученики</button>
+            <button class="chip-btn" onclick="setPrompt('Создай родителей для всех учеников')">Родители</button>
+            <button class="chip-btn" onclick="setPrompt('Поставь случайные оценки всем ученикам по всем предметам')">Оценки</button>
+            <button class="chip-btn" onclick="setPrompt('Создай расписание на 2 недели для всех классов')">Расписание</button>
+            <button class="chip-btn" onclick="setPrompt('Создай предметы, 8 учителей и расписание на 2 недели для существующих классов')" style="background:#dbeafe;color:#1d4ed8;border-color:#93c5fd;">+👨🏫+📅 Предметы+Учителя+Расписание</button>
+            <button class="chip-btn" onclick="setPrompt('Создай полную школу: предметы математика физика история русский английский, классы 9А 10А 11А, 8 учителей, 25 учеников в каждом классе, родителей, оценки и расписание на 2 недели')" style="background:#dcfce7;color:#15803d;border-color:#86efac;">Всё сразу</button>
         </div>
     </div>
 
@@ -50,8 +50,8 @@
             style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;font-size:14px;box-sizing:border-box;"></textarea>
 
         <div style="display:flex;gap:12px;margin-top:12px;align-items:center;">
-            <button onclick="generateWithAI()" id="gen-btn" style="padding:10px 24px;">🤖 Поручить AI</button>
-            <button onclick="clearResult()" style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;padding:10px 16px;">🗑 Очистить</button>
+            <button onclick="generateWithAI()" id="gen-btn" style="padding:10px 24px;">Поручить AI</button>
+            <button onclick="clearResult()" style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;padding:10px 16px;">Очистить</button>
             <span id="gen-status" style="font-size:13px;color:#64748b;"></span>
         </div>
 

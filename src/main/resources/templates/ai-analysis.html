@@ -19,13 +19,13 @@
     </div>
     <nav id="sidebar-nav"></nav>
     <div class="sidebar-footer">
-        <button id="logout-btn">🚪 Выйти</button>
+        <button id="logout-btn">Выйти</button>
     </div>
 </aside>
 
 <div class="app-content">
     <div class="page-header">
-        <h2>🤖 AI Анализ данных</h2>
+        <h2>AI Анализ данных</h2>
         <p style="color:#64748b;margin-top:4px;">Анализ успеваемости, статистика и работа с файлами</p>
     </div>
 
@@ -33,34 +33,34 @@
 
         <!-- Анализ данных школы -->
         <div class="card">
-            <h3 style="margin-bottom:8px;">📊 Анализ данных школы</h3>
+            <h3 style="margin-bottom:8px;">Анализ данных школы</h3>
             <p style="color:#64748b;font-size:14px;margin-bottom:16px;">Задайте вопрос — AI проанализирует данные из базы</p>
 
             <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
-                <button class="chip" onclick="setQ('schoolQuery','Какая средняя успеваемость в школе?')">📈 Успеваемость</button>
-                <button class="chip" onclick="setQ('schoolQuery','Сколько учеников, учителей и классов?')">📋 Статистика</button>
-                <button class="chip" onclick="setQ('schoolQuery','Кто из учеников имеет оценки ниже 3?')">⚠️ Слабые ученики</button>
-                <button class="chip" onclick="setQ('schoolQuery','Какие предметы существуют в школе?')">📚 Предметы</button>
-                <button class="chip" onclick="setQ('schoolQuery','Средняя оценка по каждому предмету?')">📊 По предметам</button>
+                <button class="chip" onclick="setQ('schoolQuery','Какая средняя успеваемость в школе?')">Успеваемость</button>
+                <button class="chip" onclick="setQ('schoolQuery','Сколько учеников, учителей и классов?')">Статистика</button>
+                <button class="chip" onclick="setQ('schoolQuery','Кто из учеников имеет оценки ниже 3?')">Слабые ученики</button>
+                <button class="chip" onclick="setQ('schoolQuery','Какие предметы существуют в школе?')">Предметы</button>
+                <button class="chip" onclick="setQ('schoolQuery','Средняя оценка по каждому предмету?')">По предметам</button>
             </div>
 
             <textarea id="schoolQuery" rows="3" placeholder="Например: Какая успеваемость в 9А? Кто лучший ученик?" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;box-sizing:border-box;font-size:14px;"></textarea>
 
-            <button onclick="analyzeSchool()" style="margin-top:10px;width:100%;">🤖 Анализировать</button>
+            <button onclick="analyzeSchool()" style="margin-top:10px;width:100%;">Анализировать</button>
 
             <div id="schoolResult" class="ai-result" style="display:none;"></div>
         </div>
 
         <!-- Анализ файла -->
         <div class="card">
-            <h3 style="margin-bottom:8px;">📁 Анализ файла</h3>
+            <h3 style="margin-bottom:8px;">Анализ файла</h3>
             <p style="color:#64748b;font-size:14px;margin-bottom:16px;">Загрузите PDF, Excel или изображение для анализа</p>
 
             <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
-                <button class="chip" onclick="setQ('fileQuery','Извлеки все данные из файла')">📄 Извлечь данные</button>
-                <button class="chip" onclick="setQ('fileQuery','Проанализируй успеваемость учеников')">📊 Анализ оценок</button>
-                <button class="chip" onclick="setQ('fileQuery','Составь список всех имён из документа')">👥 Список имён</button>
-                <button class="chip" onclick="setQ('fileQuery','Опиши содержимое файла')">🔍 Описание</button>
+                <button class="chip" onclick="setQ('fileQuery','Извлеки все данные из файла')">Извлечь данные</button>
+                <button class="chip" onclick="setQ('fileQuery','Проанализируй успеваемость учеников')">Анализ оценок</button>
+                <button class="chip" onclick="setQ('fileQuery','Составь список всех имён из документа')">Список имён</button>
+                <button class="chip" onclick="setQ('fileQuery','Опиши содержимое файла')">Описание</button>
             </div>
 
             <div id="file-drop" style="border:2px dashed #cbd5e1;border-radius:8px;padding:20px;text-align:center;cursor:pointer;margin-bottom:12px;transition:all .2s;" onclick="document.getElementById('analysisFile').click()">
@@ -74,7 +74,7 @@
 
             <textarea id="fileQuery" rows="2" placeholder="Вопрос о файле..." style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;box-sizing:border-box;font-size:14px;"></textarea>
 
-            <button onclick="analyzeFile()" style="margin-top:10px;width:100%;">📂 Анализировать файл</button>
+            <button onclick="analyzeFile()" style="margin-top:10px;width:100%;">Анализировать файл</button>
 
             <div id="fileResult" class="ai-result" style="display:none;"></div>
         </div>
@@ -82,7 +82,7 @@
 
     <!-- Быстрая статистика -->
     <div class="card">
-        <h3 style="margin-bottom:16px;">📈 Быстрая статистика</h3>
+        <h3 style="margin-bottom:16px;">Быстрая статистика</h3>
         <div class="stats-grid" id="quick-stats">
             <div class="stat-card"><div class="stat-value" id="qs-students">—</div><div class="stat-label">Учеников</div></div>
             <div class="stat-card"><div class="stat-value" id="qs-teachers">—</div><div class="stat-label">Учителей</div></div>

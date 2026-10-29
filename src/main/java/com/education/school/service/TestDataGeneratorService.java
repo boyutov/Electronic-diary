@@ -141,7 +141,7 @@ public class TestDataGeneratorService {
                 int marksPerStudent = 3 + random.nextInt(3);
                 for (int i = 0; i < marksPerStudent; i++) {
                     var teacher = allTeachers.get(random.nextInt(allTeachers.size()));
-                    int mark = 3 + random.nextInt(3); // оценки от 3 до 5
+                    int mark = 55 + random.nextInt(46); // 100-балльная шкала, как в журнале учителя: от 55 до 100
                     
                     // MarkService.create ставит оценку от имени текущего учителя, а генерацию запускает админ —
                     // поэтому сохраняем напрямую от имени случайного учителя

@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(lessons => {
                 lessonsContainer.innerHTML = "";
                 if (!lessons.length) {
-                    lessonsContainer.innerHTML = `<p style='color:#64748b;'>На ${new Date(date).toLocaleDateString("ru-RU")} уроков нет.</p>`;
+                    lessonsContainer.innerHTML = `<div class='empty-state'>На ${new Date(date).toLocaleDateString("ru-RU")} уроков нет.</div>`;
                     return;
                 }
                 lessons.sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""));
@@ -205,7 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(records => {
                 container.innerHTML = "";
                 if (!records.length) {
-                    container.innerHTML = "<div class='card'><p style='color:#64748b;'>Нет данных за выбранный период.</p></div>";
+                    container.innerHTML = "<div class='empty-state'>Нет данных за выбранный период.</div>";
                     return;
                 }
 

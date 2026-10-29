@@ -397,7 +397,7 @@ public class SchoolDataGeneratorService {
                 mark.setStudent(student);
                 mark.setDiscipline(disciplineRepository.findById(
                     disciplineIds.get(random.nextInt(disciplineIds.size()))).orElse(null));
-                mark.setValue(3 + random.nextInt(3));
+                mark.setValue(55 + random.nextInt(46)); // 100-балльная шкала журнала
                 mark.setCreatedAt(java.time.OffsetDateTime.now().minusDays(random.nextInt(30)));
                 mark.setGivenByTeacher(teachers.get(random.nextInt(teachers.size())));
                 markRepository.save(mark);

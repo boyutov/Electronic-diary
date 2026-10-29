@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(records => {
                 container.innerHTML = "";
                 if (!records.length) {
-                    container.innerHTML = "<div class='card'><p style='color:#64748b;'>Нет данных за выбранный период.</p></div>";
+                    container.innerHTML = "<div class='empty-state'>Нет данных за выбранный период.</div>";
                     return;
                 }
                 renderAnalytics(records);

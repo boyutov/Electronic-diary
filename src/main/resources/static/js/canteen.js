@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(menus => {
                 container.innerHTML = "";
                 if (!menus.length) {
-                    container.innerHTML = "<p style='color:#64748b;'>Меню пока нет.</p>";
+                    container.innerHTML = "<div class='empty-state'>Меню пока нет.</div>";
                     return;
                 }
                 menus.sort((a, b) => new Date(b.menuDate) - new Date(a.menuDate));

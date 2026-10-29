@@ -55,19 +55,19 @@ document.addEventListener("DOMContentLoaded", () => {
         filtered.forEach(s => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td>${esc(s.firstName)} ${esc(s.secondName)}${s.thirdName ? ' ' + s.thirdName : ''}</td>
+                <td>${esc(s.firstName)} ${esc(s.secondName)}${s.thirdName ? ' ' + esc(s.thirdName) : ''}</td>
                 <td>${esc(s.email)}</td>
                 <td>${s.age}</td>
-                <td>${s.groupName || "—"}</td>
-                <td>
-                    <button class="button warning sm" data-id="${s.id}">Ред.</button>
-                    <button class="button sm reset-password" style="margin-left:4px;" data-id="${s.id}" title="Отправить новый временный пароль на почту ученика">✉️ Пароль</button>
-                    <button class="button danger sm" style="margin-left:4px;" data-id="${s.id}">Удал.</button>
-                </td>
+                <td>${esc(s.groupName || "—")}</td>
+                <td><div class="action-btns">
+                    <button class="btn-edit" data-id="${s.id}">Редактировать</button>
+                    <button class="btn-action reset-password" data-id="${s.id}" title="Отправить новый временный пароль на почту ученика">Пароль</button>
+                    <button class="btn-delete" data-id="${s.id}">Удалить</button>
+                </div></td>
             `;
-            tr.querySelectorAll(".warning")[0].addEventListener("click", () => openEditModal(s.id));
-            tr.querySelectorAll(".reset-password")[0].addEventListener("click", () => resetPassword(s));
-            tr.querySelectorAll(".danger")[0].addEventListener("click", () => deleteStudent(s.id));
+            tr.querySelector(".btn-edit").addEventListener("click", () => openEditModal(s.id));
+            tr.querySelector(".reset-password").addEventListener("click", () => resetPassword(s));
+            tr.querySelector(".btn-delete").addEventListener("click", () => deleteStudent(s.id));
             tableBody.appendChild(tr);
         });
     }

@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(courses => {
                 if (!courses.length) {
                     document.getElementById("courses-container").innerHTML =
-                        "<p style='color:#64748b;'>У вас пока нет курсов. Обратитесь к администратору.</p>";
+                        "<div class='empty-state'>У вас пока нет курсов. Обратитесь к администратору.</div>";
                     return;
                 }
                 renderCourses(courses, "teacher");
@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const container = document.getElementById("courses-container");
         container.innerHTML = "";
         if (!courses.length) {
-            container.innerHTML = "<p style='color:#64748b;'>Курсов нет.</p>";
+            container.innerHTML = "<div class='empty-state'>Курсов нет.</div>";
             return;
         }
 

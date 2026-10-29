@@ -5,7 +5,7 @@ function initPolls(containerId, schoolName) {
     function render(polls) {
         container.innerHTML = "";
         if (!polls.length) {
-            container.innerHTML = "<p style='color:#64748b;'>Активных голосований нет.</p>";
+            container.innerHTML = "<div class='empty-state'>Активных голосований нет.</div>";
             return;
         }
         polls.forEach(poll => {

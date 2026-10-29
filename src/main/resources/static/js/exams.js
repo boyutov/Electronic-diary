@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const container = document.getElementById("exams-container");
                 container.innerHTML = "";
                 if (!exams.length) {
-                    container.innerHTML = "<p style='color:#64748b;'>Экзаменов и тестов нет.</p>";
+                    container.innerHTML = "<div class='empty-state'>Экзаменов и тестов нет.</div>";
                     return;
                 }
 

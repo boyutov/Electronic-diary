@@ -147,25 +147,31 @@
     }
 })();
 
-// Переключатель языка в правом верхнем углу (слева — боковое меню, справа внизу — кнопка ИИ-чата)
+// Переключатель языка: внизу бокового меню, а на страницах без меню — в правом верхнем углу
 function addSwitcher() {
     if (document.getElementById("lang-switcher")) return;
     const current = window.I18N.lang;
     const wrap = document.createElement("div");
     wrap.id = "lang-switcher";
+    wrap.className = "lang-switch";
     wrap.setAttribute("data-no-i18n", "");
-    wrap.style.cssText = "position:fixed;top:12px;right:12px;z-index:3000;display:flex;background:#fff;" +
-        "border:1px solid #e2e8f0;border-radius:999px;padding:3px;box-shadow:0 4px 14px rgba(15,23,42,.12);" +
-        "font:600 12px Inter,'Segoe UI',sans-serif;";
     for (const [code, label] of [["ru", "Русский"], ["ky", "Кыргызча"]]) {
         const btn = document.createElement("button");
         btn.type = "button";
+        btn.className = "lang-btn";
         btn.textContent = label;
         btn.setAttribute("aria-pressed", String(code === current));
-        btn.style.cssText = "border:0;border-radius:999px;padding:5px 11px;cursor:pointer;font:inherit;" +
-            (code === current ? "background:#2563eb;color:#fff;" : "background:transparent;color:#334155;");
         if (code !== current) btn.addEventListener("click", () => window.I18N.setLang(code));
         wrap.appendChild(btn);
     }
-    document.body.appendChild(wrap);
+    const footer = document.querySelector(".sidebar-footer");
+    const slot = document.querySelector("[data-lang-slot]");
+    if (footer) {
+        footer.insertBefore(wrap, footer.querySelector("#logout-btn"));
+    } else if (slot) {
+        slot.appendChild(wrap);
+    } else {
+        wrap.classList.add("floating");
+        document.body.appendChild(wrap);
+    }
 }

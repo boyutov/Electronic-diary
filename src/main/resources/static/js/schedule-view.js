@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
         resultsContainer.innerHTML = "";
 
         if (filtered.length === 0) {
-            resultsContainer.innerHTML = "<p style='text-align:center;color:#64748b;margin-top:20px;'>На эту неделю уроков нет.</p>";
+            resultsContainer.innerHTML = "<div class='empty-state'>На эту неделю уроков нет.</div>";
             return;
         }
 
