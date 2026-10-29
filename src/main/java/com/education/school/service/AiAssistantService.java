@@ -47,6 +47,7 @@ public class AiAssistantService {
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private final CurrentSchoolService currentSchoolService;
     private final CredentialMailService credentialMailService;
+    private final StudentEnrollmentService enrollmentService;
 
     private final Map<Long, List<Map<String, String>>> conversationHistory = new HashMap<>();
     private final Random random = new Random();
@@ -155,9 +156,12 @@ public class AiAssistantService {
         }
     }
 
-    // Возраст по умолчанию — по номеру класса (9 класс → 15 лет)
-    private int defaultAge(GroupEntity group) {
-        return group.getCourse() != null ? group.getCourse() + 6 : 15;
+    // Аргументы ИИ → строка зачисления (возраст по умолчанию определится по номеру класса)
+    private StudentEnrollmentService.Enrollment enrollmentFrom(JsonNode a, GroupEntity group) {
+        return new StudentEnrollmentService.Enrollment(
+            a.path("secondName").asText(), a.path("firstName").asText(), a.path("thirdName").asText(""),
+            a.path("email").asText(""), a.path("parentEmail").asText(""), null, null,
+            a.has("age") ? a.path("age").asInt() : null, group);
     }
 
     public void clearHistory(Long userId) {
@@ -185,7 +189,7 @@ public class AiAssistantService {
             8. Не выполняй массовое удаление без подтверждения.
             9. Когда просят создать УЧИТЕЛЯ — ИСПОЛЬЗУЙ ТОЛЬКО add_teacher, НИКОГДА не add_student или add_students_random.
             10. Пароли НИКОГДА не придумывай, не спрашивай и не показывай: система сама создаёт каждому временный пароль и отправляет его на его почту.
-            11. Если пользователь даёт список реальных учеников (ФИО + почта) — используй add_multiple_students одним вызовом для всего класса. Почту не выдумывай: если её нет, попроси.
+            11. Если пользователь даёт список реальных учеников — используй add_multiple_students одним вызовом для всего класса. У каждого должна быть почта ученика или почта родителя. Почту не выдумывай: если её нет, попроси.
             
             Текущее состояние БД:
             - Группы: %s
@@ -230,23 +234,24 @@ public class AiAssistantService {
         if (List.of("ADMIN", "DIRECTOR", "TEACHER").contains(role)) {
 
             // Добавить одного ученика — только если явно указаны ФИО
-            addTool(tools, "add_student", "Добавить одного реального ученика. Временный пароль система отправит на его почту. НЕ использовать для учителей!",
+            addTool(tools, "add_student", "Добавить одного реального ученика. Временный пароль система отправит на почту ученика, а если её нет — родителю. НЕ использовать для учителей!",
                 Map.of(
-                    "firstName",  strProp("Имя"),
-                    "secondName", strProp("Фамилия"),
-                    "thirdName",  strProp("Отчество"),
-                    "email",      strProp("Почта ученика — на неё придёт пароль"),
-                    "age",        intProp("Возраст (необязательно)"),
-                    "groupName",  strProp("Название группы")
+                    "firstName",   strProp("Имя"),
+                    "secondName",  strProp("Фамилия"),
+                    "thirdName",   strProp("Отчество"),
+                    "email",       strProp("Почта ученика (если есть)"),
+                    "parentEmail", strProp("Почта родителя (для младших классов без своей почты)"),
+                    "age",         intProp("Возраст (необязательно)"),
+                    "groupName",   strProp("Название группы")
                 ),
-                List.of("firstName", "secondName", "email", "groupName"));
+                List.of("firstName", "secondName", "groupName"));
 
             // Добавить список реальных учеников (класс целиком)
             ObjectNode addMany = tools.addObject();
             addMany.put("type", "function");
             ObjectNode fnMany = addMany.putObject("function");
             fnMany.put("name", "add_multiple_students");
-            fnMany.put("description", "Добавить в группу список реальных учеников (ФИО + почта). Каждому система отправит его личный временный пароль на почту.");
+            fnMany.put("description", "Добавить в группу список реальных учеников (ФИО + почта ученика и/или почта родителя). Каждому система отправит его личный временный пароль: ученику или, если у него нет почты, родителю.");
             ObjectNode manyParams = fnMany.putObject("parameters");
             manyParams.put("type", "object");
             ObjectNode manyProps = manyParams.putObject("properties");
@@ -259,8 +264,9 @@ public class AiAssistantService {
             itemProps.putObject("secondName").put("type", "string").put("description", "Фамилия");
             itemProps.putObject("firstName").put("type", "string").put("description", "Имя");
             itemProps.putObject("thirdName").put("type", "string").put("description", "Отчество");
-            itemProps.putObject("email").put("type", "string").put("description", "Почта ученика");
-            studentItem.putArray("required").add("secondName").add("firstName").add("email");
+            itemProps.putObject("email").put("type", "string").put("description", "Почта ученика (если есть)");
+            itemProps.putObject("parentEmail").put("type", "string").put("description", "Почта родителя (если у ученика нет своей)");
+            studentItem.putArray("required").add("secondName").add("firstName");
             manyParams.putArray("required").add("groupName").add("students");
         }
 
@@ -532,20 +538,10 @@ public class AiAssistantService {
                         .filter(g -> g.getName().equalsIgnoreCase(groupName))
                         .findFirst()
                         .orElseThrow(() -> new IllegalArgumentException("Группа '" + groupName + "' не найдена"));
-                    // Пароль не передаём: StudentService сгенерирует его и отправит на почту ученика
-                    StudentRequest req = new StudentRequest(
-                        args.path("firstName").asText(),
-                        args.path("secondName").asText(),
-                        args.path("thirdName").asText(""),
-                        args.path("email").asText().trim(),
-                        null,
-                        args.path("age").asInt(defaultAge(group)),
-                        group.getId()
-                    );
-                    studentService.create(req);
+                    // Пароль не передаём: он сгенерируется и уйдёт на почту ученика или родителя
+                    String result = enrollmentService.enroll(enrollmentFrom(args, group));
                     yield Map.of("success", true, "message",
-                        "Ученик " + req.secondName() + " " + req.firstName() + " добавлен в группу " + groupName
-                            + ", пароль отправлен на " + req.email());
+                        "Ученик " + result + " добавлен в группу " + groupName + ", временный пароль отправлен на почту");
                 }
 
                 case "add_multiple_students" -> {
@@ -559,17 +555,7 @@ public class AiAssistantService {
                     List<String> errors = new ArrayList<>();
                     for (JsonNode s : students) {
                         try {
-                            StudentRequest req = new StudentRequest(
-                                s.path("firstName").asText(),
-                                s.path("secondName").asText(),
-                                s.path("thirdName").asText(""),
-                                s.path("email").asText().trim(),
-                                null, // временный пароль уйдёт на почту ученика
-                                s.path("age").asInt(defaultAge(group)),
-                                group.getId()
-                            );
-                            studentService.create(req);
-                            added.add(req.secondName() + " " + req.firstName());
+                            added.add(enrollmentService.enroll(enrollmentFrom(s, group)));
                         } catch (Exception e) {
                             errors.add(s.path("firstName").asText() + ": " + e.getMessage());
                         }

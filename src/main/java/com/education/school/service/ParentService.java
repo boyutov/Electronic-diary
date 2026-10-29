@@ -51,7 +51,7 @@ public class ParentService {
         user.setFirstName(request.firstName());
         user.setSecondName(request.secondName());
         user.setThirdName(request.thirdName());
-        user.setEmail(request.email());
+        currentSchoolService.setEmail(user, request.email());
         credentialMailService.setInitialPassword(user, request.password()); // пусто → временный пароль на почту
         user.setRole(parentRole);
         
@@ -79,7 +79,7 @@ public class ParentService {
         user.setFirstName(request.firstName());
         user.setSecondName(request.secondName());
         user.setThirdName(request.thirdName());
-        user.setEmail(request.email());
+        currentSchoolService.setEmail(user, request.email());
         
         if (request.password() != null && !request.password().isBlank()) {
             credentialMailService.setPasswordByOther(user, request.password());
@@ -95,6 +95,25 @@ public class ParentService {
         }
 
         return parentRepository.save(parent);
+    }
+
+    // Привязать родителя к ребёнку при импорте: родитель уже есть — просто добавляем ребёнка
+    // (у родителя двоих детей один аккаунт), иначе создаём аккаунт и отправляем ему временный пароль
+    @Transactional
+    public Parent linkToChild(String email, String firstName, String secondName, Student child) {
+        Parent existing = parentRepository.findByUserEmail(email).orElse(null);
+        if (existing != null) {
+            existing.getStudents().add(child);
+            return parentRepository.save(existing);
+        }
+        if (userRepository.existsByEmailIgnoreCase(email)) {
+            throw new IllegalArgumentException("почта родителя " + email + " уже занята другим пользователем");
+        }
+        ParentRequest request = new ParentRequest(
+                firstName != null && !firstName.isBlank() ? firstName : "Родитель",
+                secondName != null && !secondName.isBlank() ? secondName : child.getUser().getSecondName(),
+                null, email, null, null, List.of(child.getId()));
+        return create(request);
     }
 
     // Удаляем профиль вместе с аккаунтом — иначе остаётся "пустой" пользователь без профиля

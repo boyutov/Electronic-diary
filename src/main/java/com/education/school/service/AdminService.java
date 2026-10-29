@@ -43,7 +43,7 @@ public class AdminService {
         user.setFirstName(request.firstName());
         user.setSecondName(request.secondName());
         user.setThirdName(request.thirdName());
-        user.setEmail(request.email());
+        currentSchoolService.setEmail(user, request.email());
         credentialMailService.setInitialPassword(user, request.password()); // пусто → временный пароль на почту
         user.setRole(adminRole);
 
@@ -62,7 +62,7 @@ public class AdminService {
         user.setFirstName(request.firstName());
         user.setSecondName(request.secondName());
         user.setThirdName(request.thirdName());
-        user.setEmail(request.email());
+        currentSchoolService.setEmail(user, request.email());
 
         // Обновляем пароль только если он передан — иначе оставляем старый
         if (request.password() != null && !request.password().isBlank()) {

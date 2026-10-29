@@ -58,7 +58,7 @@ public class TeacherService {
         user.setFirstName(request.firstName());
         user.setSecondName(request.secondName());
         user.setThirdName(request.thirdName());
-        user.setEmail(request.email());
+        currentSchoolService.setEmail(user, request.email());
         credentialMailService.setInitialPassword(user, request.password()); // пусто → временный пароль на почту
         user.setRole(teacherRole);
         
@@ -103,7 +103,7 @@ public class TeacherService {
         user.setFirstName(request.firstName());
         user.setSecondName(request.secondName());
         user.setThirdName(request.thirdName());
-        user.setEmail(request.email());
+        currentSchoolService.setEmail(user, request.email());
         
         if (request.password() != null && !request.password().isBlank()) {
             credentialMailService.setPasswordByOther(user, request.password());

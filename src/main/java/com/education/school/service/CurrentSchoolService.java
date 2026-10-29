@@ -46,6 +46,16 @@ public class CurrentSchoolService {
         return userRepository.findByIdAndSchoolsId(id, getId()).orElse(null);
     }
 
+    // Логин (email) уникален во всей системе: дубликат сломал бы вход обоим пользователям
+    public void setEmail(User user, String email) {
+        String normalized = email == null ? null : email.trim();
+        boolean changed = user.getEmail() == null || !user.getEmail().equalsIgnoreCase(normalized);
+        if (changed && normalized != null && userRepository.existsByEmailIgnoreCase(normalized)) {
+            throw new IllegalArgumentException("Пользователь с логином " + normalized + " уже существует");
+        }
+        user.setEmail(normalized);
+    }
+
     // Удаление из текущей школы: если человек состоит и в других школах — только отвязываем
     public void removeUser(User user) {
         boolean inOtherSchools = user.getSchools().stream().anyMatch(s -> !s.getId().equals(getId()));

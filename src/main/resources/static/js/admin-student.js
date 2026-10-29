@@ -153,10 +153,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Новый временный пароль уходит только на почту ученика — админ его не видит
     function resetPassword(s) {
-        if (!confirm(`Отправить новый временный пароль на ${s.email}? Старый пароль перестанет работать.`)) return;
+        if (!confirm(`Отправить новый временный пароль ученику ${s.secondName} ${s.firstName}? Письмо уйдёт на его почту, а если её нет — родителю. Старый пароль перестанет работать.`)) return;
         apiFetch(`/api/${schoolName}/students/${s.id}/reset-password`, { method: "POST" })
             .then(async r => {
-                if (r.ok) { alert(`Пароль отправлен на ${s.email}`); return; }
+                if (r.ok) { alert("Пароль отправлен"); return; }
                 const body = await r.json().catch(() => null);
                 alert(body?.message || "Не удалось отправить пароль");
             });

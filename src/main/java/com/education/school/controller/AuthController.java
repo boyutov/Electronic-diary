@@ -5,6 +5,7 @@ import com.education.school.dto.AuthenticationRequest;
 import com.education.school.dto.AuthenticationResponse;
 import com.education.school.entity.User;
 import com.education.school.repository.UserRepository;
+import com.education.school.service.PasswordResetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -23,6 +26,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final PasswordResetService passwordResetService;
 
     @PostMapping("/authenticate")
     public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
@@ -51,6 +55,20 @@ public class AuthController {
                 .schoolName(schoolSlug)
                 .mustChangePassword(Boolean.TRUE.equals(user.getMustChangePassword()))
                 .build());
+    }
+
+    // "Забыли пароль?" — ответ всегда одинаковый, чтобы нельзя было узнать, существует ли логин
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody Map<String, String> body) {
+        passwordResetService.requestReset(toSlug(body.get("schoolName")), body.get("email"));
+        return ResponseEntity.ok(Map.of("message",
+                "Если такой аккаунт существует, на привязанную почту отправлена ссылка для смены пароля"));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody Map<String, String> body) {
+        passwordResetService.resetPassword(body.get("token"), body.get("newPassword"));
+        return ResponseEntity.noContent().build();
     }
 
     private String toSlug(String name) {

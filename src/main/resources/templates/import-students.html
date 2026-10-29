@@ -22,7 +22,7 @@
 
 <div class="app-content">
     <div class="page-header">
-        <h2>📤 Импорт учеников из Excel</h2>
+        <h2>📤 Импорт учеников и учителей из Excel</h2>
         <p style="color:#64748b;margin-top:4px;">Загрузите файл Excel — AI автоматически распознает колонки</p>
     </div>
 
@@ -42,6 +42,16 @@
 
     <!-- Этап 1 -->
     <div class="card" id="stage1">
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+            <label style="flex:1;padding:12px;border:1.5px solid #e2e8f0;border-radius:10px;cursor:pointer;">
+                <input type="radio" name="importType" value="students" checked> 🎒 <b>Ученики</b>
+                <div style="font-size:12px;color:#64748b;margin-top:4px;">ФИО, почта ученика и/или почта родителя, класс</div>
+            </label>
+            <label style="flex:1;padding:12px;border:1.5px solid #e2e8f0;border-radius:10px;cursor:pointer;">
+                <input type="radio" name="importType" value="teachers"> 👩‍🏫 <b>Учителя</b>
+                <div style="font-size:12px;color:#64748b;margin-top:4px;">ФИО, почта, предметы через запятую, телефон</div>
+            </label>
+        </div>
         <h3 style="margin-bottom:16px;">Выберите Excel файл</h3>
         <div id="drop-zone" style="border:2px dashed #cbd5e1;border-radius:12px;padding:48px;text-align:center;cursor:pointer;transition:all .2s;">
             <div style="font-size:48px;margin-bottom:12px;">📊</div>
@@ -71,15 +81,16 @@
         <div id="mapping-container" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:20px;"></div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
-            <div>
+            <div id="default-group-wrap">
                 <label style="font-weight:600;display:block;margin-bottom:6px;">Группа по умолчанию</label>
                 <select id="defaultGroup" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;">
                     <option value="">— Выберите группу —</option>
                 </select>
             </div>
             <div style="padding:10px 12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:13px;color:#1e40af;line-height:1.5;">
-                🔐 Пароли задавать не нужно: каждый ученик получит свой временный пароль на почту
-                и при первом входе придумает собственный. Пароли не видит никто, кроме ученика.
+                🔐 Пароли задавать не нужно: каждый получит свой временный пароль на почту
+                и при первом входе придумает собственный. Если у ученика нет почты — пароль придёт родителю,
+                а родитель получит свой аккаунт, привязанный к ребёнку.
             </div>
         </div>
 
@@ -173,11 +184,14 @@ function showStage2() {
     document.getElementById('preview-table-wrap').innerHTML = html;
 
     // Маппинг
-    const fields = [
-        ['ignore','Игнорировать'],['fullName','ФИО целиком'],['firstName','Имя'],['secondName','Фамилия'],
-        ['thirdName','Отчество'],['email','Почта (сюда придёт пароль)'],
-        ['age','Возраст'],['groupName','Группа']
+    const common = [
+        ['ignore','Игнорировать'],['fullName','ФИО целиком'],['firstName','Имя'],['secondName','Фамилия'],['thirdName','Отчество']
     ];
+    const fields = importType() === 'teachers'
+        ? [...common, ['email','Почта учителя'], ['disciplines','Предметы (через запятую)'], ['phone','Телефон']]
+        : [...common, ['email','Почта ученика'], ['parentEmail','Почта родителя'], ['parentFullName','ФИО родителя'],
+           ['age','Возраст'], ['groupName','Класс']];
+    document.getElementById('default-group-wrap').style.display = importType() === 'teachers' ? 'none' : 'block';
     const mc = document.getElementById('mapping-container');
     mc.innerHTML = previewData.headers.map((h, i) => {
         const sug = previewData.suggestedMapping?.[h] || 'ignore';
@@ -192,9 +206,14 @@ function showStage2() {
     });
 }
 
+function importType() {
+    return document.querySelector('input[name="importType"]:checked').value;
+}
+
 async function proceedToImport() {
     const group = document.getElementById('defaultGroup').value;
-    if (!group) { alert('Выберите группу по умолчанию'); return; }
+    const usesGroupColumn = Object.values(previewData.suggestedMapping || {}).includes('groupName');
+    if (importType() === 'students' && !group && !usesGroupColumn) { alert('Выберите класс по умолчанию'); return; }
     const mapping = {};
     previewData.headers.forEach((h, i) => mapping[h] = document.getElementById(`map_${i}`).value);
 
@@ -207,12 +226,12 @@ async function proceedToImport() {
         const r = await fetch(`/api/${sn()}/excel/import`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token() },
-            body: JSON.stringify({ fileData, mapping, defaultGroup: group })
+            body: JSON.stringify({ fileData, mapping, defaultGroup: group, type: importType() })
         });
         const res = await r.json();
         if (!r.ok) throw new Error(res.message || res.error || 'Импорт не выполнен');
         let html = `<div style="padding:16px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;margin-bottom:16px;">
-            <div style="font-size:24px;font-weight:700;color:#15803d;">${res.added} учеников добавлено ✅</div>
+            <div style="font-size:24px;font-weight:700;color:#15803d;">${res.added} ${importType() === 'teachers' ? 'учителей' : 'учеников'} добавлено ✅</div>
             <div style="color:#15803d;margin-top:6px;">✉️ Каждому отправлен личный временный пароль на почту</div>
             ${res.errors > 0 ? `<div style="color:#dc2626;margin-top:8px;">❌ Ошибок: ${res.errors}</div>` : ''}
         </div>`;

@@ -39,7 +39,7 @@ public class DirectorService {
         user.setFirstName(request.firstName());
         user.setSecondName(request.secondName());
         user.setThirdName(request.thirdName());
-        user.setEmail(request.email());
+        currentSchoolService.setEmail(user, request.email());
         credentialMailService.setInitialPassword(user, request.password()); // пусто → временный пароль на почту
         user.setRole(directorRole);
         currentSchoolService.attach(user); // без привязки к школе директор не сможет войти
@@ -55,7 +55,7 @@ public class DirectorService {
         user.setFirstName(request.firstName());
         user.setSecondName(request.secondName());
         user.setThirdName(request.thirdName());
-        user.setEmail(request.email());
+        currentSchoolService.setEmail(user, request.email());
 
         if (request.password() != null && !request.password().isBlank()) {
             credentialMailService.setPasswordByOther(user, request.password());

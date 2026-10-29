@@ -44,6 +44,15 @@ public class User implements UserDetails {
     @Column(name = "must_change_password", nullable = false)
     private Boolean mustChangePassword = false;
 
+    // Почта для писем, если своей нет (ребёнок без почты → почта родителя); null — письма идут на email
+    @Column(name = "contact_email")
+    private String contactEmail;
+
+    // Адрес, на который реально уходят письма с паролями и ссылками
+    public String getMailAddress() {
+        return contactEmail != null && !contactEmail.isBlank() ? contactEmail : email;
+    }
+
     // Роль: ADMIN, DIRECTOR, TEACHER, STUDENT, PARENT
     // EAGER — роль загружается сразу с пользователем (нужна при каждом запросе)
     @ManyToOne(fetch = FetchType.EAGER)

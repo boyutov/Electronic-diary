@@ -50,6 +50,12 @@ public class StudentService {
     // Создать нового ученика
     @Transactional
     public Student create(StudentRequest request) {
+        return create(request, null);
+    }
+
+    // contactEmail — почта родителя для ребёнка без своей почты: туда уйдёт временный пароль
+    @Transactional
+    public Student create(StudentRequest request, String contactEmail) {
         Role studentRole = roleRepository.findByName("STUDENT")
                 .orElseThrow(() -> new IllegalStateException("Role STUDENT not found"));
 
@@ -68,7 +74,8 @@ public class StudentService {
         user.setFirstName(request.firstName());
         user.setSecondName(request.secondName());
         user.setThirdName(request.thirdName());
-        user.setEmail(request.email());
+        currentSchoolService.setEmail(user, request.email());
+        user.setContactEmail(contactEmail);
         credentialMailService.setInitialPassword(user, request.password()); // пусто → временный пароль на почту
         user.setRole(studentRole);
 
@@ -104,7 +111,7 @@ public class StudentService {
         user.setFirstName(request.firstName());
         user.setSecondName(request.secondName());
         user.setThirdName(request.thirdName());
-        user.setEmail(request.email());
+        currentSchoolService.setEmail(user, request.email());
 
         // Меняем пароль только если передан
         if (request.password() != null && !request.password().isBlank()) {

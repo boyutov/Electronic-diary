@@ -105,12 +105,63 @@ public class CredentialMailService {
         Long schoolId = TenantContext.getRequiredSchoolId();
         String schoolName = schoolRepository.findById(schoolId).map(s -> s.getName()).orElse("");
         Long initiatorId = currentUserId();
-        String email = user.getEmail();
-        String firstName = user.getFirstName();
+        String to = user.getMailAddress();
+        String login = user.getEmail();
+        boolean toParent = !to.equalsIgnoreCase(login); // у ребёнка нет своей почты — пишем родителю
 
-        Runnable task = () -> mailExecutor.submit(() ->
-                send(email, firstName, schoolName, temporaryPassword, schoolId, initiatorId));
+        String text = (toParent ? """
+                Здравствуйте!
 
+                Для вашего ребёнка (%s %s) создан аккаунт в электронном дневнике.
+
+                Вход: %s/login
+                Школа: %s
+                Логин ребёнка: %s
+                Временный пароль: %s
+
+                При первом входе система попросит придумать новый пароль — помогите ребёнку его запомнить.
+                Никому не сообщайте пароль — даже учителю или администратору.
+                """.formatted(user.getSecondName(), user.getFirstName(), publicUrl, schoolName, login, temporaryPassword)
+                : """
+                Здравствуйте, %s!
+
+                Для вас создан аккаунт в электронном дневнике.
+
+                Вход: %s/login
+                Школа: %s
+                Логин: %s
+                Временный пароль: %s
+
+                При первом входе система попросит придумать свой пароль.
+                Никому не сообщайте пароль — даже учителю или администратору.
+                """.formatted(user.getFirstName(), publicUrl, schoolName, login, temporaryPassword));
+
+        afterCommit(() -> send(to, "Доступ к электронному дневнику — " + schoolName, text, schoolId, initiatorId));
+    }
+
+    // Письмо со ссылкой "Забыли пароль?" — пароль меняется только после перехода по ссылке
+    public void sendPasswordResetLink(User user, String schoolName, String token) {
+        requireConfigured();
+        String link = publicUrl + "/reset-password?token=" + token;
+        String to = user.getMailAddress();
+        boolean toParent = !to.equalsIgnoreCase(user.getEmail());
+        String text = """
+                Здравствуйте!
+
+                Кто-то запросил восстановление пароля %s в электронном дневнике (школа %s, логин %s).
+
+                Чтобы задать новый пароль, перейдите по ссылке (действует 1 час):
+                %s
+
+                Если вы не запрашивали восстановление — просто проигнорируйте письмо, пароль останется прежним.
+                """.formatted(toParent ? "вашего ребёнка (" + user.getSecondName() + " " + user.getFirstName() + ")" : "вашего аккаунта",
+                              schoolName, user.getEmail(), link);
+        afterCommit(() -> send(to, "Восстановление пароля — " + schoolName, text, null, null));
+    }
+
+    // Письмо уходит после коммита транзакции: если сохранение откатится — письма не будет
+    private void afterCommit(Runnable send) {
+        Runnable task = () -> mailExecutor.submit(send);
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
@@ -123,36 +174,23 @@ public class CredentialMailService {
         }
     }
 
-    private void send(String email, String firstName, String schoolName, String temporaryPassword,
-                      Long schoolId, Long initiatorId) {
+    private void send(String to, String subject, String text, Long schoolId, Long initiatorId) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             if (mailFrom != null && !mailFrom.isBlank()) message.setFrom(mailFrom);
-            message.setTo(email);
-            message.setSubject("Доступ к электронному дневнику — " + schoolName);
-            message.setText("""
-                    Здравствуйте, %s!
-
-                    Для вас создан аккаунт в электронном дневнике.
-
-                    Вход: %s/login
-                    Школа: %s
-                    Логин: %s
-                    Временный пароль: %s
-
-                    При первом входе система попросит придумать свой пароль.
-                    Никому не сообщайте пароль — даже учителю или администратору.
-                    """.formatted(firstName, publicUrl, schoolName, email, temporaryPassword));
+            message.setTo(to);
+            message.setSubject(subject);
+            message.setText(text);
             mailSender.getObject().send(message);
         } catch (Exception e) {
-            log.warn("Не удалось отправить временный пароль на {}: {}", email, e.getMessage());
-            notifyInitiator(email, schoolId, initiatorId);
+            log.warn("Не удалось отправить письмо на {}: {}", to, e.getMessage());
+            notifyInitiator(to, schoolId, initiatorId);
         }
     }
 
     // Сообщаем тому, кто создал аккаунт: пароль можно выслать повторно после исправления почты
     private void notifyInitiator(String email, Long schoolId, Long initiatorId) {
-        if (initiatorId == null) return;
+        if (initiatorId == null || schoolId == null) return;
         try {
             TenantContext.setSchoolId(schoolId); // фоновый поток — школу выставляем сами
             notificationService.send(initiatorId, "ACCOUNT",

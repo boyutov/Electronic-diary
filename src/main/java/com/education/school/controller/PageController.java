@@ -129,6 +129,16 @@ public class PageController {
         return "parent";
     }
 
+    @GetMapping("/forgot-password")
+    public String forgotPassword() {
+        return "forgot-password";
+    }
+
+    @GetMapping("/reset-password")
+    public String resetPassword() {
+        return "reset-password";
+    }
+
     @GetMapping("/{schoolName}/change-password")
     public String changePassword(@PathVariable String schoolName) {
         return "change-password";

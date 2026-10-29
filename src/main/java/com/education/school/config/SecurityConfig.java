@@ -58,6 +58,7 @@ public class SecurityConfig {
                         // Публичные страницы — открыты всем без токена
                         .requestMatchers(
                                 "/", "/index", "/about", "/pricing", "/login", "/activate", "/error",
+                                "/forgot-password", "/reset-password",
                                 "/css/**", "/js/**", "/images/**", "/webjars/**"
                         ).permitAll()
 
