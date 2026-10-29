@@ -1,6 +1,7 @@
 package com.education.school.controller;
 
 import com.education.school.dto.CuratorProfileDto;
+import com.education.school.dto.PasswordChangeRequest;
 import com.education.school.dto.ProfileUpdateRequest;
 import com.education.school.dto.UserProfileDto;
 import com.education.school.service.ProfileService;
@@ -33,6 +34,13 @@ public class ProfileController {
     @Operation(summary = "Получить текущего пользователя")
     public UserProfileDto getCurrentUser(@PathVariable String schoolName) {
         return profileService.getCurrentUser();
+    }
+
+    @PostMapping("/password")
+    @Operation(summary = "Сменить свой пароль (обязательно после входа с временным паролем)")
+    public ResponseEntity<Void> changePassword(@PathVariable String schoolName, @Valid @RequestBody PasswordChangeRequest request) {
+        profileService.changePassword(request);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/me")

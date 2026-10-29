@@ -1,6 +1,7 @@
 package com.education.school.service;
 
 import com.education.school.dto.CuratorProfileDto;
+import com.education.school.dto.PasswordChangeRequest;
 import com.education.school.dto.ProfileUpdateRequest;
 import com.education.school.dto.UserProfileDto;
 import com.education.school.entity.GroupEntity;
@@ -61,6 +62,27 @@ public class ProfileService {
         return dto;
     }
 
+    // Смена своего пароля: проверяем текущий, новый должен отличаться от него и от логина
+    @Transactional
+    public void changePassword(PasswordChangeRequest request) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email);
+
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Текущий пароль указан неверно");
+        }
+        if (request.newPassword().equals(request.currentPassword())) {
+            throw new IllegalArgumentException("Новый пароль должен отличаться от текущего");
+        }
+        if (request.newPassword().equalsIgnoreCase(user.getEmail())) {
+            throw new IllegalArgumentException("Пароль не должен совпадать с логином");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        user.setMustChangePassword(false);
+        userRepository.save(user);
+    }
+
     @Transactional
     public UserProfileDto updateProfile(ProfileUpdateRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -73,6 +95,7 @@ public class ProfileService {
         
         if (request.newPassword() != null && !request.newPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(request.newPassword()));
+            user.setMustChangePassword(false); // пароль сменил сам владелец
         }
         
         User savedUser = userRepository.save(user);

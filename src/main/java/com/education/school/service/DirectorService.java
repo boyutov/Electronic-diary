@@ -6,7 +6,6 @@ import com.education.school.entity.User;
 import com.education.school.repository.RoleRepository;
 import com.education.school.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,8 +17,8 @@ public class DirectorService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
     private final CurrentSchoolService currentSchoolService;
+    private final CredentialMailService credentialMailService;
 
     @Transactional(readOnly = true)
     public List<User> findAll() {
@@ -33,10 +32,6 @@ public class DirectorService {
 
     @Transactional
     public User create(DirectorRequest request) {
-        if (request.password() == null || request.password().isBlank()) {
-            throw new IllegalArgumentException("Password is required for new director");
-        }
-
         Role directorRole = roleRepository.findByName("DIRECTOR")
                 .orElseThrow(() -> new IllegalStateException("Role DIRECTOR not found"));
 
@@ -45,7 +40,7 @@ public class DirectorService {
         user.setSecondName(request.secondName());
         user.setThirdName(request.thirdName());
         user.setEmail(request.email());
-        user.setPassword(passwordEncoder.encode(request.password()));
+        credentialMailService.setInitialPassword(user, request.password()); // пусто → временный пароль на почту
         user.setRole(directorRole);
         currentSchoolService.attach(user); // без привязки к школе директор не сможет войти
 
@@ -63,7 +58,7 @@ public class DirectorService {
         user.setEmail(request.email());
 
         if (request.password() != null && !request.password().isBlank()) {
-            user.setPassword(passwordEncoder.encode(request.password()));
+            credentialMailService.setPasswordByOther(user, request.password());
         }
 
         return userRepository.save(user);

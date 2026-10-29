@@ -32,6 +32,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 sessionStorage.setItem("schoolName", data.schoolName);
                 sessionStorage.setItem("userRole", data.role);
 
+                // Вход с временным паролем — сначала обязательная смена пароля
+                if (data.mustChangePassword) {
+                    window.location.href = `/${data.schoolName}/change-password`;
+                    return;
+                }
+
                 // Перенаправляем на нужную страницу в зависимости от роли
                 const role = data.role;
                 let redirectUrl = `/${data.schoolName}`;

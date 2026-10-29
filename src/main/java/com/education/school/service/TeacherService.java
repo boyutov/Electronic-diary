@@ -6,7 +6,6 @@ import com.education.school.entity.*;
 import com.education.school.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,8 +23,8 @@ public class TeacherService {
     private final GroupRepository groupRepository;
     private final DisciplineRepository disciplineRepository;
     private final ScheduleRepository scheduleRepository;
-    private final PasswordEncoder passwordEncoder;
     private final CurrentSchoolService currentSchoolService;
+    private final CredentialMailService credentialMailService;
 
     @Transactional(readOnly = true)
     public List<TeacherResponse> findAll() {
@@ -49,10 +48,6 @@ public class TeacherService {
 
     @Transactional
     public Teacher create(TeacherRequest request) {
-        if (request.password() == null || request.password().isBlank()) {
-            throw new IllegalArgumentException("Password is required for new teacher");
-        }
-
         Role teacherRole = roleRepository.findByName("TEACHER")
                 .orElseThrow(() -> new IllegalStateException("Role TEACHER not found"));
 
@@ -64,7 +59,7 @@ public class TeacherService {
         user.setSecondName(request.secondName());
         user.setThirdName(request.thirdName());
         user.setEmail(request.email());
-        user.setPassword(passwordEncoder.encode(request.password()));
+        credentialMailService.setInitialPassword(user, request.password()); // пусто → временный пароль на почту
         user.setRole(teacherRole);
         
         currentSchoolService.attach(user); // пользователь попадает только в текущую школу
@@ -111,7 +106,7 @@ public class TeacherService {
         user.setEmail(request.email());
         
         if (request.password() != null && !request.password().isBlank()) {
-            user.setPassword(passwordEncoder.encode(request.password()));
+            credentialMailService.setPasswordByOther(user, request.password());
         }
 
         userRepository.save(user);

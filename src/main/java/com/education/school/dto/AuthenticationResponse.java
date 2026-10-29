@@ -13,4 +13,5 @@ public class AuthenticationResponse {
     private String token;
     private String role;
     private String schoolName;
+    private Boolean mustChangePassword; // true — фронтенд сразу ведёт на страницу смены пароля
 }

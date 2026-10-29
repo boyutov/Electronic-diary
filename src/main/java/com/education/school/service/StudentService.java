@@ -12,7 +12,6 @@ import com.education.school.repository.StudentRepository;
 import com.education.school.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,8 +27,8 @@ public class StudentService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final GroupRepository groupRepository;
-    private final PasswordEncoder passwordEncoder;
     private final CurrentSchoolService currentSchoolService;
+    private final CredentialMailService credentialMailService;
 
     @Transactional(readOnly = true)
     public List<Student> findAll() {
@@ -51,10 +50,6 @@ public class StudentService {
     // Создать нового ученика
     @Transactional
     public Student create(StudentRequest request) {
-        if (request.password() == null || request.password().isBlank()) {
-            throw new IllegalArgumentException("Password is required for new student");
-        }
-
         Role studentRole = roleRepository.findByName("STUDENT")
                 .orElseThrow(() -> new IllegalStateException("Role STUDENT not found"));
 
@@ -66,12 +61,7 @@ public class StudentService {
                 .orElseThrow(() -> new IllegalArgumentException("Group not found"));
 
         // Учитель-куратор может создавать учеников только в своей группе
-        if ("TEACHER".equals(creator.getRole().getName())) {
-            Optional<GroupEntity> curatorGroup = groupRepository.findByCuratorId(creator.getId());
-            if (curatorGroup.isEmpty() || !curatorGroup.get().getId().equals(group.getId())) {
-                throw new SecurityException("You can only create students in your own group.");
-            }
-        }
+        checkTeacherOwnsGroup(creator, group);
 
         // Создаём User (аккаунт для входа)
         User user = new User();
@@ -79,7 +69,7 @@ public class StudentService {
         user.setSecondName(request.secondName());
         user.setThirdName(request.thirdName());
         user.setEmail(request.email());
-        user.setPassword(passwordEncoder.encode(request.password()));
+        credentialMailService.setInitialPassword(user, request.password()); // пусто → временный пароль на почту
         user.setRole(studentRole);
 
         currentSchoolService.attach(user); // пользователь попадает только в текущую школу
@@ -103,6 +93,13 @@ public class StudentService {
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Student not found"));
 
+        // Учитель редактирует только учеников своего класса и не может перевести их в другой
+        User editor = userRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
+        checkTeacherOwnsGroup(editor, student.getGroup());
+        if (isTeacher(editor) && (student.getGroup() == null || !student.getGroup().getId().equals(request.groupId()))) {
+            throw new SecurityException("You can only edit students in your own group.");
+        }
+
         User user = student.getUser();
         user.setFirstName(request.firstName());
         user.setSecondName(request.secondName());
@@ -111,7 +108,7 @@ public class StudentService {
 
         // Меняем пароль только если передан
         if (request.password() != null && !request.password().isBlank()) {
-            user.setPassword(passwordEncoder.encode(request.password()));
+            credentialMailService.setPasswordByOther(user, request.password());
         }
 
         userRepository.save(user);
@@ -129,6 +126,30 @@ public class StudentService {
     @Transactional(readOnly = true)
     public Student findById(Long id) {
         return studentRepository.findById(id).orElse(null);
+    }
+
+    // Новый временный пароль на почту ученика (если письмо не дошло или ученик забыл пароль)
+    @Transactional
+    public void resetPassword(Long id) {
+        Student student = studentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+        User editor = userRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
+        checkTeacherOwnsGroup(editor, student.getGroup());
+        credentialMailService.issueTemporaryPassword(student.getUser());
+        userRepository.save(student.getUser());
+    }
+
+    private boolean isTeacher(User user) {
+        return user != null && "TEACHER".equals(user.getRole().getName());
+    }
+
+    // Учитель (не админ) может работать только с группой, куратором которой он является
+    private void checkTeacherOwnsGroup(User user, GroupEntity group) {
+        if (!isTeacher(user)) return;
+        Optional<GroupEntity> curatorGroup = groupRepository.findByCuratorId(user.getId());
+        if (group == null || curatorGroup.isEmpty() || !curatorGroup.get().getId().equals(group.getId())) {
+            throw new SecurityException("You can only manage students in your own group.");
+        }
     }
 
     // Удаляем профиль вместе с аккаунтом — иначе остаётся "пустой" пользователь без профиля

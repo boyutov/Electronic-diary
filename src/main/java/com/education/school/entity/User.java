@@ -40,6 +40,10 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String email;       // используется как логин (username)
 
+    // true — пароль выдан кем-то другим (админ, импорт), пользователь обязан сменить его при входе
+    @Column(name = "must_change_password", nullable = false)
+    private Boolean mustChangePassword = false;
+
     // Роль: ADMIN, DIRECTOR, TEACHER, STUDENT, PARENT
     // EAGER — роль загружается сразу с пользователем (нужна при каждом запросе)
     @ManyToOne(fetch = FetchType.EAGER)

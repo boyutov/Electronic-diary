@@ -114,6 +114,7 @@ public class SchoolOnboardingService {
         adminUser.setThirdName(request.thirdName());
         adminUser.setEmail(request.email());
         adminUser.setPassword(passwordEncoder.encode(request.schoolPassword()));
+        adminUser.setMustChangePassword(true); // код активации выдан системой — при первом входе меняется
         adminUser.setRole(adminRole);
         
         adminUser.getSchools().add(school);

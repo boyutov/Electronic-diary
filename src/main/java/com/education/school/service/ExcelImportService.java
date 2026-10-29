@@ -20,6 +20,7 @@ public class ExcelImportService {
 
     private final StudentService studentService;
     private final GroupRepository groupRepository;
+    private final CredentialMailService credentialMailService;
 
     /** Читает Excel и возвращает превью: заголовки + первые 5 строк */
     public Map<String, Object> preview(MultipartFile file) throws Exception {
@@ -61,16 +62,17 @@ public class ExcelImportService {
         Map<String, String> mapping = new LinkedHashMap<>();
         for (String h : headers) {
             String lower = h.toLowerCase().trim();
-            if (lower.contains("имя") || lower.contains("name") || lower.equals("first")) {
-                mapping.put(h, "firstName");
+            // Порядок важен: "фио" и "surname" проверяем раньше, чем "имя"/"name"
+            if (lower.equals("фио") || lower.contains("ф.и.о") || lower.contains("full name") || lower.contains("fullname")) {
+                mapping.put(h, "fullName");
             } else if (lower.contains("фамил") || lower.contains("surname") || lower.contains("last")) {
                 mapping.put(h, "secondName");
             } else if (lower.contains("отчест") || lower.contains("middle") || lower.contains("patron")) {
                 mapping.put(h, "thirdName");
             } else if (lower.contains("email") || lower.contains("почта") || lower.contains("mail")) {
                 mapping.put(h, "email");
-            } else if (lower.contains("пароль") || lower.contains("password") || lower.contains("pass")) {
-                mapping.put(h, "password");
+            } else if (lower.contains("имя") || lower.contains("name") || lower.equals("first")) {
+                mapping.put(h, "firstName");
             } else if (lower.contains("возраст") || lower.contains("age") || lower.contains("лет")) {
                 mapping.put(h, "age");
             } else if (lower.contains("класс") || lower.contains("группа") || lower.contains("group")) {
@@ -88,7 +90,9 @@ public class ExcelImportService {
         String base64 = (String) body.get("fileData");
         Map<String, String> mapping = (Map<String, String>) body.get("mapping");
         String defaultGroup = (String) body.get("defaultGroup");
-        String defaultPassword = (String) body.getOrDefault("defaultPassword", "password123");
+
+        // Каждый ученик получает свой временный пароль на почту — без почты импорт бессмыслен
+        credentialMailService.requireConfigured();
 
         byte[] bytes = Base64.getDecoder().decode(base64);
         Workbook workbook = new XSSFWorkbook(new java.io.ByteArrayInputStream(bytes));
@@ -128,21 +132,30 @@ public class ExcelImportService {
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Группа '" + groupName + "' не найдена"));
 
-                String password = rowData.getOrDefault("password", defaultPassword);
-                if (password.isBlank()) password = defaultPassword;
+                // "ФИО" одной колонкой: Фамилия Имя [Отчество]
+                if (rowData.containsKey("fullName")) {
+                    String[] parts = rowData.get("fullName").trim().split("\\s+", 3);
+                    if (parts.length >= 2) {
+                        rowData.putIfAbsent("secondName", parts[0]);
+                        rowData.putIfAbsent("firstName", parts[1]);
+                        if (parts.length == 3) rowData.putIfAbsent("thirdName", parts[2]);
+                    }
+                }
 
+                // Пароль не задаём: StudentService сгенерирует временный и отправит его на почту ученика
+                int defaultAge = group.getCourse() != null ? group.getCourse() + 6 : 15;
                 StudentRequest req = new StudentRequest(
                     rowData.getOrDefault("firstName", ""),
                     rowData.getOrDefault("secondName", ""),
                     rowData.getOrDefault("thirdName", ""),
-                    rowData.getOrDefault("email", ""),
-                    password,
-                    parseAge(rowData.getOrDefault("age", "18")),
+                    rowData.getOrDefault("email", "").trim(),
+                    null,
+                    parseAge(rowData.get("age"), defaultAge),
                     group.getId()
                 );
 
                 if (req.firstName().isBlank() || req.email().isBlank()) {
-                    errors.add("Строка " + rowNum + ": пустое имя или email");
+                    errors.add("Строка " + rowNum + ": нет имени или почты — ученику некуда отправить пароль");
                     rowNum++;
                     continue;
                 }
@@ -164,8 +177,8 @@ public class ExcelImportService {
         );
     }
 
-    private int parseAge(String s) {
-        try { return Integer.parseInt(s.trim()); } catch (Exception e) { return 18; }
+    private int parseAge(String s, int defaultAge) {
+        try { return Integer.parseInt(s.trim()); } catch (Exception e) { return defaultAge; }
     }
 
     private String getCellValue(Cell cell) {

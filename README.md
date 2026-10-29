@@ -181,7 +181,20 @@ OPENAI_API_KEY=sk-...
 
 # Optional: free access promo code
 PROMOTIONAL_CODE=FREE_SCHOOL_2025
+
+# Mail server for sending temporary passwords to new students and teachers
+# (Gmail: smtp.gmail.com + an app password from your Google account settings)
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=school@gmail.com
+MAIL_PASSWORD=your_app_password
+MAIL_FROM=school@gmail.com
+# Public site URL — used as the login link in the email
+APP_PUBLIC_URL=https://diary.school.kg
 ```
+
+> 🔐 When students are imported from Excel (columns "ФИО" and "Почта"), each one receives a personal temporary
+> password by email and must set their own password on first login. Neither the admin nor the AI ever sees it.
 
 > ⚠️ `.env` is in `.gitignore` — never commit it to the repository.
 

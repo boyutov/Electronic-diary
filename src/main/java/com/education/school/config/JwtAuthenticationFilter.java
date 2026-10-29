@@ -79,6 +79,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // Проверяем токен: совпадает email + не истёк срок
                 if (jwtService.isTokenValid(jwt, userDetails)) {
+                    // Временный пароль: пока не сменён, доступна только смена пароля (обойти через API нельзя)
+                    if (Boolean.TRUE.equals(((User) userDetails).getMustChangePassword()) && !isPasswordChangeAllowed(request)) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"error\":\"PASSWORD_CHANGE_REQUIRED\"}");
+                        return;
+                    }
+
                     // С этого момента Hibernate видит только данные этой школы
                     TenantContext.setSchoolId(schoolId);
 
@@ -107,6 +115,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } finally {
             TenantContext.clear();
         }
+    }
+
+    // С временным паролем разрешены только: просмотр своего профиля (имя на странице) и смена пароля
+    private boolean isPasswordChangeAllowed(HttpServletRequest request) {
+        String path = request.getRequestURI().substring(request.getContextPath().length());
+        return ("GET".equals(request.getMethod()) && path.matches("/api/[^/]+/profile/me"))
+                || ("POST".equals(request.getMethod()) && path.matches("/api/[^/]+/profile/password"));
     }
 
     // Для путей вида /api/{schoolName}/... школа в URL должна совпадать со школой из токена

@@ -61,10 +61,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${s.groupName || "—"}</td>
                 <td>
                     <button class="button warning sm" data-id="${s.id}">Ред.</button>
+                    <button class="button sm reset-password" style="margin-left:4px;" data-id="${s.id}" title="Отправить новый временный пароль на почту ученика">✉️ Пароль</button>
                     <button class="button danger sm" style="margin-left:4px;" data-id="${s.id}">Удал.</button>
                 </td>
             `;
             tr.querySelectorAll(".warning")[0].addEventListener("click", () => openEditModal(s.id));
+            tr.querySelectorAll(".reset-password")[0].addEventListener("click", () => resetPassword(s));
             tr.querySelectorAll(".danger")[0].addEventListener("click", () => deleteStudent(s.id));
             tableBody.appendChild(tr);
         });
@@ -127,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
             secondName: document.getElementById("secondName").value,
             thirdName: document.getElementById("thirdName").value,
             email: document.getElementById("email").value,
-            password: document.getElementById("password").value,
+            password: document.getElementById("password").value || null, // пусто → временный пароль на почту
             age: parseInt(document.getElementById("age").value),
             groupId: parseInt(document.getElementById("group").value)
         };
@@ -148,6 +150,17 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
+
+    // Новый временный пароль уходит только на почту ученика — админ его не видит
+    function resetPassword(s) {
+        if (!confirm(`Отправить новый временный пароль на ${s.email}? Старый пароль перестанет работать.`)) return;
+        apiFetch(`/api/${schoolName}/students/${s.id}/reset-password`, { method: "POST" })
+            .then(async r => {
+                if (r.ok) { alert(`Пароль отправлен на ${s.email}`); return; }
+                const body = await r.json().catch(() => null);
+                alert(body?.message || "Не удалось отправить пароль");
+            });
+    }
 
     function deleteStudent(id) {
         if (!confirm("Удалить ученика?")) return;

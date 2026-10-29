@@ -46,6 +46,7 @@ public class AiAssistantService {
     private final RoleRepository roleRepository;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private final CurrentSchoolService currentSchoolService;
+    private final CredentialMailService credentialMailService;
 
     private final Map<Long, List<Map<String, String>>> conversationHistory = new HashMap<>();
     private final Random random = new Random();
@@ -154,6 +155,11 @@ public class AiAssistantService {
         }
     }
 
+    // Возраст по умолчанию — по номеру класса (9 класс → 15 лет)
+    private int defaultAge(GroupEntity group) {
+        return group.getCourse() != null ? group.getCourse() + 6 : 15;
+    }
+
     public void clearHistory(Long userId) {
         conversationHistory.remove(userId);
     }
@@ -178,7 +184,8 @@ public class AiAssistantService {
             7. Отвечай ТОЛЬКО на вопросы связанные со школой. Отвечай кратко на русском языке.
             8. Не выполняй массовое удаление без подтверждения.
             9. Когда просят создать УЧИТЕЛЯ — ИСПОЛЬЗУЙ ТОЛЬКО add_teacher, НИКОГДА не add_student или add_students_random.
-            10. Если пользователь просит чтобы email и пароль совпадали — указывай одинаковое значение в полях email и password.
+            10. Пароли НИКОГДА не придумывай, не спрашивай и не показывай: система сама создаёт каждому временный пароль и отправляет его на его почту.
+            11. Если пользователь даёт список реальных учеников (ФИО + почта) — используй add_multiple_students одним вызовом для всего класса. Почту не выдумывай: если её нет, попроси.
             
             Текущее состояние БД:
             - Группы: %s
@@ -223,17 +230,38 @@ public class AiAssistantService {
         if (List.of("ADMIN", "DIRECTOR", "TEACHER").contains(role)) {
 
             // Добавить одного ученика — только если явно указаны ФИО
-            addTool(tools, "add_student", "Добавить одного ученика с явно указанными ФИО и группой. НЕ использовать для учителей! Если просят email=пароль, ставь одинаковое значение.",
+            addTool(tools, "add_student", "Добавить одного реального ученика. Временный пароль система отправит на его почту. НЕ использовать для учителей!",
                 Map.of(
                     "firstName",  strProp("Имя"),
                     "secondName", strProp("Фамилия"),
                     "thirdName",  strProp("Отчество"),
-                    "email",      strProp("Email"),
-                    "password",   strProp("Пароль"),
-                    "age",        intProp("Возраст"),
+                    "email",      strProp("Почта ученика — на неё придёт пароль"),
+                    "age",        intProp("Возраст (необязательно)"),
                     "groupName",  strProp("Название группы")
                 ),
-                List.of("firstName", "secondName", "email", "password", "age", "groupName"));
+                List.of("firstName", "secondName", "email", "groupName"));
+
+            // Добавить список реальных учеников (класс целиком)
+            ObjectNode addMany = tools.addObject();
+            addMany.put("type", "function");
+            ObjectNode fnMany = addMany.putObject("function");
+            fnMany.put("name", "add_multiple_students");
+            fnMany.put("description", "Добавить в группу список реальных учеников (ФИО + почта). Каждому система отправит его личный временный пароль на почту.");
+            ObjectNode manyParams = fnMany.putObject("parameters");
+            manyParams.put("type", "object");
+            ObjectNode manyProps = manyParams.putObject("properties");
+            manyProps.putObject("groupName").put("type", "string").put("description", "Название группы");
+            ObjectNode studentsArr = manyProps.putObject("students");
+            studentsArr.put("type", "array");
+            ObjectNode studentItem = studentsArr.putObject("items");
+            studentItem.put("type", "object");
+            ObjectNode itemProps = studentItem.putObject("properties");
+            itemProps.putObject("secondName").put("type", "string").put("description", "Фамилия");
+            itemProps.putObject("firstName").put("type", "string").put("description", "Имя");
+            itemProps.putObject("thirdName").put("type", "string").put("description", "Отчество");
+            itemProps.putObject("email").put("type", "string").put("description", "Почта ученика");
+            studentItem.putArray("required").add("secondName").add("firstName").add("email");
+            manyParams.putArray("required").add("groupName").add("students");
         }
 
         if (List.of("ADMIN", "DIRECTOR").contains(role)) {
@@ -276,15 +304,14 @@ public class AiAssistantService {
 
             // Создать учителя
             addTool(tools, "add_teacher",
-                "Создать одного или несколько учителей с привязкой к предметам. НИКОГДА не используй add_student или add_students_random для учителей! Если просят email=пароль, ставь email и в поле email и в поле password.",
+                "Создать одного или несколько учителей с привязкой к предметам. Если указана почта реального учителя — временный пароль уйдёт на неё. НИКОГДА не используй add_student или add_students_random для учителей!",
                 Map.of(
                     "disciplineNames", objectMapper.createObjectNode()
                         .put("type", "array")
                         .<ObjectNode>set("items", objectMapper.createObjectNode().put("type", "string"))
                         .<ObjectNode>put("description", "Список предметов для назначения учителю"),
                     "count", intProp("Количество учителей (1 если не указано)"),
-                    "email", strProp("Email учителя (если нужно указать конкретный)"),
-                    "password", strProp("Пароль. Если нужно чтобы совпадал с email — указывай тот же email.")
+                    "email", strProp("Почта реального учителя (если не указана — создаётся демо-учитель)")
                 ),
                 List.of());
 
@@ -505,21 +532,20 @@ public class AiAssistantService {
                         .filter(g -> g.getName().equalsIgnoreCase(groupName))
                         .findFirst()
                         .orElseThrow(() -> new IllegalArgumentException("Группа '" + groupName + "' не найдена"));
-                    String studentEmail = args.path("email").asText();
-                    String studentPassword = args.path("password").asText("");
-                    if (studentPassword.isBlank()) studentPassword = studentEmail;
+                    // Пароль не передаём: StudentService сгенерирует его и отправит на почту ученика
                     StudentRequest req = new StudentRequest(
                         args.path("firstName").asText(),
                         args.path("secondName").asText(),
                         args.path("thirdName").asText(""),
-                        studentEmail,
-                        studentPassword,
-                        args.path("age").asInt(18),
+                        args.path("email").asText().trim(),
+                        null,
+                        args.path("age").asInt(defaultAge(group)),
                         group.getId()
                     );
                     studentService.create(req);
                     yield Map.of("success", true, "message",
-                        "Ученик " + req.secondName() + " " + req.firstName() + " добавлен в группу " + groupName);
+                        "Ученик " + req.secondName() + " " + req.firstName() + " добавлен в группу " + groupName
+                            + ", пароль отправлен на " + req.email());
                 }
 
                 case "add_multiple_students" -> {
@@ -537,9 +563,9 @@ public class AiAssistantService {
                                 s.path("firstName").asText(),
                                 s.path("secondName").asText(),
                                 s.path("thirdName").asText(""),
-                                s.path("email").asText(),
-                                s.path("password").asText(),
-                                s.path("age").asInt(18),
+                                s.path("email").asText().trim(),
+                                null, // временный пароль уйдёт на почту ученика
+                                s.path("age").asInt(defaultAge(group)),
                                 group.getId()
                             );
                             studentService.create(req);
@@ -548,7 +574,7 @@ public class AiAssistantService {
                             errors.add(s.path("firstName").asText() + ": " + e.getMessage());
                         }
                     }
-                    String msg = "Добавлено " + added.size() + " учеников: " + String.join(", ", added);
+                    String msg = "Добавлено " + added.size() + " учеников, каждому отправлен личный пароль на почту: " + String.join(", ", added);
                     if (!errors.isEmpty()) msg += ". Ошибки: " + String.join("; ", errors);
                     yield Map.of("success", true, "message", msg);
                 }
@@ -626,19 +652,22 @@ public class AiAssistantService {
                         String thirdName = args.has("thirdName") && i == 0
                             ? args.path("thirdName").asText()
                             : (female ? PATRONYMICS_F : PATRONYMICS_M).get(random.nextInt(female ? PATRONYMICS_F.size() : PATRONYMICS_M.size()));
-                        String email = args.has("email") && i == 0
-                            ? args.path("email").asText()
+                        // Указана почта — это реальный учитель, иначе демо-учитель со случайным именем
+                        boolean realTeacher = args.has("email") && !args.path("email").asText().isBlank() && i == 0;
+                        String email = realTeacher
+                            ? args.path("email").asText().trim()
                             : transliterate(firstName + "." + secondName + i) + "@teacher.school.ru";
-                        String password = args.has("password") && i == 0
-                            ? args.path("password").asText()
-                            : email; // по умолчанию пароль = email
 
                         User user = new User();
                         user.setFirstName(firstName);
                         user.setSecondName(secondName);
                         user.setThirdName(thirdName);
                         user.setEmail(email);
-                        user.setPassword(passwordEncoder.encode(password));
+                        if (realTeacher) {
+                            credentialMailService.issueTemporaryPassword(user); // пароль знает только сам учитель
+                        } else {
+                            user.setPassword(passwordEncoder.encode(email)); // демо-данные: пароль = email
+                        }
                         user.setRole(teacherRole);
                         currentSchoolService.attach(user);
                         user = userRepository.save(user);

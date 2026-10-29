@@ -49,6 +49,7 @@ public class AuthController {
                 .token(jwtToken)
                 .role(user.getRole().getName())
                 .schoolName(schoolSlug)
+                .mustChangePassword(Boolean.TRUE.equals(user.getMustChangePassword()))
                 .build());
     }
 

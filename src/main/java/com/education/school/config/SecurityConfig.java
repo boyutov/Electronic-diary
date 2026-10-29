@@ -75,6 +75,7 @@ public class SecurityConfig {
                         .requestMatchers("/*/student", "/*/student/**").permitAll()
                         .requestMatchers("/*/parent", "/*/parent/**").permitAll()
                         .requestMatchers("/*/profile").permitAll()
+                        .requestMatchers("/*/change-password").permitAll()
                         .requestMatchers("/*/schedule").permitAll()
                         .requestMatchers("/*/polls").permitAll()
                         .requestMatchers("/*/complaints").permitAll()

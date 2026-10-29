@@ -6,7 +6,6 @@ import com.education.school.entity.User;
 import com.education.school.repository.RoleRepository;
 import com.education.school.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,8 +18,8 @@ public class AdminService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
     private final CurrentSchoolService currentSchoolService;
+    private final CredentialMailService credentialMailService;
 
     // Получить всех администраторов — readOnly транзакция быстрее (не блокирует строки)
     @Transactional(readOnly = true)
@@ -36,10 +35,6 @@ public class AdminService {
     // Создать нового администратора
     @Transactional
     public User create(AdminRequest request) {
-        if (request.password() == null || request.password().isBlank()) {
-            throw new IllegalArgumentException("Password is required for new admin");
-        }
-
         // Находим роль ADMIN в БД (роли создаются через Flyway-миграции при старте)
         Role adminRole = roleRepository.findByName("ADMIN")
                 .orElseThrow(() -> new IllegalStateException("Role ADMIN not found"));
@@ -49,7 +44,7 @@ public class AdminService {
         user.setSecondName(request.secondName());
         user.setThirdName(request.thirdName());
         user.setEmail(request.email());
-        user.setPassword(passwordEncoder.encode(request.password())); // хэшируем пароль перед сохранением
+        credentialMailService.setInitialPassword(user, request.password()); // пусто → временный пароль на почту
         user.setRole(adminRole);
 
         // Новый администратор попадает в текущую школу — Multi-Tenancy
@@ -71,7 +66,7 @@ public class AdminService {
 
         // Обновляем пароль только если он передан — иначе оставляем старый
         if (request.password() != null && !request.password().isBlank()) {
-            user.setPassword(passwordEncoder.encode(request.password()));
+            credentialMailService.setPasswordByOther(user, request.password());
         }
 
         return userRepository.save(user);

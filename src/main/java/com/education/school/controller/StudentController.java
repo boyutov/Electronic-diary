@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -59,6 +60,14 @@ public class StudentController {
         return service.findById(id) != null
                 ? ResponseEntity.ok(StudentDto.from(service.findById(id)))
                 : ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/{id}/reset-password")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR', 'TEACHER')")
+    @Operation(summary = "Отправить ученику новый временный пароль на почту")
+    public Map<String, Boolean> resetPassword(@PathVariable String schoolName, @PathVariable Long id) {
+        service.resetPassword(id);
+        return Map.of("sent", true);
     }
 
     @DeleteMapping("/{id}")

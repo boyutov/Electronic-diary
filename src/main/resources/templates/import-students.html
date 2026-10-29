@@ -77,9 +77,9 @@
                     <option value="">— Выберите группу —</option>
                 </select>
             </div>
-            <div>
-                <label style="font-weight:600;display:block;margin-bottom:6px;">Пароль по умолчанию</label>
-                <input type="text" id="defaultPassword" value="password123" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;box-sizing:border-box;">
+            <div style="padding:10px 12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:13px;color:#1e40af;line-height:1.5;">
+                🔐 Пароли задавать не нужно: каждый ученик получит свой временный пароль на почту
+                и при первом входе придумает собственный. Пароли не видит никто, кроме ученика.
             </div>
         </div>
 
@@ -174,8 +174,8 @@ function showStage2() {
 
     // Маппинг
     const fields = [
-        ['ignore','Игнорировать'],['firstName','Имя'],['secondName','Фамилия'],
-        ['thirdName','Отчество'],['email','Email'],['password','Пароль'],
+        ['ignore','Игнорировать'],['fullName','ФИО целиком'],['firstName','Имя'],['secondName','Фамилия'],
+        ['thirdName','Отчество'],['email','Почта (сюда придёт пароль)'],
         ['age','Возраст'],['groupName','Группа']
     ];
     const mc = document.getElementById('mapping-container');
@@ -207,11 +207,13 @@ async function proceedToImport() {
         const r = await fetch(`/api/${sn()}/excel/import`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token() },
-            body: JSON.stringify({ fileData, mapping, defaultGroup: group, defaultPassword: document.getElementById('defaultPassword').value })
+            body: JSON.stringify({ fileData, mapping, defaultGroup: group })
         });
         const res = await r.json();
+        if (!r.ok) throw new Error(res.message || res.error || 'Импорт не выполнен');
         let html = `<div style="padding:16px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;margin-bottom:16px;">
             <div style="font-size:24px;font-weight:700;color:#15803d;">${res.added} учеников добавлено ✅</div>
+            <div style="color:#15803d;margin-top:6px;">✉️ Каждому отправлен личный временный пароль на почту</div>
             ${res.errors > 0 ? `<div style="color:#dc2626;margin-top:8px;">❌ Ошибок: ${res.errors}</div>` : ''}
         </div>`;
         if (res.addedNames?.length) html += `<details><summary style="cursor:pointer;font-weight:600;">Добавленные ученики (${res.addedNames.length})</summary><ul style="margin-top:8px;">${res.addedNames.map(n=>`<li>${n}</li>`).join('')}</ul></details>`;
