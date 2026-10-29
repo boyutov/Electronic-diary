@@ -521,7 +521,8 @@ public class SchoolDataGeneratorService {
         String base = sb.toString();
         String email = base + index + "@" + domain + ".school.ru";
         int attempt = 0;
-        while (usedEmails.contains(email))
+        // Логины общие для всех школ: адрес может быть занят пользователем другой школы
+        while (usedEmails.contains(email) || userRepository.existsByEmailIgnoreCase(email))
             email = base + index + (++attempt) + "@" + domain + ".school.ru";
         usedEmails.add(email);
         return email;
