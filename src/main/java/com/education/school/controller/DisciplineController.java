@@ -1,5 +1,6 @@
 package com.education.school.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.education.school.dto.DisciplineDto;
 import com.education.school.service.DisciplineService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,18 +34,21 @@ public class DisciplineController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Создать предмет")
     public DisciplineDto create(@PathVariable String schoolName, @RequestBody DisciplineDto request) {
         return DisciplineDto.from(service.create(request.getName()));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Обновить предмет")
     public DisciplineDto update(@PathVariable String schoolName, @PathVariable Integer id, @RequestBody DisciplineDto request) {
         return DisciplineDto.from(service.update(id, request.getName()));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Удалить предмет")
     public ResponseEntity<Void> delete(@PathVariable String schoolName, @PathVariable Integer id) {
         service.delete(id);

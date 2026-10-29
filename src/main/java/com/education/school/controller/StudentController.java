@@ -23,6 +23,7 @@ public class StudentController {
     private final StudentService service;
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR', 'TEACHER')")
     @Operation(summary = "Получить всех студентов")
     public List<StudentDto> findAll(@PathVariable String schoolName) {
         return service.findAll().stream()
@@ -52,6 +53,7 @@ public class StudentController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR', 'TEACHER')")
     @Operation(summary = "Получить по ID")
     public ResponseEntity<StudentDto> findById(@PathVariable String schoolName, @PathVariable Long id) {
         return service.findById(id) != null
@@ -60,6 +62,7 @@ public class StudentController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Удалить по ID")
     public ResponseEntity<Void> delete(@PathVariable String schoolName, @PathVariable Long id) {
         service.deleteById(id);

@@ -102,9 +102,13 @@ public class ParentService {
         return parentRepository.save(parent);
     }
 
+    // Удаляем профиль вместе с аккаунтом — иначе остаётся "пустой" пользователь без профиля
     @Transactional
     public void delete(Integer id) {
-        parentRepository.deleteById(id);
+        parentRepository.findById(id).ifPresent(profile -> {
+            parentRepository.delete(profile);
+            currentSchoolService.removeUser(profile.getUser());
+        });
     }
 
     @Transactional(readOnly = true)

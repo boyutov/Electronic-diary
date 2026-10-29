@@ -74,12 +74,14 @@ public class CourseController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Создать курс")
     public CourseResponse create(@PathVariable String schoolName, @Valid @RequestBody CourseRequest request) {
         return CourseResponse.from(service.create(request));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Обновить курс")
     public CourseResponse update(@PathVariable String schoolName, @PathVariable Integer id,
                                   @Valid @RequestBody CourseRequest request) {
@@ -87,6 +89,7 @@ public class CourseController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Удалить курс")
     public ResponseEntity<Void> delete(@PathVariable String schoolName, @PathVariable Integer id) {
         service.delete(id);

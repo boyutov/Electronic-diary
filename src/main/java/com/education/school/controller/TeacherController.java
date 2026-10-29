@@ -1,5 +1,6 @@
 package com.education.school.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.education.school.dto.TeacherRequest;
 import com.education.school.dto.TeacherResponse;
 import com.education.school.service.TeacherService;
@@ -41,12 +42,14 @@ public class TeacherController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Создать учителя")
     public TeacherResponse create(@PathVariable String schoolName, @Valid @RequestBody TeacherRequest request) {
         return TeacherResponse.from(service.create(request));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Обновить учителя")
     public TeacherResponse update(@PathVariable String schoolName, @PathVariable Integer id, @Valid @RequestBody TeacherRequest request) {
         return TeacherResponse.from(service.update(id, request));
@@ -59,6 +62,7 @@ public class TeacherController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Удалить учителя")
     public ResponseEntity<Void> delete(@PathVariable String schoolName, @PathVariable Integer id) {
         service.delete(id);

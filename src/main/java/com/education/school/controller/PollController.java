@@ -1,5 +1,6 @@
 package com.education.school.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.education.school.dto.PollRequest;
 import com.education.school.dto.PollResponse;
 import com.education.school.service.PollService;
@@ -43,12 +44,14 @@ public class PollController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Создать голосование")
     public PollResponse create(@PathVariable String schoolName, @Valid @RequestBody PollRequest request) {
         return PollResponse.from(service.create(request));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Обновить голосование")
     public PollResponse update(@PathVariable String schoolName, @PathVariable Integer id, @Valid @RequestBody PollRequest request) {
         return PollResponse.from(service.update(id, request));
@@ -66,6 +69,7 @@ public class PollController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Удалить голосование")
     public ResponseEntity<Void> delete(@PathVariable String schoolName, @PathVariable Integer id) {
         service.delete(id);

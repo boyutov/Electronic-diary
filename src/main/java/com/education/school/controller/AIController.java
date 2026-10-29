@@ -1,5 +1,6 @@
 package com.education.school.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.education.school.service.AIAnalysisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ public class AIController {
     private final AIAnalysisService aiAnalysisService;
 
     @PostMapping("/analyze")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     public ResponseEntity<Map<String, String>> analyzeSchoolData(
             @PathVariable String schoolName,
             @RequestBody Map<String, String> request) {
@@ -36,6 +38,7 @@ public class AIController {
     }
 
     @PostMapping("/analyze-file")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     public ResponseEntity<Map<String, String>> analyzeFile(
             @PathVariable String schoolName,
             @RequestParam("file") MultipartFile file,
@@ -68,6 +71,7 @@ public class AIController {
     }
 
     @PostMapping("/execute")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     public ResponseEntity<Map<String, String>> executeAction(
             @PathVariable String schoolName,
             @RequestBody Map<String, String> request) {

@@ -1,5 +1,6 @@
 package com.education.school.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.education.school.dto.ParentRequest;
 import com.education.school.dto.ParentResponse;
 import com.education.school.dto.StudentDto;
@@ -23,12 +24,14 @@ public class ParentController {
     private final ParentService service;
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR', 'TEACHER')")
     @Operation(summary = "Получить всех родителей")
     public List<ParentResponse> findAll(@PathVariable String schoolName) {
         return service.findAll().stream().map(ParentResponse::from).collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR', 'TEACHER')")
     @Operation(summary = "Получить родителя по ID")
     public ResponseEntity<ParentResponse> findById(@PathVariable String schoolName, @PathVariable Integer id) {
         return service.findById(id) != null
@@ -37,18 +40,21 @@ public class ParentController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Создать родителя")
     public ParentResponse create(@PathVariable String schoolName, @Valid @RequestBody ParentRequest request) {
         return ParentResponse.from(service.create(request));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Обновить родителя")
     public ParentResponse update(@PathVariable String schoolName, @PathVariable Integer id, @Valid @RequestBody ParentRequest request) {
         return ParentResponse.from(service.update(id, request));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Удалить родителя")
     public ResponseEntity<Void> delete(@PathVariable String schoolName, @PathVariable Integer id) {
         service.delete(id);

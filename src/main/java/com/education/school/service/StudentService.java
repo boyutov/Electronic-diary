@@ -82,7 +82,6 @@ public class StudentService {
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setRole(studentRole);
 
-        // Ученик наследует школу создателя
         currentSchoolService.attach(user); // пользователь попадает только в текущую школу
 
         user = userRepository.save(user);
@@ -132,7 +131,12 @@ public class StudentService {
         return studentRepository.findById(id).orElse(null);
     }
 
+    // Удаляем профиль вместе с аккаунтом — иначе остаётся "пустой" пользователь без профиля
+    @Transactional
     public void deleteById(Long id) {
-        studentRepository.deleteById(id);
+        studentRepository.findById(id).ifPresent(student -> {
+            studentRepository.delete(student);
+            currentSchoolService.removeUser(student.getUser());
+        });
     }
 }

@@ -1,5 +1,6 @@
 package com.education.school.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.education.school.dto.NewsRequest;
 import com.education.school.dto.NewsResponse;
 import com.education.school.service.NewsService;
@@ -36,18 +37,21 @@ public class NewsController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR', 'TEACHER')")
     @Operation(summary = "Опубликовать новость")
     public NewsResponse create(@PathVariable String schoolName, @Valid @RequestBody NewsRequest request) {
         return NewsResponse.from(service.create(request));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR', 'TEACHER')")
     @Operation(summary = "Обновить новость")
     public NewsResponse update(@PathVariable String schoolName, @PathVariable Integer id, @Valid @RequestBody NewsRequest request) {
         return NewsResponse.from(service.update(id, request));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR', 'TEACHER')")
     @Operation(summary = "Удалить новость")
     public ResponseEntity<Void> delete(@PathVariable String schoolName, @PathVariable Integer id) {
         service.delete(id);

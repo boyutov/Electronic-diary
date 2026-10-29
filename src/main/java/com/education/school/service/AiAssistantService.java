@@ -671,7 +671,7 @@ public class AiAssistantService {
                             .collect(Collectors.joining(", ")) + ". Уточните имя.");
                     Student s = found.get(0);
                     String fullName = s.getUser().getSecondName() + " " + s.getUser().getFirstName();
-                    studentRepository.deleteById(s.getId());
+                    studentService.deleteById(s.getId());
                     yield Map.of("success", true, "message", "Ученик " + fullName + " удалён");
                 }
 
@@ -686,7 +686,7 @@ public class AiAssistantService {
                     }
                     if (count > 0) toDelete = toDelete.subList(0, Math.min(count, toDelete.size()));
                     int deleted = toDelete.size();
-                    toDelete.forEach(s -> studentRepository.deleteById(s.getId()));
+                    toDelete.forEach(s -> studentService.deleteById(s.getId()));
                     yield Map.of("success", true, "message",
                         "Удалено " + deleted + " учеников" + (groupName.isBlank() ? "" : " из группы " + groupName));
                 }
@@ -707,7 +707,8 @@ public class AiAssistantService {
                         t.setGroup(null);
                         t.setHasGroup(false);
                         teacherRepository.save(t);
-                        teacherRepository.deleteById(t.getId());
+                        teacherRepository.delete(t);
+                        currentSchoolService.removeUser(t.getUser()); // аккаунт удаляем вместе с профилем
                     }
                     yield Map.of("success", true, "message", "Удалено " + count + " учителей");
                 }

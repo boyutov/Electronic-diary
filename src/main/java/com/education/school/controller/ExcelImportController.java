@@ -1,5 +1,6 @@
 package com.education.school.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.education.school.service.ExcelImportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ public class ExcelImportController {
     private final ExcelImportService excelImportService;
 
     @PostMapping("/preview")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     public ResponseEntity<Map<String, Object>> preview(
             @PathVariable String schoolName,
             @RequestParam("file") MultipartFile file) {
@@ -29,6 +31,7 @@ public class ExcelImportController {
     }
 
     @PostMapping("/import")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     public ResponseEntity<Map<String, Object>> importStudents(
             @PathVariable String schoolName,
             @RequestBody Map<String, Object> body) {

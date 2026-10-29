@@ -142,9 +142,13 @@ public class TeacherService {
         return teacherRepository.save(teacher);
     }
 
+    // Удаляем профиль вместе с аккаунтом — иначе остаётся "пустой" пользователь без профиля
     @Transactional
     public void delete(Integer id) {
-        teacherRepository.deleteById(id);
+        teacherRepository.findById(id).ifPresent(profile -> {
+            teacherRepository.delete(profile);
+            currentSchoolService.removeUser(profile.getUser());
+        });
     }
 
     @Transactional(readOnly = true)
