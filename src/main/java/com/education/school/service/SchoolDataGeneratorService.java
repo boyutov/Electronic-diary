@@ -32,6 +32,7 @@ public class SchoolDataGeneratorService {
     private final NewsRepository newsRepository;
     private final ScheduleRepository scheduleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CurrentSchoolService currentSchoolService;
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
 
@@ -164,6 +165,7 @@ public class SchoolDataGeneratorService {
                     user.setEmail(email);
                     user.setPassword(passwordEncoder.encode(email));
                     user.setRole(teacherRole);
+                    currentSchoolService.attach(user);
                     user = userRepository.save(user);
 
                     Teacher teacher = new Teacher();
@@ -220,6 +222,7 @@ public class SchoolDataGeneratorService {
                         user.setEmail(email);
                         user.setPassword(passwordEncoder.encode(email));
                         user.setRole(studentRole);
+                        currentSchoolService.attach(user);
                         user = userRepository.save(user);
 
                         Student student = new Student();
@@ -304,6 +307,7 @@ public class SchoolDataGeneratorService {
                 user.setEmail(email);
                 user.setPassword(passwordEncoder.encode(email));
                 user.setRole(studentRole);
+                currentSchoolService.attach(user);
                 user = userRepository.save(user);
 
                 Student student = new Student();
@@ -354,6 +358,7 @@ public class SchoolDataGeneratorService {
             user.setEmail(email);
             user.setPassword(passwordEncoder.encode(email));
             user.setRole(studentRole);
+            currentSchoolService.attach(user);
             user = userRepository.save(user);
 
             Student student = new Student();
@@ -384,6 +389,7 @@ public class SchoolDataGeneratorService {
             user.setEmail(email);
             user.setPassword(passwordEncoder.encode(email));
             user.setRole(parentRole);
+            currentSchoolService.attach(user);
             user = userRepository.save(user);
 
             Parent parent = new Parent();

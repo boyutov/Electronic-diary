@@ -24,6 +24,7 @@ public class NewsService {
     private final TeacherRepository teacherRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final CurrentSchoolService currentSchoolService;
 
     @Transactional(readOnly = true)
     public List<News> findAll() {
@@ -54,8 +55,8 @@ public class NewsService {
 
         News saved = newsRepository.save(news);
 
-        // Уведомляем всех пользователей
-        List<Long> allUserIds = userRepository.findAll().stream()
+        // Уведомляем всех пользователей этой школы
+        List<Long> allUserIds = currentSchoolService.findUsers().stream()
                 .filter(u -> !u.getId().equals(createdByUser.getId()))
                 .map(u -> u.getId())
                 .collect(java.util.stream.Collectors.toList());

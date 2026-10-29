@@ -3,6 +3,7 @@ package com.education.school.controller;
 import com.education.school.service.SchoolDataGeneratorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -15,6 +16,7 @@ public class AIDataGeneratorController {
     private final SchoolDataGeneratorService generatorService;
 
     @PostMapping("/generate")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     public ResponseEntity<Map<String, String>> generateWithAI(
             @PathVariable String schoolName,
             @RequestBody Map<String, String> request) {

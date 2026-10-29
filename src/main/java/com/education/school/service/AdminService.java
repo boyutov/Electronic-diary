@@ -6,7 +6,6 @@ import com.education.school.entity.User;
 import com.education.school.repository.RoleRepository;
 import com.education.school.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,16 +20,17 @@ public class AdminService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CurrentSchoolService currentSchoolService;
 
     // Получить всех администраторов — readOnly транзакция быстрее (не блокирует строки)
     @Transactional(readOnly = true)
     public List<User> findAll() {
-        return userRepository.findAllByRoleName("ADMIN");
+        return currentSchoolService.findUsersByRole("ADMIN");
     }
 
     @Transactional(readOnly = true)
     public User findById(Long id) {
-        return userRepository.findById(id).orElse(null);
+        return currentSchoolService.findUser(id);
     }
 
     // Создать нового администратора
@@ -44,10 +44,6 @@ public class AdminService {
         Role adminRole = roleRepository.findByName("ADMIN")
                 .orElseThrow(() -> new IllegalStateException("Role ADMIN not found"));
 
-        // Определяем кто создаёт — берём из текущего контекста безопасности
-        String creatorEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        User creator = userRepository.findByEmail(creatorEmail);
-
         User user = new User();
         user.setFirstName(request.firstName());
         user.setSecondName(request.secondName());
@@ -56,10 +52,8 @@ public class AdminService {
         user.setPassword(passwordEncoder.encode(request.password())); // хэшируем пароль перед сохранением
         user.setRole(adminRole);
 
-        // Новый администратор наследует школы создателя — Multi-Tenancy
-        if (creator != null) {
-            user.getSchools().addAll(creator.getSchools());
-        }
+        // Новый администратор попадает в текущую школу — Multi-Tenancy
+        currentSchoolService.attach(user);
 
         return userRepository.save(user);
     }
@@ -67,7 +61,7 @@ public class AdminService {
     // Обновить данные администратора
     @Transactional
     public User update(Long id, AdminRequest request) {
-        User user = userRepository.findById(id)
+        User user = userRepository.findByIdAndSchoolsId(id, currentSchoolService.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Admin not found"));
 
         user.setFirstName(request.firstName());
@@ -85,6 +79,8 @@ public class AdminService {
 
     @Transactional
     public void delete(Long id) {
-        userRepository.deleteById(id);
+        User user = userRepository.findByIdAndSchoolsId(id, currentSchoolService.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Admin not found"));
+        currentSchoolService.removeUser(user);
     }
 }

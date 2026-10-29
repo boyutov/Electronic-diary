@@ -25,6 +25,7 @@ public class TeacherService {
     private final DisciplineRepository disciplineRepository;
     private final ScheduleRepository scheduleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CurrentSchoolService currentSchoolService;
 
     @Transactional(readOnly = true)
     public List<TeacherResponse> findAll() {
@@ -66,9 +67,7 @@ public class TeacherService {
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setRole(teacherRole);
         
-        if (creator != null) {
-            user.getSchools().addAll(creator.getSchools());
-        }
+        currentSchoolService.attach(user); // пользователь попадает только в текущую школу
 
         user = userRepository.save(user);
 

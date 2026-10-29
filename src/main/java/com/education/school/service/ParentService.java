@@ -28,6 +28,7 @@ public class ParentService {
     private final RoleRepository roleRepository;
     private final StudentRepository studentRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CurrentSchoolService currentSchoolService;
 
     @Transactional(readOnly = true)
     public List<Parent> findAll() {
@@ -59,9 +60,7 @@ public class ParentService {
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setRole(parentRole);
         
-        if (creator != null) {
-            user.getSchools().addAll(creator.getSchools());
-        }
+        currentSchoolService.attach(user); // пользователь попадает только в текущую школу
 
         user = userRepository.save(user);
 

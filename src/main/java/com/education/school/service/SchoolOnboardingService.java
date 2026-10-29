@@ -61,10 +61,16 @@ public class SchoolOnboardingService {
         // double price = calculatePrice(request.studentCount(), request.durationMonths(), request.promoCode());
         // if (price > 0) { ... process payment ... }
 
+        // slug — это идентификатор школы в URL и токене, поэтому он должен быть уникальным
+        String slug = toSlug(request.schoolName());
+        if (slug.isEmpty() || schoolRepository.findByNameIgnoreCase(slug).isPresent()) {
+            throw new IllegalStateException("School with this name already exists");
+        }
+
         String rawPassword = passwordGenerator.generate();
 
         School school = new School();
-        school.setName(toSlug(request.schoolName()));
+        school.setName(slug);
         school.setContactEmail(request.contactEmail());
         school.setContactPhone(request.contactPhone());
         school.setAccessPasswordHash(passwordEncoder.encode(rawPassword));

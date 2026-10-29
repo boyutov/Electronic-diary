@@ -45,6 +45,7 @@ public class AiAssistantService {
     private final CourseRepository courseRepository;
     private final RoleRepository roleRepository;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private final CurrentSchoolService currentSchoolService;
 
     private final Map<Long, List<Map<String, String>>> conversationHistory = new HashMap<>();
     private final Random random = new Random();
@@ -639,6 +640,7 @@ public class AiAssistantService {
                         user.setEmail(email);
                         user.setPassword(passwordEncoder.encode(password));
                         user.setRole(teacherRole);
+                        currentSchoolService.attach(user);
                         user = userRepository.save(user);
 
                         Teacher teacher = new Teacher();

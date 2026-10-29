@@ -22,6 +22,11 @@ public class UserDeteilsImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         // Находим пользователя в БД по email — User реализует UserDetails, поэтому можно вернуть напрямую
-        return userRepository.findByEmail(username);
+        // Контракт Spring Security: при отсутствии пользователя бросаем исключение, а не возвращаем null
+        UserDetails user = userRepository.findByEmail(username);
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found: " + username);
+        }
+        return user;
     }
 }

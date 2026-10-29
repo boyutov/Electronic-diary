@@ -8,6 +8,7 @@ import com.education.school.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,16 +34,21 @@ public class AuthController {
         );
 
         User user = userRepository.findByEmail(request.getEmail());
+        String schoolSlug = toSlug(request.getSchoolName());
 
-        // В реальном приложении здесь нужно проверить, принадлежит ли пользователь запрошенной школе
-        // Для упрощения мы пока доверяем request.getSchoolName(), но лучше проверить user.getSchools()
+        // Multi-Tenancy: токен выдаётся только для школы, к которой пользователь реально привязан
+        boolean belongsToSchool = !schoolSlug.isEmpty() && user.getSchools().stream()
+                .anyMatch(school -> school.getName().equalsIgnoreCase(schoolSlug));
+        if (!belongsToSchool) {
+            throw new BadCredentialsException("User does not belong to school: " + schoolSlug);
+        }
 
-        String jwtToken = jwtService.generateToken(user, toSlug(request.getSchoolName()));
+        String jwtToken = jwtService.generateToken(user, schoolSlug);
 
         return ResponseEntity.ok(AuthenticationResponse.builder()
                 .token(jwtToken)
                 .role(user.getRole().getName())
-                .schoolName(toSlug(request.getSchoolName()))
+                .schoolName(schoolSlug)
                 .build());
     }
 

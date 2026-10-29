@@ -29,6 +29,7 @@ public class StudentService {
     private final RoleRepository roleRepository;
     private final GroupRepository groupRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CurrentSchoolService currentSchoolService;
 
     @Transactional(readOnly = true)
     public List<Student> findAll() {
@@ -82,9 +83,7 @@ public class StudentService {
         user.setRole(studentRole);
 
         // Ученик наследует школу создателя
-        if (creator != null) {
-            user.getSchools().addAll(creator.getSchools());
-        }
+        currentSchoolService.attach(user); // пользователь попадает только в текущую школу
 
         user = userRepository.save(user);
 

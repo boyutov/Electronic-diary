@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,12 +18,20 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    // Секретный ключ подписи — минимум 32 символа для алгоритма HS256
-    // В продакшене должен браться из переменных окружения
-    private static final String SECRET_KEY = "YourSuperSecretKeyForJwtAuthenticationMustBeAtLeast256BitsLong!";
+    // Секретный ключ подписи берётся из переменной окружения JWT_SECRET (минимум 32 байта для HS256)
+    private final String secretKey;
 
-    // Время жизни токена: 24 часа в миллисекундах (1000мс * 60с * 60мин * 24ч)
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24;
+    // Время жизни токена в миллисекундах (по умолчанию 24 часа)
+    private final long expirationTime;
+
+    public JwtService(@Value("${jwt.secret}") String secretKey,
+                      @Value("${jwt.expiration:86400000}") long expirationTime) {
+        if (secretKey == null || secretKey.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException("JWT_SECRET must be set and be at least 32 bytes long");
+        }
+        this.secretKey = secretKey;
+        this.expirationTime = expirationTime;
+    }
 
     // Извлекаем email из токена — он хранится в стандартном поле "subject"
     public String extractUsername(String token) {
@@ -53,7 +62,7 @@ public class JwtService {
                 .claims(extraClaims)                                         // кастомные поля (schoolName)
                 .subject(userDetails.getUsername())                          // email пользователя
                 .issuedAt(new Date(System.currentTimeMillis()))              // время выдачи
-                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // время истечения
+                .expiration(new Date(System.currentTimeMillis() + expirationTime)) // время истечения
                 .signWith(getSignInKey(), Jwts.SIG.HS256)                   // подписываем HMAC-SHA256
                 .compact();                                                   // сериализуем в строку xxx.yyy.zzz
     }
@@ -85,6 +94,6 @@ public class JwtService {
 
     // Преобразуем строку-секрет в объект SecretKey для алгоритма HMAC
     private SecretKey getSignInKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+        return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 }

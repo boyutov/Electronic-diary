@@ -1,6 +1,7 @@
 package com.education.school.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.TenantId;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,6 +18,12 @@ public class Parent {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    // Школа-владелец записи (Multi-Tenancy): Hibernate сам подставляет текущую школу при сохранении
+    // и добавляет "school_id = :текущая школа" во все запросы, включая findById
+    @TenantId
+    @Column(name = "school_id", nullable = false, updatable = false)
+    private Long schoolId;
 
     // Аккаунт пользователя для входа в систему
     @OneToOne(fetch = FetchType.LAZY)

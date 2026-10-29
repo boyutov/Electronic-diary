@@ -1,5 +1,9 @@
 package com.education.school.config;
 
+import com.education.school.entity.School;
+import com.education.school.entity.User;
+import com.education.school.repository.SchoolRepository;
+import com.education.school.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,6 +19,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 // JWT-фильтр — перехватывает каждый HTTP-запрос ровно один раз
 // Проверяет наличие Bearer-токена и аутентифицирует пользователя
@@ -24,6 +30,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final SchoolRepository schoolRepository;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(
@@ -55,8 +63,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Загружаем пользователя из БД по email
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
+                // Multi-Tenancy: токен школы A нельзя использовать для запросов /api/{школа B}/...
+                String tokenSchool = jwtService.extractSchoolName(jwt);
+                if (!schoolMatchesPath(request, tokenSchool)) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Token does not belong to this school");
+                    return;
+                }
+
+                // Школа из токена должна существовать, а пользователь — по-прежнему в ней состоять
+                Long schoolId = schoolRepository.findByNameIgnoreCase(tokenSchool).map(School::getId).orElse(null);
+                if (schoolId == null || !userRepository.existsByIdAndSchoolsId(((User) userDetails).getId(), schoolId)) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "User does not belong to this school");
+                    return;
+                }
+
                 // Проверяем токен: совпадает email + не истёк срок
                 if (jwtService.isTokenValid(jwt, userDetails)) {
+                    // С этого момента Hibernate видит только данные этой школы
+                    TenantContext.setSchoolId(schoolId);
+
                     // Создаём объект аутентификации с ролями пользователя
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
@@ -71,11 +96,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             // Токен повреждён или подпись не совпадает — возвращаем 401 Unauthorized
+            TenantContext.clear();
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
             return;
         }
 
-        // Передаём запрос дальше по цепочке фильтров
-        filterChain.doFilter(request, response);
+        // Передаём запрос дальше по цепочке фильтров; школу сбрасываем, т.к. поток вернётся в пул
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            TenantContext.clear();
+        }
+    }
+
+    // Для путей вида /api/{schoolName}/... школа в URL должна совпадать со школой из токена
+    private boolean schoolMatchesPath(HttpServletRequest request, String tokenSchool) {
+        String[] parts = request.getRequestURI().substring(request.getContextPath().length()).split("/");
+        // parts: ["", "api", "{schoolName}", ...]
+        if (parts.length < 3 || !"api".equals(parts[1])) {
+            return true;
+        }
+        String pathSchool = URLDecoder.decode(parts[2], StandardCharsets.UTF_8); // slug может быть кириллицей
+        if ("auth".equals(pathSchool) || "purchase".equals(pathSchool)) {
+            return true;
+        }
+        return tokenSchool != null && tokenSchool.equalsIgnoreCase(pathSchool);
     }
 }

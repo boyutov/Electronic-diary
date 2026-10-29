@@ -19,15 +19,16 @@ public class DirectorService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CurrentSchoolService currentSchoolService;
 
     @Transactional(readOnly = true)
     public List<User> findAll() {
-        return userRepository.findAllByRoleName("DIRECTOR");
+        return currentSchoolService.findUsersByRole("DIRECTOR");
     }
 
     @Transactional(readOnly = true)
     public User findById(Long id) {
-        return userRepository.findById(id).orElse(null);
+        return currentSchoolService.findUser(id);
     }
 
     @Transactional
@@ -46,13 +47,14 @@ public class DirectorService {
         user.setEmail(request.email());
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setRole(directorRole);
+        currentSchoolService.attach(user); // без привязки к школе директор не сможет войти
 
         return userRepository.save(user);
     }
 
     @Transactional
     public User update(Long id, DirectorRequest request) {
-        User user = userRepository.findById(id)
+        User user = userRepository.findByIdAndSchoolsId(id, currentSchoolService.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Director not found"));
 
         user.setFirstName(request.firstName());
@@ -69,6 +71,8 @@ public class DirectorService {
 
     @Transactional
     public void delete(Long id) {
-        userRepository.deleteById(id);
+        User user = userRepository.findByIdAndSchoolsId(id, currentSchoolService.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Director not found"));
+        currentSchoolService.removeUser(user);
     }
 }

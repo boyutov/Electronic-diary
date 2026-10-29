@@ -1,6 +1,7 @@
 package com.education.school.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.TenantId;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,6 +21,12 @@ public class Exam {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    // Школа-владелец записи (Multi-Tenancy): Hibernate сам подставляет текущую школу при сохранении
+    // и добавляет "school_id = :текущая школа" во все запросы, включая findById
+    @TenantId
+    @Column(name = "school_id", nullable = false, updatable = false)
+    private Long schoolId;
 
     @Column(nullable = false)
     private String title;  // название: "Итоговый экзамен по математике"

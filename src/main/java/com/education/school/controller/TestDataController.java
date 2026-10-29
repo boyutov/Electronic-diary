@@ -3,6 +3,7 @@ package com.education.school.controller;
 import com.education.school.service.TestDataGeneratorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -15,6 +16,7 @@ public class TestDataController {
     private final TestDataGeneratorService testDataGeneratorService;
 
     @PostMapping("/generate")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public ResponseEntity<Map<String, String>> generateTestData(@PathVariable String schoolName) {
         try {
             String result = testDataGeneratorService.generateTestData(schoolName);
