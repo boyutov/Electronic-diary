@@ -126,6 +126,14 @@ BEGIN
     END LOOP;
 END $$;
 
+-- 6.5. Раньше ученики/учителя/родители создавались без записи в user_schools.
+-- Теперь вход проверяет принадлежность к школе, поэтому привязываем их аккаунты к школе профиля
+INSERT INTO user_schools (user_id, school_id)
+    SELECT user_id, school_id FROM students WHERE school_id IS NOT NULL
+    UNION SELECT user_id, school_id FROM teachers WHERE school_id IS NOT NULL
+    UNION SELECT user_id, school_id FROM parents WHERE school_id IS NOT NULL
+ON CONFLICT DO NOTHING;
+
 -- 7. NOT NULL ставим, только если школы есть и все строки распределены
 --    (на пустой базе без школ столбцы останутся NULL-допустимыми, но приложение всё равно всегда их заполняет)
 DO $$
