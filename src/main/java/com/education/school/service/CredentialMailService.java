@@ -226,7 +226,7 @@ public class CredentialMailService {
             message.setText(text);
             mailSender.getObject().send(message);
         } catch (Exception e) {
-            log.warn("Не удалось отправить письмо на {}: {}", to, e.getMessage());
+            log.warn("Не удалось отправить письмо: {}", e.getClass().getSimpleName());
             notifyInitiator(to, schoolId, initiatorId);
         }
     }

@@ -7,12 +7,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import net.datafaker.Faker;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,22 +31,24 @@ public class SchoolDataGeneratorService {
     private final PasswordEncoder passwordEncoder;
     private final CurrentSchoolService currentSchoolService;
     private final ObjectMapper objectMapper;
-    private final RestTemplate restTemplate;
-
-    @Value("${openai.api.key:}")
-    private String openaiApiKey;
+    private final OpenAiClient openAiClient;
 
     private final Faker faker = new Faker(new Locale("ru"));
     private final Random random = new Random();
 
     // GPT только парсит намерение — возвращает JSON с командами
+    // Во внешний ИИ уходит только замаскированный текст запроса; самих людей генерирует Faker локально
     public String generateFromPrompt(String userPrompt, String schoolName) {
-        if (openaiApiKey == null || openaiApiKey.isEmpty()) {
+        if (!openAiClient.isConfigured()) {
             return "❌ OPENAI_API_KEY не настроен.";
         }
+        if (userPrompt.length() > 2000 || AiPrivacy.containsSensitiveTopic(userPrompt)) {
+            return "❌ Запрос не отправлен: слишком длинный или содержит чувствительные данные.";
+        }
         try {
-            String json = parseIntentWithGPT(userPrompt);
-            return executeGenerationPlan(json);
+            AiPrivacy privacy = AiPrivacy.forSchool(schoolName, currentSchoolService.findUsers());
+            String json = privacy.restore(parseIntentWithGPT(privacy.mask(userPrompt)));
+            return executeGenerationPlan(json.replaceAll("(?s)^```(?:json)?\\s*|\\s*```$", ""));
         } catch (Exception e) {
             return "❌ Ошибка: " + e.getMessage();
         }
@@ -58,7 +57,7 @@ public class SchoolDataGeneratorService {
     private String parseIntentWithGPT(String userPrompt) {
         String system = """
             Ты парсер намерений. Извлеки параметры из запроса и верни ТОЛЬКО валидный JSON без markdown.
-            
+
             Схема:
             {
               "disciplines": ["Математика", "Физика"],
@@ -71,7 +70,7 @@ public class SchoolDataGeneratorService {
               "create_schedule": true,
               "schedule_weeks": 2
             }
-            
+
             Правила:
             - course = номер класса из названия (5А→5, 10Б→10, 11А→11)
             - Если не указано количество — используй разумные значения
@@ -79,31 +78,10 @@ public class SchoolDataGeneratorService {
             - Если не указаны группы — придумай реалистичные названия классов
             - create_schedule = true если упоминается расписание
             - schedule_weeks = на сколько недель вперёд генерировать расписание (по умолчанию 2)
+            - Значения PRIVATE_* копируй дословно
             - Отвечай ТОЛЬКО JSON
             """;
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(openaiApiKey);
-
-        Map<String, Object> body = Map.of(
-            "model", "gpt-4o-mini",
-            "messages", List.of(
-                Map.of("role", "system", "content", system),
-                Map.of("role", "user", "content", userPrompt)
-            ),
-            "temperature", 0.1,
-            "max_tokens", 600
-        );
-
-        ResponseEntity<Map> response = restTemplate.exchange(
-            "https://api.openai.com/v1/chat/completions",
-            HttpMethod.POST, new HttpEntity<>(body, headers), Map.class
-        );
-
-        List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
-        Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-        return (String) message.get("content");
+        return openAiClient.complete(system, userPrompt, 600);
     }
 
     @Transactional

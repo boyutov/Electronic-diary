@@ -90,6 +90,9 @@ public class ProfileService {
 
     @Transactional
     public UserProfileDto updateProfile(ProfileUpdateRequest request) {
+        if (request.newPassword() != null && !request.newPassword().isEmpty()) {
+            throw new IllegalArgumentException("Для смены пароля используйте форму смены пароля с проверкой текущего пароля");
+        }
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email);
         
@@ -106,10 +109,6 @@ public class ProfileService {
         }
         currentSchoolService.setEmail(user, request.email()); // занятый логин → понятная ошибка, а не 500
 
-        if (request.newPassword() != null && !request.newPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(request.newPassword()));
-            user.setMustChangePassword(false); // пароль сменил сам владелец
-        }
         
         User savedUser = userRepository.save(user);
         UserProfileDto dto = UserProfileDto.from(savedUser);

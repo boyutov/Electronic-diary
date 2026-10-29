@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     marksModal.addEventListener("click", e => { if (e.target === marksModal) marksModal.classList.remove("open"); });
 
     apiFetch(`/api/${schoolName}/profile/curator`)
-        .then(res => res.ok ? res.json() : Promise.reject("no curator"))
+        .then(res => res.status === 200 ? res.json() : Promise.reject("no curator"))
         .then(profile => {
             groupNameDisplay.textContent = profile.groupName;
             return apiFetch(`/api/${schoolName}/groups/${profile.groupId}/students`);

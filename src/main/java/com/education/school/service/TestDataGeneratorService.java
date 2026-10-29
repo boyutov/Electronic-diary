@@ -16,9 +16,12 @@ public class TestDataGeneratorService {
     private final TeacherService teacherService;
     private final StudentService studentService;
     private final ParentService parentService;
-    private final MarkService markService;
     private final NewsService newsService;
     private final ComplaintService complaintService;
+    private final com.education.school.repository.MarkRepository markRepository;
+    private final com.education.school.repository.StudentRepository studentRepository;
+    private final com.education.school.repository.TeacherRepository teacherRepository;
+    private final com.education.school.repository.DisciplineRepository disciplineRepository;
 
     private final Random random = new Random();
 
@@ -88,10 +91,12 @@ public class TestDataGeneratorService {
                 
                 for (int i = 0; i < studentsInClass; i++) {
                     boolean isBoy = random.nextBoolean();
-                    String lastName = lastNames.get(random.nextInt(lastNames.size()));
+                    // Все фамилии в списке мужские на -ов/-ев: для девочек добавляем «а»
+                    String lastName = lastNames.get(random.nextInt(lastNames.size())) + (isBoy ? "" : "а");
                     String firstName = isBoy ? firstNamesBoys.get(random.nextInt(firstNamesBoys.size())) : firstNamesGirls.get(random.nextInt(firstNamesGirls.size()));
                     String middleName = isBoy ? middleNamesBoys.get(random.nextInt(middleNamesBoys.size())) : middleNamesGirls.get(random.nextInt(middleNamesGirls.size()));
-                    String email = firstName.toLowerCase() + "." + lastName.toLowerCase() + studentCount + "@student.com";
+                    // Только латиница: браузерное поле type=email не принимает кириллицу, и ученик не смог бы войти
+                    String email = "student" + studentCount + "@student.com";
 
                     studentService.create(new StudentRequest(
                         firstName, lastName, middleName, email, "password123", 
@@ -111,11 +116,15 @@ public class TestDataGeneratorService {
             int parentCount = 0;
             for (var student : students) {
                 // Создаем одного родителя для каждого ученика
-                String parentFirstName = random.nextBoolean() ? "Сергей" : "Елена";
+                boolean isFather = random.nextBoolean();
+                String surname = student.getSecondName().endsWith("а")
+                        ? student.getSecondName().substring(0, student.getSecondName().length() - 1)
+                        : student.getSecondName();
                 String parentEmail = "parent" + parentCount + "@parent.com";
                 
                 parentService.create(new ParentRequest(
-                    parentFirstName, student.getSecondName(), "Владимирович",
+                    isFather ? "Сергей" : "Елена", isFather ? surname : surname + "а",
+                    isFather ? "Владимирович" : "Владимировна",
                     parentEmail, "password123", String.valueOf(40 + random.nextInt(10)),
                     List.of(student.getId())
                 ));
@@ -134,9 +143,16 @@ public class TestDataGeneratorService {
                     var teacher = allTeachers.get(random.nextInt(allTeachers.size()));
                     int mark = 3 + random.nextInt(3); // оценки от 3 до 5
                     
-                    markService.create(new MarkRequest(
-                        student.getId(), teacher.getDisciplineIds().get(0), mark, "Текущая оценка", java.time.LocalDate.now()
-                    ));
+                    // MarkService.create ставит оценку от имени текущего учителя, а генерацию запускает админ —
+                    // поэтому сохраняем напрямую от имени случайного учителя
+                    var entity = new com.education.school.entity.Mark();
+                    entity.setStudent(studentRepository.getReferenceById(student.getId()));
+                    entity.setDiscipline(disciplineRepository.getReferenceById(teacher.getDisciplineIds().get(0)));
+                    entity.setGivenByTeacher(teacherRepository.getReferenceById(teacher.getId()));
+                    entity.setValue(mark);
+                    entity.setComment("Текущая оценка");
+                    entity.setCreatedAt(java.time.OffsetDateTime.now().minusDays(random.nextInt(30)));
+                    markRepository.save(entity);
                     markCount++;
                 }
             }

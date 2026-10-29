@@ -3,10 +3,7 @@ package com.education.school.service;
 import com.education.school.repository.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
@@ -14,7 +11,6 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AIAnalysisService {
 
-    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final StudentRepository studentRepository;
     private final TeacherRepository teacherRepository;
@@ -23,30 +19,27 @@ public class AIAnalysisService {
     private final MarkRepository markRepository;
     private final AttendanceRepository attendanceRepository;
     private final ComplaintRepository complaintRepository;
+    private final OpenAiClient openAiClient;
+    private final CurrentSchoolService currentSchoolService;
 
-    @Value("${openai.api.key:}")
-    private String openaiApiKey;
-
+    // Во внешний ИИ уходят только агрегаты (количества, средний балл) и замаскированный вопрос —
+    // ни ФИО, ни почт, ни оценок конкретных учеников
     public String analyzeSchoolData(String query, String schoolName) {
-        if (openaiApiKey.isEmpty()) {
-            return "AI анализ недоступен. Настройте OPENAI_API_KEY в переменных окружения.";
+        String summary = buildDatabaseContext(schoolName);
+        if (!openAiClient.isConfigured()) return "Локальная сводка школы:\n" + summary;
+
+        AiPrivacy privacy = AiPrivacy.forSchool(schoolName, currentSchoolService.findUsers());
+        String system = """
+            Ты — помощник для анализа обезличенной статистики школы.
+            Значения PRIVATE_* — непрозрачные обозначения, не пытайся их расшифровать.
+            Дай краткий ответ с конкретными цифрами и рекомендациями. Отвечай на языке вопроса.
+            """;
+        String prompt = "Статистика школы:\n" + privacy.mask(summary) + "\nВопрос: " + privacy.mask(query);
+        try {
+            return privacy.restore(openAiClient.complete(system, prompt, 1500));
+        } catch (Exception e) {
+            return "ИИ временно недоступен. Локальная сводка школы:\n" + summary;
         }
-
-        String dbContext = buildDatabaseContext(schoolName);
-        
-        String prompt = String.format("""
-            Ты - AI помощник для анализа школьных данных.
-            
-            Контекст базы данных школы "%s":
-            %s
-            
-            Вопрос пользователя: %s
-            
-            Проанализируй данные и дай подробный ответ с конкретными цифрами и рекомендациями.
-            Если нужны дополнительные данные - укажи это.
-            """, schoolName, dbContext, query);
-
-        return callOpenAI(prompt);
     }
 
     private String buildDatabaseContext(String schoolName) {
@@ -87,60 +80,8 @@ public class AIAnalysisService {
     }
 
     public String analyzeFile(byte[] fileData, String fileName, String query) {
-        if (openaiApiKey.isEmpty()) {
-            return "AI анализ недоступен. Настройте OPENAI_API_KEY в переменных окружения.";
-        }
-
-        String fileContent = extractFileContent(fileData, fileName);
-        
-        String prompt = String.format("""
-            Проанализируй содержимое файла "%s" и ответь на вопрос.
-            
-            Содержимое файла:
-            %s
-            
-            Вопрос: %s
-            
-            Дай подробный анализ с выводами и рекомендациями.
-            """, fileName, fileContent, query);
-
-        return callOpenAI(prompt);
-    }
-
-    private String callOpenAI(String prompt) {
-        try {
-            String url = "https://api.openai.com/v1/chat/completions";
-            
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(openaiApiKey);
-            
-            Map<String, Object> requestBody = Map.of(
-                "model", "gpt-4o-mini",
-                "messages", List.of(
-                    Map.of("role", "user", "content", prompt)
-                ),
-                "temperature", 0.3,
-                "max_tokens", 2000
-            );
-            
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);
-            
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                Map<String, Object> responseBody = response.getBody();
-                List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
-                if (!choices.isEmpty()) {
-                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                    return (String) message.get("content");
-                }
-            }
-            
-            return "Ошибка получения ответа от AI";
-            
-        } catch (Exception e) {
-            return "Ошибка вызова AI: " + e.getMessage();
-        }
+        // Содержимое файлов — это персональные данные, во внешний ИИ их не отправляем
+        return "Анализ файлов во внешнем ИИ отключён: в файлах персональные данные. Для учеников и учителей используйте импорт Excel — он работает локально.";
     }
 
     private String extractFileContent(byte[] fileData, String fileName) {
@@ -208,36 +149,8 @@ public class AIAnalysisService {
     }
 
     public String executeAction(String action, String schoolName) {
-        if (openaiApiKey.isEmpty()) {
-            return "AI недоступен. Настройте OPENAI_API_KEY в переменных окружения.";
-        }
-
-        String dbContext = buildDatabaseContext(schoolName);
-        
-        String prompt = String.format("""
-            Ты - AI помощник для управления школьными данными.
-            
-            Текущее состояние базы данных школы "%s":
-            %s
-            
-            Задача: %s
-            
-            Если это запрос на создание данных, ответь ТОЧНЫМ планом действий в формате:
-            ACTION: параметры
-            
-            Доступные действия:
-            - CREATE_DISCIPLINES: список предметов через запятую
-            - CREATE_GROUPS: список классов через запятую  
-            - CREATE_TEACHERS: количество учителей
-            - CREATE_STUDENTS: количество учеников
-            - CREATE_PARENTS: создать родителей
-            - CREATE_MARKS: поставить оценки
-            - CREATE_NEWS: создать новости
-            
-            Если это вопрос для анализа - дай подробный ответ с цифрами.
-            """, schoolName, dbContext, action);
-
-        return callOpenAI(prompt);
+        // Содержимое файлов — это персональные данные, во внешний ИИ их не отправляем
+        return "Анализ файлов во внешнем ИИ отключён: в файлах персональные данные. Для учеников и учителей используйте импорт Excel — он работает локально.";
     }
 
     private String getCellValue(org.apache.poi.ss.usermodel.Cell cell) {

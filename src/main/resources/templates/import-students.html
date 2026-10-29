@@ -235,11 +235,11 @@ async function proceedToImport() {
         if (!r.ok) throw new Error(res.message || res.error || 'Импорт не выполнен');
         let html = `<div style="padding:16px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;margin-bottom:16px;">
             <div style="font-size:24px;font-weight:700;color:#15803d;">${res.added} ${importType() === 'teachers' ? 'учителей' : 'учеников'} добавлено ✅</div>
-            <div style="color:#15803d;margin-top:6px;">✉️ Каждому отправлен личный временный пароль на почту</div>
+            ${res.added > 0 ? '<div style="color:#15803d;margin-top:6px;">✉️ Каждому отправлен личный временный пароль на почту</div>' : ''}
             ${res.errors > 0 ? `<div style="color:#dc2626;margin-top:8px;">❌ Ошибок: ${res.errors}</div>` : ''}
         </div>`;
-        if (res.addedNames?.length) html += `<details><summary style="cursor:pointer;font-weight:600;">Добавленные ученики (${res.addedNames.length})</summary><ul style="margin-top:8px;">${res.addedNames.map(n=>`<li>${n}</li>`).join('')}</ul></details>`;
-        if (res.errorDetails?.length) html += `<details style="margin-top:8px;"><summary style="cursor:pointer;font-weight:600;color:#dc2626;">Ошибки</summary><ul style="margin-top:8px;">${res.errorDetails.map(e=>`<li style="color:#dc2626;">${e}</li>`).join('')}</ul></details>`;
+        if (res.addedNames?.length) html += `<details><summary style="cursor:pointer;font-weight:600;">Добавленные ученики (${res.addedNames.length})</summary><ul style="margin-top:8px;">${res.addedNames.map(n=>`<li>${esc(n)}</li>`).join('')}</ul></details>`;
+        if (res.errorDetails?.length) html += `<details style="margin-top:8px;"><summary style="cursor:pointer;font-weight:600;color:#dc2626;">Ошибки</summary><ul style="margin-top:8px;">${res.errorDetails.map(e=>`<li style="color:#dc2626;">${esc(e)}</li>`).join('')}</ul></details>`;
         document.getElementById('import-result').innerHTML = html;
     } catch (e) {
         document.getElementById('import-result').innerHTML = `<p style="color:#dc2626;">❌ Ошибка: ${esc(e.message)}</p>`;

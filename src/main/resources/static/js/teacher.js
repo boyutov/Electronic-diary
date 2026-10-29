@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Куратор
     apiFetch(`/api/${schoolName}/profile/curator`)
-        .then(r => r.ok ? r.json() : null)
+        .then(r => r.status === 200 ? r.json() : null)
         .then(p => {
             if (!p) return;
             document.getElementById("curator-panel").style.display = "block";

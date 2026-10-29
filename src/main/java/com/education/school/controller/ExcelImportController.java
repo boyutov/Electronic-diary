@@ -10,7 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/{schoolName}/excel")
+@RequestMapping({"/api/{schoolName}/excel", "/api/{schoolName}/ai/files"})
 @RequiredArgsConstructor
 public class ExcelImportController {
 

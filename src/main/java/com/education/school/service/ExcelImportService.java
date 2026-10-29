@@ -26,37 +26,39 @@ public class ExcelImportService {
 
     /** Читает Excel и возвращает превью: заголовки + первые 5 строк */
     public Map<String, Object> preview(MultipartFile file) throws Exception {
-        Workbook workbook = openWorkbook(file);
-        Sheet sheet = workbook.getSheetAt(0);
+        try (Workbook workbook = openWorkbook(file)) {
+            validateWorkbook(workbook);
+            Sheet sheet = workbook.getSheetAt(0);
 
-        List<String> headers = new ArrayList<>();
-        List<List<String>> rows = new ArrayList<>();
+            List<String> headers = new ArrayList<>();
+            List<List<String>> rows = new ArrayList<>();
 
-        int rowCount = 0;
-        for (Row row : sheet) {
-            if (rowCount == 0) {
-                headers.addAll(readHeaders(row));
-            } else if (rowCount <= 5) {
-                List<String> rowData = new ArrayList<>();
-                for (int i = 0; i < headers.size(); i++) {
-                    Cell cell = row.getCell(i);
-                    rowData.add(cell != null ? getCellValue(cell) : "");
+            int rowCount = 0;
+            for (Row row : sheet) {
+                if (rowCount == 0) {
+                    headers.addAll(readHeaders(row));
+                } else if (rowCount <= 5) {
+                    List<String> rowData = new ArrayList<>();
+                    for (int i = 0; i < headers.size(); i++) {
+                        Cell cell = row.getCell(i);
+                        rowData.add(cell != null ? getCellValue(cell) : "");
+                    }
+                    rows.add(rowData);
                 }
-                rows.add(rowData);
+                rowCount++;
             }
-            rowCount++;
+
+
+            // Локальное сопоставление колонок, без внешних API
+            Map<String, String> suggestedMapping = suggestMapping(headers);
+
+            return Map.of(
+                "headers", headers,
+                "preview", rows,
+                "totalRows", rowCount - 1,
+                "suggestedMapping", suggestedMapping
+            );
         }
-        workbook.close();
-
-        // AI-подсказка маппинга колонок
-        Map<String, String> suggestedMapping = suggestMapping(headers);
-
-        return Map.of(
-            "headers", headers,
-            "preview", rows,
-            "totalRows", rowCount - 1,
-            "suggestedMapping", suggestedMapping
-        );
     }
 
     /** Угадывает маппинг колонок по названию */
@@ -103,13 +105,22 @@ public class ExcelImportService {
         Map<String, String> mapping = (Map<String, String>) body.get("mapping");
         String defaultGroup = (String) body.get("defaultGroup");
 
-        byte[] bytes = Base64.getDecoder().decode((String) body.get("fileData"));
+        Object encoded = body.get("fileData");
+        if (!(encoded instanceof String data) || data.length() > 7_000_000) {
+            throw new IllegalArgumentException("Файл отсутствует или больше 5 МБ");
+        }
+        if (mapping == null || mapping.isEmpty()) throw new IllegalArgumentException("Не сопоставлены колонки");
+        if (!Set.of("students", "teachers").contains(String.valueOf(body.getOrDefault("type", "students")))) {
+            throw new IllegalArgumentException("Неизвестный тип импорта");
+        }
+        byte[] bytes = Base64.getDecoder().decode(data);
         List<String> added = new ArrayList<>();
         List<String> errors = new ArrayList<>();
 
         // WorkbookFactory сам определяет формат: и .xlsx, и старый .xls
         try (Workbook workbook = WorkbookFactory.create(new java.io.ByteArrayInputStream(bytes))) {
-            Sheet sheet = workbook.getSheetAt(0);
+            validateWorkbook(workbook);
+        Sheet sheet = workbook.getSheetAt(0);
             List<String> headers = new ArrayList<>();
             int rowNum = 0;
             for (Row row : sheet) {
@@ -121,9 +132,12 @@ public class ExcelImportService {
                 if (rowData.values().stream().allMatch(String::isBlank)) continue; // пустая строка
 
                 try {
+                    validateRow(rowData);
                     added.add(teachers ? importTeacher(rowData) : importStudent(rowData, defaultGroup));
                 } catch (Exception e) {
-                    errors.add("Строка " + rowNum + ": " + e.getMessage());
+                    String detail = e instanceof IllegalArgumentException || e instanceof SecurityException
+                        ? e.getMessage() : "Не удалось сохранить запись. Проверьте данные и дубликаты.";
+                    errors.add("Строка " + (row.getRowNum() + 1) + ": " + detail);
                 }
             }
         }
@@ -228,7 +242,40 @@ public class ExcelImportService {
 
     private Workbook openWorkbook(MultipartFile file) throws Exception {
         // WorkbookFactory сам определяет формат: и .xlsx, и старый .xls
-        return WorkbookFactory.create(file.getInputStream());
+        if (file.isEmpty() || file.getSize() > 5_000_000) {
+            throw new IllegalArgumentException("Выберите Excel-файл размером до 5 МБ");
+        }
+        try (InputStream input = file.getInputStream()) {
+            return WorkbookFactory.create(input);
+        }
+    }
+
+    private void validateRow(Map<String, String> data) {
+        for (String field : List.of("email", "parentEmail")) {
+            String address = data.get(field);
+            if (address == null || address.isBlank()) continue;
+            if (address.length() > 100 || !address.matches("^[^\\s@<>]+@[^\\s@<>]+\\.[^\\s@<>]+$")) {
+                throw new IllegalArgumentException("Некорректный адрес почты");
+            }
+        }
+        String age = data.get("age");
+        if (age != null && !age.isBlank()) {
+            Integer parsed = parseAge(age);
+            if (parsed == null || parsed < 5 || parsed > 100) {
+                throw new IllegalArgumentException("Возраст должен быть числом от 5 до 100");
+            }
+        }
+    }
+
+    private void validateWorkbook(Workbook workbook) {
+        if (workbook.getNumberOfSheets() == 0 || workbook.getSheetAt(0).getPhysicalNumberOfRows() == 0) {
+            throw new IllegalArgumentException("Таблица пуста");
+        }
+        Sheet sheet = workbook.getSheetAt(0);
+        if (sheet.getLastRowNum() > 1000) throw new IllegalArgumentException("Не более 1000 строк за импорт");
+        for (Row row : sheet) {
+            if (row.getLastCellNum() > 50) throw new IllegalArgumentException("Не более 50 колонок");
+        }
     }
 
     // Заголовки по номеру колонки: перебор ячеек пропускает пустые, и после пустой колонки всё сдвигалось.

@@ -77,16 +77,7 @@ public class AIDataGeneratorService {
     );
 
     public String generateWithAI(String userPrompt, String schoolName) {
-        if (openaiApiKey == null || openaiApiKey.isEmpty()) {
-            return "❌ AI недоступен. Настройте OPENAI_API_KEY.";
-        }
-
-        try {
-            String jsonPlan = getCommandsFromAI(userPrompt);
-            return executeCommands(jsonPlan, schoolName);
-        } catch (Exception e) {
-            return "❌ Ошибка: " + e.getMessage();
-        }
+        return "Внешний ИИ отключён. Прикрепите Excel в чате или откройте страницу импорта. Данные обрабатываются локально.";
     }
 
     // GPT возвращает ТОЛЬКО JSON с командами — никаких данных, только числа и названия
@@ -379,29 +370,6 @@ public class AIDataGeneratorService {
     }
 
     private String callOpenAI(String systemPrompt, String userPrompt) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(openaiApiKey);
-
-        Map<String, Object> body = Map.of(
-            "model", "gpt-4o-mini",
-            "messages", List.of(
-                Map.of("role", "system", "content", systemPrompt),
-                Map.of("role", "user", "content", userPrompt)
-            ),
-            "temperature", 0.1,
-            "max_tokens", 500
-        );
-
-        ResponseEntity<Map> response = restTemplate.exchange(
-            "https://api.openai.com/v1/chat/completions",
-            HttpMethod.POST,
-            new HttpEntity<>(body, headers),
-            Map.class
-        );
-
-        List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
-        Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-        return (String) message.get("content");
+        throw new IllegalStateException("Внешний ИИ отключён: данные школы не отправляются в OpenAI. Используйте локальный Excel-импорт.");
     }
 }

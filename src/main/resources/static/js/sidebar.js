@@ -130,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (role === "TEACHER") {
         apiFetch(`/api/${sn}/profile/curator`)
-            .then(r => r.ok ? r.json() : null)
+            .then(r => r.status === 200 ? r.json() : null)
             .then(p => {
                 const link = document.getElementById("curator-nav-link");
                 if (p && link) link.style.display = "flex";

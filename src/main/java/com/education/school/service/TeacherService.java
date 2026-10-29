@@ -112,6 +112,15 @@ public class TeacherService {
         teacher.setHasOffice(request.hasOffice());
         teacher.setOffice(request.office());
 
+        GroupEntity previousGroup = teacher.getGroup();
+        Integer nextGroupId = Boolean.TRUE.equals(request.hasGroup()) ? request.groupId() : null;
+        if (previousGroup != null && !previousGroup.getId().equals(nextGroupId)
+                && previousGroup.getCurator() != null
+                && previousGroup.getCurator().getId().equals(user.getId())) {
+            previousGroup.setCurator(null);
+            groupRepository.save(previousGroup);
+        }
+
         if (Boolean.TRUE.equals(request.hasGroup()) && request.groupId() != null) {
             GroupEntity group = groupRepository.findById(request.groupId())
                     .orElseThrow(() -> new IllegalArgumentException("Group not found"));

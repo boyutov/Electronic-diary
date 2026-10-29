@@ -32,7 +32,8 @@ public class ProfileController {
     public ResponseEntity<CuratorProfileDto> getCuratorProfile(@PathVariable String schoolName) {
         return profileService.getCuratorProfile()
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                // Учитель без класса — обычная ситуация, а не ошибка: 204 не засоряет консоль браузера
+                .orElse(ResponseEntity.noContent().build());
     }
 
     @GetMapping("/me")

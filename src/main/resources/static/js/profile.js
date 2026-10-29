@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const successMsg = document.getElementById("success-msg");
     const errorMsg = document.getElementById("error-msg");
 
+    document.getElementById("change-password-link").href = `/${schoolName}/change-password`;
     let originalEmail = "";
 
     const roleRoutes = {
@@ -72,7 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
             secondName: document.getElementById("secondName").value,
             thirdName: document.getElementById("thirdName").value,
             email: document.getElementById("email").value,
-            newPassword: document.getElementById("newPassword").value || null,
             phone: document.getElementById("phone") ? document.getElementById("phone").value : null,
             bio: document.getElementById("bio") ? document.getElementById("bio").value : null,
             office: document.getElementById("office") ? document.getElementById("office").value : null
@@ -86,14 +86,13 @@ document.addEventListener("DOMContentLoaded", () => {
             if (r.ok) {
                 successMsg.textContent = "Профиль успешно обновлён!";
                 successMsg.style.display = "block";
-                // Новый пароль или логин отзывают текущий вход — входим заново
-                if (data.newPassword || data.email !== originalEmail) {
-                    alert("Пароль или логин изменён. Войдите заново.");
+                // Новый логин отзывает текущий вход — входим заново
+                if (data.email !== originalEmail) {
+                    alert("Логин изменён. Войдите заново.");
                     sessionStorage.removeItem("jwtToken");
                     window.location.href = "/login";
                     return;
                 }
-                document.getElementById("newPassword").value = "";
             } else {
                 r.text().then(text => {
                     let message = text;

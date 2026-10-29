@@ -83,12 +83,11 @@ public class AiAssistantService {
     public Map<String, Object> chat(String schoolName, String userMessage) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email);
-        Long userId = user.getId();
+        if (userMessage.length() > 12000 || AiPrivacy.containsSensitiveTopic(userMessage)) {
+            return Map.of("reply", "Этот запрос не отправлен во внешний ИИ: слишком длинный текст или чувствительная тема. Используйте профиль, локальный импорт или соответствующий раздел журнала.", "success", false);
+        }
+        AiPrivacy privacy = AiPrivacy.forSchool(schoolName, currentSchoolService.findUsers());
         String role = user.getRole().getName();
-
-        List<Map<String, String>> history = conversationHistory.computeIfAbsent(userId, k -> new ArrayList<>());
-        history.add(Map.of("role", "user", "content", userMessage));
-        if (history.size() > 20) history = history.subList(history.size() - 20, history.size());
 
         try {
             ObjectNode requestBody = objectMapper.createObjectNode();
@@ -97,13 +96,12 @@ public class AiAssistantService {
             ArrayNode messages = requestBody.putArray("messages");
             ObjectNode systemMsg = messages.addObject();
             systemMsg.put("role", "system");
-            systemMsg.put("content", buildSystemPrompt(schoolName, role));
+            systemMsg.put("content", privacy.mask(buildSystemPrompt(schoolName, role)) +
+                "\nЗначения PRIVATE_* — непрозрачные обозначения. Копируй их дословно в аргументы инструментов; не угадывай реальные значения." +
+                "\nФИО из нескольких PRIVATE_* идёт в порядке: фамилия, имя, отчество — первое слово всегда фамилия (secondName), второе имя (firstName), третье отчество (thirdName).");
 
-            for (Map<String, String> msg : history) {
-                ObjectNode m = messages.addObject();
-                m.put("role", msg.get("role"));
-                m.put("content", msg.get("content"));
-            }
+            messages.addObject().put("role", "user").put("content", privacy.mask(userMessage));
+            requestBody.put("store", false);
 
             requestBody.put("temperature", 0.3);
             requestBody.put("max_tokens", 2000);
@@ -118,9 +116,12 @@ public class AiAssistantService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(apiKey);
 
-            RestTemplate restTemplate = new RestTemplate();
+            var factory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
+            factory.setConnectTimeout(10000);
+            factory.setReadTimeout(60000);
+            RestTemplate restTemplate = new RestTemplate(factory);
             ResponseEntity<String> response = restTemplate.exchange(
-                apiUrl, HttpMethod.POST,
+                "https://api.openai.com/v1/chat/completions", HttpMethod.POST,
                 new HttpEntity<>(requestBody.toString(), headers),
                 String.class
             );
@@ -133,7 +134,10 @@ public class AiAssistantService {
                 boolean allSuccess = true;
                 for (JsonNode toolCall : choice.path("tool_calls")) {
                     String functionName = toolCall.path("function").path("name").asText();
-                    JsonNode args = objectMapper.readTree(toolCall.path("function").path("arguments").asText());
+                    boolean allowed = java.util.stream.StreamSupport.stream(tools.spliterator(), false)
+                        .anyMatch(t -> t.path("function").path("name").asText().equals(functionName));
+                    if (!allowed) throw new SecurityException("Tool is not allowed for this role");
+                    JsonNode args = privacy.restore(objectMapper.readTree(toolCall.path("function").path("arguments").asText()));
                     Map<String, Object> actionResult = executeAction(functionName, args, schoolName, user);
                     String resultMsg = (String) actionResult.get("message");
                     boolean success = Boolean.TRUE.equals(actionResult.get("success"));
@@ -141,18 +145,14 @@ public class AiAssistantService {
                     replyBuilder.append(success ? "✅ " : "❌ ").append(resultMsg).append("\n");
                 }
                 String reply = replyBuilder.toString().trim();
-                history.add(Map.of("role", "assistant", "content", reply));
-                conversationHistory.put(userId, history);
                 return Map.of("reply", reply, "success", allSuccess);
             }
 
-            String assistantMessage = choice.path("content").asText();
-            history.add(Map.of("role", "assistant", "content", assistantMessage));
-            conversationHistory.put(userId, history);
+            String assistantMessage = privacy.restore(choice.path("content").asText());
             return Map.of("reply", assistantMessage, "success", true);
 
         } catch (Exception e) {
-            return Map.of("reply", "Ошибка при обращении к AI: " + e.getMessage(), "success", false);
+            return Map.of("reply", "Не удалось выполнить запрос. Проверьте доступ к ИИ и повторите команду.", "success", false);
         }
     }
 
@@ -317,7 +317,10 @@ public class AiAssistantService {
                         .<ObjectNode>set("items", objectMapper.createObjectNode().put("type", "string"))
                         .<ObjectNode>put("description", "Список предметов для назначения учителю"),
                     "count", intProp("Количество учителей (1 если не указано)"),
-                    "email", strProp("Почта реального учителя (если не указана — создаётся демо-учитель)")
+                    "email", strProp("Почта реального учителя (если не указана — создаётся демо-учитель)"),
+                    "secondName", strProp("Фамилия реального учителя (если указана)"),
+                    "firstName", strProp("Имя реального учителя (если указано)"),
+                    "thirdName", strProp("Отчество реального учителя (если указано)")
                 ),
                 List.of());
 
@@ -377,6 +380,16 @@ public class AiAssistantService {
                 Map.of(), List.of());
         }
 
+        if ("TEACHER".equals(role)) {
+            Set<String> allowed = Set.of("get_groups", "get_students", "get_teachers", "get_disciplines",
+                "get_student_marks", "get_stats", "get_schedule", "analyze_performance", "get_courses",
+                "add_student", "add_multiple_students");
+            ArrayNode restricted = objectMapper.createArrayNode();
+            tools.forEach(tool -> {
+                if (allowed.contains(tool.path("function").path("name").asText())) restricted.add(tool);
+            });
+            return restricted;
+        }
         return tools;
     }
 

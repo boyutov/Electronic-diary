@@ -8,10 +8,14 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class AIConfig {
 
-    // RestTemplate — HTTP-клиент для отправки запросов к OpenAI API
+    // Старые сервисы используют этот клиент; внешние запросы запрещены.
     // @Bean: Spring создаёт один экземпляр и передаёт его везде, где он нужен
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        RestTemplate client = new RestTemplate();
+        client.setInterceptors(java.util.List.of((request, body, execution) -> {
+            throw new java.io.IOException("External AI requests are disabled");
+        }));
+        return client;
     }
 }

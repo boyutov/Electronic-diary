@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Управление расписанием</title>
     <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/api.js"></script>
     <style>
         .schedule-controls {
             display: flex;
@@ -179,12 +180,15 @@
         }
     </style>
 </head>
-<body>
-<header>
-    <h1>Electronic Diary</h1>
+<body class="app-layout">
+<aside class="sidebar">
+    <div class="sidebar-brand"><h1>Electronic Diary</h1><span class="role-badge">Администратор</span></div>
     <nav id="sidebar-nav"></nav>
-</header>
-<main>
+    <div class="sidebar-footer">
+        <button id="logout-btn">🚪 Выйти</button>
+    </div>
+</aside>
+<div class="app-content">
     <div class="schedule-controls">
         <div style="flex-grow: 1;">
             <label style="margin-bottom: 4px; display: block; font-size: 0.9em; color: #64748b;">Группа</label>
@@ -243,7 +247,7 @@
             </form>
         </div>
     </div>
-</main>
+</div>
 <script src="/js/sidebar.js"></script>
 <script src="/js/admin-schedule.js"></script>
 </body>

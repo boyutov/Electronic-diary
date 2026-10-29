@@ -24,6 +24,7 @@ public class PollController {
     private final PollService service;
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     @Operation(summary = "Получить все голосования (для админа)")
     public List<PollResponse> findAll(@PathVariable String schoolName) {
         return service.findAll().stream().map(PollResponse::from).collect(Collectors.toList());
@@ -38,8 +39,9 @@ public class PollController {
     @GetMapping("/{id}")
     @Operation(summary = "Получить голосование по ID")
     public ResponseEntity<PollResponse> findById(@PathVariable String schoolName, @PathVariable Integer id) {
-        return service.findById(id) != null
-                ? ResponseEntity.ok(PollResponse.from(service.findById(id)))
+        var poll = service.findById(id);
+        return poll != null
+                ? ResponseEntity.ok(PollResponse.from(poll))
                 : ResponseEntity.notFound().build();
     }
 

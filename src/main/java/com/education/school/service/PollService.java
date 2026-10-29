@@ -31,7 +31,15 @@ public class PollService {
 
     @Transactional(readOnly = true)
     public Poll findById(Integer id) {
-        return pollRepository.findById(id).orElse(null);
+        Poll poll = pollRepository.findById(id).orElse(null);
+        if (poll == null) return null;
+        User user = userRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
+        String role = user.getRole().getName();
+        if (!List.of("ADMIN", "DIRECTOR").contains(role)
+                && (!Boolean.TRUE.equals(poll.getActive()) || !isRoleAllowed(poll, role))) {
+            throw new SecurityException("Этот опрос недоступен");
+        }
+        return poll;
     }
 
     /** Голосования доступные текущему пользователю (по его роли) */
@@ -43,14 +51,7 @@ public class PollService {
 
         return pollRepository.findAll().stream()
                 .filter(p -> Boolean.TRUE.equals(p.getActive()))
-                .filter(p -> {
-                    String allowed = p.getAllowedRoles();
-                    if (allowed == null || allowed.isBlank()) return true;
-                    for (String r : allowed.split(",")) {
-                        if (r.trim().equalsIgnoreCase(role)) return true;
-                    }
-                    return false;
-                })
+                .filter(p -> isRoleAllowed(p, role))
                 .map(p -> {
                     boolean voted = p.getVotes().stream()
                             .anyMatch(v -> v.getUser().getId().equals(user.getId()));
@@ -88,6 +89,14 @@ public class PollService {
         Poll poll = pollRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Poll not found"));
 
+        // Ответ API сортирует варианты по голосам, поэтому порядок текста не означает замену.
+        boolean optionsChanged = !poll.getOptions().stream().map(PollOption::getOptionText).sorted().toList()
+                .equals(request.options().stream().sorted().toList());
+        if (optionsChanged && (!poll.getVotes().isEmpty()
+                || poll.getOptions().stream().anyMatch(o -> !o.getVotes().isEmpty()))) {
+            throw new IllegalArgumentException("Нельзя менять варианты опроса после начала голосования");
+        }
+
         poll.setTitle(request.title());
         poll.setDescription(request.description());
         poll.setActive(request.active());
@@ -95,14 +104,15 @@ public class PollService {
             poll.setAllowedRoles(request.allowedRoles());
         }
 
-        poll.getOptions().clear();
-        List<PollOption> options = request.options().stream().map(optionText -> {
-            PollOption pollOption = new PollOption();
-            pollOption.setOptionText(optionText);
-            pollOption.setPoll(poll);
-            return pollOption;
-        }).collect(Collectors.toList());
-        poll.getOptions().addAll(options);
+        if (optionsChanged) {
+            poll.getOptions().clear();
+            for (String optionText : request.options()) {
+                PollOption option = new PollOption();
+                option.setOptionText(optionText);
+                option.setPoll(poll);
+                poll.getOptions().add(option);
+            }
+        }
 
         return pollRepository.save(poll);
     }
@@ -119,9 +129,7 @@ public class PollService {
             throw new IllegalStateException("Poll is not active");
         }
         // Голосовать могут только роли, указанные в опросе (например, опрос только для учителей)
-        String allowed = poll.getAllowedRoles();
-        if (allowed != null && !allowed.isBlank()
-                && java.util.Arrays.stream(allowed.split(",")).map(String::trim).noneMatch(user.getRole().getName()::equals)) {
+        if (!isRoleAllowed(poll, user.getRole().getName())) {
             throw new SecurityException("Этот опрос не для вашей роли");
         }
 
@@ -145,6 +153,13 @@ public class PollService {
 
         Poll saved = pollRepository.save(poll);
         return PollResponse.from(saved, true);
+    }
+
+    private boolean isRoleAllowed(Poll poll, String role) {
+        String allowed = poll.getAllowedRoles();
+        return allowed == null || allowed.isBlank()
+                || java.util.Arrays.stream(allowed.split(","))
+                .anyMatch(r -> r.trim().equalsIgnoreCase(role));
     }
 
     @Transactional

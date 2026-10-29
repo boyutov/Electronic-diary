@@ -18,9 +18,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Инициализация
     Promise.all([
-        fetch(`/api/${schoolName}/groups`).then(r => r.json()),
-        fetch(`/api/${schoolName}/disciplines`).then(r => r.json()),
-        fetch(`/api/${schoolName}/teachers`).then(r => r.json())
+        apiFetch(`/api/${schoolName}/groups`).then(r => r.json()),
+        apiFetch(`/api/${schoolName}/disciplines`).then(r => r.json()),
+        apiFetch(`/api/${schoolName}/teachers`).then(r => r.json())
     ]).then(([groups, disciplines, teachers]) => {
         // Заполняем группы
         groupSelect.innerHTML = "";
@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const day = String(currentDate.getDate()).padStart(2, '0');
         const dateStr = `${year}-${month}-${day}`;
 
-        fetch(`/api/${schoolName}/schedules/group/${groupId}?start=${dateStr}&end=${dateStr}`)
+        apiFetch(`/api/${schoolName}/schedules/group/${groupId}?start=${dateStr}&end=${dateStr}`)
             .then(r => r.json())
             .then(schedule => {
                 // Сортируем по номеру урока
@@ -193,7 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.deleteLesson = function(id) {
         if (confirm("Удалить этот урок?")) {
-            fetch(`/api/${schoolName}/schedules/${id}`, { method: "DELETE" })
+            apiFetch(`/api/${schoolName}/schedules/${id}`, { method: "DELETE" })
                 .then(r => {
                     if (r.ok) loadSchedule();
                     else alert("Ошибка удаления");
@@ -225,7 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const url = isEdit ? `/api/${schoolName}/schedules/${id}` : `/api/${schoolName}/schedules`;
         const method = isEdit ? "PUT" : "POST";
 
-        fetch(url, {
+        apiFetch(url, {
             method: method,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)

@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // First get curator's group
         apiFetch(`/api/${schoolName}/profile/curator`)
-            .then(r => r.ok ? r.json() : Promise.reject("Вы не являетесь куратором"))
+            .then(r => r.status === 200 ? r.json() : Promise.reject("Вы не являетесь куратором"))
             .then(curatorProfile => {
                 const data = {
                     firstName: document.getElementById("firstName").value,
