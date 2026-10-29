@@ -121,7 +121,22 @@ public class CredentialMailService {
 
                 При первом входе система попросит придумать новый пароль — помогите ребёнку его запомнить.
                 Никому не сообщайте пароль — даже учителю или администратору.
-                """.formatted(user.getSecondName(), user.getFirstName(), publicUrl, schoolName, login, temporaryPassword)
+
+                ————————————————
+
+                Саламатсызбы!
+
+                Балаңыз (%s %s) үчүн электрондук күндөлүктө аккаунт түзүлдү.
+
+                Кирүү: %s/login
+                Мектеп: %s
+                Баланын логини: %s
+                Убактылуу сырсөз: %s
+
+                Биринчи киргенде система жаңы сырсөз ойлоп табууну сунуштайт — балаңызга аны эстеп калууга жардам бериңиз.
+                Сырсөздү эч кимге айтпаңыз — мугалимге же администраторго да.
+                """.formatted(user.getSecondName(), user.getFirstName(), publicUrl, schoolName, login, temporaryPassword,
+                              user.getSecondName(), user.getFirstName(), publicUrl, schoolName, login, temporaryPassword)
                 : """
                 Здравствуйте, %s!
 
@@ -134,9 +149,24 @@ public class CredentialMailService {
 
                 При первом входе система попросит придумать свой пароль.
                 Никому не сообщайте пароль — даже учителю или администратору.
-                """.formatted(user.getFirstName(), publicUrl, schoolName, login, temporaryPassword));
 
-        afterCommit(() -> send(to, "Доступ к электронному дневнику — " + schoolName, text, schoolId, initiatorId));
+                ————————————————
+
+                Саламатсызбы, %s!
+
+                Сиз үчүн электрондук күндөлүктө аккаунт түзүлдү.
+
+                Кирүү: %s/login
+                Мектеп: %s
+                Логин: %s
+                Убактылуу сырсөз: %s
+
+                Биринчи киргенде система өз сырсөзүңүздү ойлоп табууну сунуштайт.
+                Сырсөздү эч кимге айтпаңыз — мугалимге же администраторго да.
+                """.formatted(user.getFirstName(), publicUrl, schoolName, login, temporaryPassword,
+                              user.getFirstName(), publicUrl, schoolName, login, temporaryPassword));
+
+        afterCommit(() -> send(to, "Доступ к электронному дневнику / Электрондук күндөлүккө кирүү — " + schoolName, text, schoolId, initiatorId));
     }
 
     // Письмо со ссылкой "Забыли пароль?" — пароль меняется только после перехода по ссылке
@@ -154,9 +184,22 @@ public class CredentialMailService {
                 %s
 
                 Если вы не запрашивали восстановление — просто проигнорируйте письмо, пароль останется прежним.
+
+                ————————————————
+
+                Саламатсызбы!
+
+                Электрондук күндөлүктө %s сырсөзүн калыбына келтирүү суралды (мектеп %s, логин %s).
+
+                Жаңы сырсөз коюу үчүн шилтеме аркылуу өтүңүз (1 саат жарактуу):
+                %s
+
+                Эгер сиз сураган эмес болсоңуз — катты эске албаңыз, сырсөз мурункудай калат.
                 """.formatted(toParent ? "вашего ребёнка (" + user.getSecondName() + " " + user.getFirstName() + ")" : "вашего аккаунта",
+                              schoolName, user.getEmail(), link,
+                              toParent ? "балаңыздын (" + user.getSecondName() + " " + user.getFirstName() + ")" : "аккаунтуңуздун",
                               schoolName, user.getEmail(), link);
-        afterCommit(() -> send(to, "Восстановление пароля — " + schoolName, text, null, null));
+        afterCommit(() -> send(to, "Восстановление пароля / Сырсөздү калыбына келтирүү — " + schoolName, text, null, null));
     }
 
     // Письмо уходит после коммита транзакции: если сохранение откатится — письма не будет

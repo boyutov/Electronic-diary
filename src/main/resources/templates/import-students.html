@@ -2,6 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <script src="/js/i18n-ky.js"></script>
+    <script src="/js/i18n.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Импорт из Excel</title>
     <link rel="stylesheet" href="/css/site.css">
@@ -44,11 +46,11 @@
     <div class="card" id="stage1">
         <div style="display:flex;gap:8px;margin-bottom:16px;">
             <label style="flex:1;padding:12px;border:1.5px solid #e2e8f0;border-radius:10px;cursor:pointer;">
-                <input type="radio" name="importType" value="students" checked> 🎒 <b>Ученики</b>
+                <input type="radio" name="importType" value="students" checked style="width:auto;margin:0 6px 0 0;vertical-align:middle;"> 🎒 <b>Ученики</b>
                 <div style="font-size:12px;color:#64748b;margin-top:4px;">ФИО, почта ученика и/или почта родителя, класс</div>
             </label>
             <label style="flex:1;padding:12px;border:1.5px solid #e2e8f0;border-radius:10px;cursor:pointer;">
-                <input type="radio" name="importType" value="teachers"> 👩‍🏫 <b>Учителя</b>
+                <input type="radio" name="importType" value="teachers" style="width:auto;margin:0 6px 0 0;vertical-align:middle;"> 👩‍🏫 <b>Учителя</b>
                 <div style="font-size:12px;color:#64748b;margin-top:4px;">ФИО, почта, предметы через запятую, телефон</div>
             </label>
         </div>

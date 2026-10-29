@@ -35,3 +35,4 @@ build/
 
 ### Secrets ###
 src/main/resources/application.properties
+tools/i18n/phrases.json
