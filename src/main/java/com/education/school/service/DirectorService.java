@@ -27,7 +27,7 @@ public class DirectorService {
 
     @Transactional(readOnly = true)
     public User findById(Long id) {
-        return currentSchoolService.findUser(id);
+        return currentSchoolService.findUserWithRole(id, "DIRECTOR");
     }
 
     @Transactional
@@ -36,9 +36,7 @@ public class DirectorService {
                 .orElseThrow(() -> new IllegalStateException("Role DIRECTOR not found"));
 
         User user = new User();
-        user.setFirstName(request.firstName());
-        user.setSecondName(request.secondName());
-        user.setThirdName(request.thirdName());
+        PersonNames.apply(user, request.firstName(), request.secondName(), request.thirdName());
         currentSchoolService.setEmail(user, request.email());
         credentialMailService.setInitialPassword(user, request.password()); // пусто → временный пароль на почту
         user.setRole(directorRole);
@@ -49,12 +47,10 @@ public class DirectorService {
 
     @Transactional
     public User update(Long id, DirectorRequest request) {
-        User user = userRepository.findByIdAndSchoolsId(id, currentSchoolService.getId())
+        User user = userRepository.findByIdAndSchoolsIdAndRoleName(id, currentSchoolService.getId(), "DIRECTOR")
                 .orElseThrow(() -> new IllegalArgumentException("Director not found"));
 
-        user.setFirstName(request.firstName());
-        user.setSecondName(request.secondName());
-        user.setThirdName(request.thirdName());
+        PersonNames.apply(user, request.firstName(), request.secondName(), request.thirdName());
         currentSchoolService.setEmail(user, request.email());
 
         if (request.password() != null && !request.password().isBlank()) {
@@ -66,7 +62,7 @@ public class DirectorService {
 
     @Transactional
     public void delete(Long id) {
-        User user = userRepository.findByIdAndSchoolsId(id, currentSchoolService.getId())
+        User user = userRepository.findByIdAndSchoolsIdAndRoleName(id, currentSchoolService.getId(), "DIRECTOR")
                 .orElseThrow(() -> new IllegalArgumentException("Director not found"));
         currentSchoolService.removeUser(user);
     }

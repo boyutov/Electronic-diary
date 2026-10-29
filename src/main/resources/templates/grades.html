@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <script src="/js/safe-html.js"></script>
     <script src="/js/i18n-ky.js"></script>
     <script src="/js/i18n.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -132,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
             content.innerHTML = `
                 <div class="card">
                     <p style="color:#64748b;">
-                        За период <strong>${p.name}</strong> (${formatDate(p.from)} — ${formatDate(p.to)}) оценок нет.
+                        За период <strong>${esc(p.name)}</strong> (${formatDate(p.from)} — ${formatDate(p.to)}) оценок нет.
                     </p>
                 </div>`;
             return;
@@ -156,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return `<span class="mark-chip" style="background:${c};color:${tc};">${v}</span>`;
             }).join("");
             return `<tr>
-                <td><strong>${d.name}</strong></td>
+                <td><strong>${esc(d.name)}</strong></td>
                 <td>${chips}</td>
                 <td class="col-center">
                     <span style="font-weight:700;font-size:1.1em;color:${dColor};background:${dBg};padding:3px 14px;border-radius:999px;">${d.avg}</span>
@@ -167,7 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
         content.innerHTML = `
             <div class="period-summary">
                 <div style="flex:1;">
-                    <div style="font-weight:700;font-size:1.05em;margin-bottom:4px;">${p.name} ${statusBadge}</div>
+                    <div style="font-weight:700;font-size:1.05em;margin-bottom:4px;">${esc(p.name)} ${statusBadge}</div>
                     <div style="color:#64748b;font-size:0.85em;">${formatDate(p.from)} — ${formatDate(p.to)} · ${p.totalMarks} оценок · ${p.disciplines.length} предметов</div>
                 </div>
                 <div style="text-align:center;">

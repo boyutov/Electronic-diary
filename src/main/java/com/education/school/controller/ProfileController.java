@@ -1,6 +1,8 @@
 package com.education.school.controller;
 
+import com.education.school.config.JwtService;
 import com.education.school.dto.CuratorProfileDto;
+import com.education.school.entity.User;
 import com.education.school.dto.PasswordChangeRequest;
 import com.education.school.dto.ProfileUpdateRequest;
 import com.education.school.dto.UserProfileDto;
@@ -13,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/{schoolName}/profile")
 @RequiredArgsConstructor
@@ -20,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 public class ProfileController {
 
     private final ProfileService profileService;
+    private final JwtService jwtService;
 
     @GetMapping("/curator")
     @PreAuthorize("hasAnyAuthority('TEACHER', 'ADMIN')")
@@ -38,9 +43,10 @@ public class ProfileController {
 
     @PostMapping("/password")
     @Operation(summary = "Сменить свой пароль (обязательно после входа с временным паролем)")
-    public ResponseEntity<Void> changePassword(@PathVariable String schoolName, @Valid @RequestBody PasswordChangeRequest request) {
-        profileService.changePassword(request);
-        return ResponseEntity.noContent().build();
+    public Map<String, String> changePassword(@PathVariable String schoolName, @Valid @RequestBody PasswordChangeRequest request) {
+        // Смена пароля отзывает все старые токены, поэтому сразу выдаём новый
+        User user = profileService.changePassword(request);
+        return Map.of("token", jwtService.generateToken(user, schoolName.toLowerCase()));
     }
 
     @PutMapping("/me")

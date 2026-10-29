@@ -23,7 +23,9 @@ public class StudentDto {
     private List<MarkDto> marks;
 
     public static StudentDto from(Student student) {
+        // Удалённые учителем оценки (deletedAt) ученик и родитель не видят и в средний балл они не входят
         List<MarkDto> marks = student.getMarks().stream()
+                .filter(m -> m.getDeletedAt() == null)
                 .map(MarkDto::from)
                 .collect(Collectors.toList());
 

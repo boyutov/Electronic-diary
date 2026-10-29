@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
         apiFetch(`/api/${schoolName}/directors`)
             .then(r => {
                 if (!r.ok) {
-                    tableBody.innerHTML = `<tr><td colspan='3' class='td-error'>Ошибка загрузки (${r.status})</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan='3' class='td-error'>Ошибка загрузки (${esc(r.status)})</td></tr>`;
                     return null;
                 }
                 return r.json();
@@ -27,8 +27,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 directors.forEach(d => {
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
-                        <td>${d.firstName} ${d.secondName}${d.thirdName ? ' ' + d.thirdName : ''}</td>
-                        <td>${d.email}</td>
+                        <td>${esc(d.firstName)} ${esc(d.secondName)}${d.thirdName ? ' ' + d.thirdName : ''}</td>
+                        <td>${esc(d.email)}</td>
                         <td>
                             <div class="action-btns">
                                 <button class="btn-edit">Редактировать</button>

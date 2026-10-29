@@ -56,6 +56,11 @@ public class CurrentSchoolService {
         user.setEmail(normalized);
     }
 
+    // Пользователь текущей школы с конкретной ролью: через /directors/{id} нельзя достать администратора
+    public User findUserWithRole(Long id, String roleName) {
+        return userRepository.findByIdAndSchoolsIdAndRoleName(id, getId(), roleName).orElse(null);
+    }
+
     // Удаление из текущей школы: если человек состоит и в других школах — только отвязываем
     public void removeUser(User user) {
         boolean inOtherSchools = user.getSchools().stream().anyMatch(s -> !s.getId().equals(getId()));

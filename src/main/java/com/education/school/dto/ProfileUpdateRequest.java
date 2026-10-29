@@ -17,7 +17,7 @@ public record ProfileUpdateRequest(
     @Email(message = "Invalid email format")
     String email,
 
-    @Size(min = 6, message = "New password must be at least 6 characters long")
+    @Size(min = 8, message = "Пароль должен быть не короче 8 символов")
     String newPassword,
     
     String phone,

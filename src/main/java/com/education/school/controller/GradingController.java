@@ -23,9 +23,14 @@ public class GradingController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'DIRECTOR')")
     public Map<String, Object> saveSettings(@PathVariable String schoolName,
                                              @RequestBody Map<String, Object> body) {
-        String periodType = (String) body.get("periodType");
-        Integer yearStart = body.get("academicYearStart") != null
-                ? ((Number) body.get("academicYearStart")).intValue() : 9;
+        String periodType = body.get("periodType") == null ? null : String.valueOf(body.get("periodType"));
+        Integer yearStart;
+        try {
+            yearStart = body.get("academicYearStart") != null
+                    ? Integer.valueOf(String.valueOf(body.get("academicYearStart")).trim()) : 9;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Месяц начала учебного года должен быть от 1 до 12");
+        }
         return service.saveSettings(schoolName, periodType, yearStart);
     }
 

@@ -645,9 +645,7 @@ public class AiAssistantService {
                             : transliterate(firstName + "." + secondName + i) + "@teacher.school.ru";
 
                         User user = new User();
-                        user.setFirstName(firstName);
-                        user.setSecondName(secondName);
-                        user.setThirdName(thirdName);
+                        PersonNames.apply(user, firstName, secondName, thirdName); // имена могут прийти от ИИ — проверяем
                         user.setEmail(email);
                         if (realTeacher) {
                             credentialMailService.issueTemporaryPassword(user); // пароль знает только сам учитель

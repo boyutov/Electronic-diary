@@ -72,9 +72,9 @@ document.addEventListener("DOMContentLoaded", () => {
         block.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
                 <div>
-                    <h3 style="margin:0;">${lesson.disciplineName}</h3>
+                    <h3 style="margin:0;">${esc(lesson.disciplineName)}</h3>
                     <p style="color:#64748b;font-size:0.88em;margin-top:4px;">
-                        ${time} · Группа: <strong>${lesson.groupName}</strong> · Каб. ${lesson.classroom || "—"}
+                        ${time} · Группа: <strong>${esc(lesson.groupName)}</strong> · Каб. ${lesson.classroom || "—"}
                     </p>
                 </div>
                 <button class="button save-lesson-btn" data-schedule-id="${lesson.id}">💾 Сохранить</button>
@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
             row.dataset.studentId = s.id;
             row.style.cssText = "display:grid;grid-template-columns:1fr 170px 100px 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);";
             row.innerHTML = `
-                <div style="font-weight:500;font-size:0.92em;">${s.secondName} ${s.firstName}${s.thirdName ? " " + s.thirdName : ""}</div>
+                <div style="font-weight:500;font-size:0.92em;">${esc(s.secondName)} ${esc(s.firstName)}${s.thirdName ? " " + s.thirdName : ""}</div>
                 <select class="status-select" style="padding:6px 8px;border-radius:8px;border:1.5px solid var(--border);font-size:0.88em;font-family:inherit;">
                     <option value="present"    ${status === "present"    ? "selected" : ""}>✅ Присутствует</option>
                     <option value="absent"     ${status === "absent"     ? "selected" : ""}>❌ Отсутствует</option>
@@ -245,7 +245,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     card.style.marginBottom = "16px";
                     card.innerHTML = `
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
-                            <h3 style="margin:0;">${name}</h3>
+                            <h3 style="margin:0;">${esc(name)}</h3>
                             <div style="display:flex;gap:6px;flex-wrap:wrap;">
                                 <span class="status-badge status-present">✅ ${counts.present}</span>
                                 <span class="status-badge status-absent">❌ ${counts.absent}</span>

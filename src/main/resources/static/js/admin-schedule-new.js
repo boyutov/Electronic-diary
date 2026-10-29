@@ -153,8 +153,8 @@ document.addEventListener("DOMContentLoaded", () => {
         slot.innerHTML = `
             <div class="lesson-content">
                 <div class="lesson-time">${lesson.startTime.slice(0, 5)} - ${lesson.endTime.slice(0, 5)}</div>
-                <div class="lesson-subject">${lesson.disciplineName}</div>
-                <div class="lesson-details">${lesson.teacherName} <br> Каб. ${lesson.classroom || "—"}</div>
+                <div class="lesson-subject">${esc(lesson.disciplineName)}</div>
+                <div class="lesson-details">${esc(lesson.teacherName)} <br> Каб. ${lesson.classroom || "—"}</div>
             </div>
             <div class="lesson-actions">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">

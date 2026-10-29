@@ -148,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     return `
                         <div class="student-row">
-                            <div class="student-name">${name}</div>
+                            <div class="student-name">${esc(name)}</div>
                             <div class="student-stats">
                                 <span class="status-badge status-present">✅ ${sPresent}</span>
                                 <span class="status-badge status-absent">❌ ${sAbsent}</span>
@@ -165,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
             card.className = "card group-card";
             card.innerHTML = `
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                    <h3 style="margin:0;">📚 ${groupName}</h3>
+                    <h3 style="margin:0;">📚 ${esc(groupName)}</h3>
                     <span style="font-size:1.3em;font-weight:700;color:${rateColor};">${gRate}%</span>
                 </div>
                 <div class="stat-row" style="margin-bottom:10px;">

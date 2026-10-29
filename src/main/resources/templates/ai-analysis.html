@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <script src="/js/safe-html.js"></script>
     <script src="/js/i18n-ky.js"></script>
     <script src="/js/i18n.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -117,7 +118,7 @@ function setQ(id, text) { document.getElementById(id).value = text; }
 function showFileName() {
     const f = document.getElementById('analysisFile').files[0];
     if (f) document.getElementById('file-drop-text').innerHTML =
-        `<div style="font-size:20px;">✅</div><p style="color:#15803d;font-size:13px;font-weight:600;">${f.name}</p><p style="color:#94a3b8;font-size:11px;">${(f.size/1024).toFixed(1)} KB</p>`;
+        `<div style="font-size:20px;">✅</div><p style="color:#15803d;font-size:13px;font-weight:600;">${esc(f.name)}</p><p style="color:#94a3b8;font-size:11px;">${(f.size/1024).toFixed(1)} KB</p>`;
 }
 
 async function analyzeSchool() {

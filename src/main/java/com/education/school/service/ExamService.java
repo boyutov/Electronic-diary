@@ -126,6 +126,7 @@ public class ExamService {
     public ExamDto update(Integer id, Map<String, Object> req) {
         Exam exam = examRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Exam not found"));
+        checkCanModify(exam);
 
         exam.setTitle((String) req.get("title"));
         exam.setType(req.get("type") != null ? (String) req.get("type") : exam.getType());
@@ -151,6 +152,19 @@ public class ExamService {
 
     @Transactional
     public void delete(Integer id) {
-        examRepository.deleteById(id);
+        examRepository.findById(id).ifPresent(exam -> {
+            checkCanModify(exam);
+            examRepository.delete(exam);
+        });
+    }
+
+    // Учитель меняет и удаляет только свои задания (админ и директор — любые)
+    private void checkCanModify(Exam exam) {
+        User user = userRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
+        boolean teacher = "TEACHER".equals(user.getRole().getName());
+        boolean own = exam.getCreatedByUser() != null && exam.getCreatedByUser().getId().equals(user.getId());
+        if (teacher && !own) {
+            throw new SecurityException("Можно изменять только свои задания");
+        }
     }
 }

@@ -104,14 +104,12 @@ public class SchoolOnboardingService {
             throw new IllegalStateException("School already activated");
         }
 
-        if (userRepository.findByEmail(request.email()) != null) {
+        if (userRepository.existsByEmailIgnoreCase(request.email().trim())) {
             throw new IllegalStateException("User with email already exists");
         }
 
         User adminUser = new User();
-        adminUser.setFirstName(request.firstName());
-        adminUser.setSecondName(request.secondName());
-        adminUser.setThirdName(request.thirdName());
+        PersonNames.apply(adminUser, request.firstName(), request.secondName(), request.thirdName());
         adminUser.setEmail(request.email());
         adminUser.setPassword(passwordEncoder.encode(request.schoolPassword()));
         adminUser.setMustChangePassword(true); // код активации выдан системой — при первом входе меняется

@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <script src="/js/safe-html.js"></script>
     <script src="/js/i18n-ky.js"></script>
     <script src="/js/i18n.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -137,7 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.getElementById("periods-preview").innerHTML = periods.map((p, i) => `
             <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
-                <span class="badge blue" style="min-width:100px;text-align:center;">${p.name}</span>
+                <span class="badge blue" style="min-width:100px;text-align:center;">${esc(p.name)}</span>
                 <span style="color:#64748b;font-size:0.9em;">${p.from} — ${p.to}</span>
             </div>
         `).join("");

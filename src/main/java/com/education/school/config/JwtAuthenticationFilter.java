@@ -100,6 +100,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     // Помещаем аутентификацию в контекст — теперь Spring знает кто делает запрос
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    // Токен истёк или выдан до смены пароля — фронтенд по 401 отправит на вход
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expired or revoked");
+                    return;
                 }
             }
         } catch (Exception e) {

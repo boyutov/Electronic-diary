@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <script src="/js/safe-html.js"></script>
     <script src="/js/i18n-ky.js"></script>
     <script src="/js/i18n.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -56,12 +57,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     const card = document.createElement("div");
                     card.className = "news-card";
                     card.innerHTML = `
-                        <div class="news-card-title">${n.title}</div>
+                        <div class="news-card-title">${esc(n.title)}</div>
                         <div class="news-card-meta">
                             <span>📅 ${date}</span>
-                            ${n.teacherName ? `<span>👨🏫 ${n.teacherName}</span>` : ""}
+                            ${n.teacherName ? `<span>👨🏫 ${esc(n.teacherName)}</span>` : ""}
                         </div>
-                        <div class="news-card-text">${n.text}</div>
+                        <div class="news-card-text">${esc(n.text)}</div>
                     `;
                     container.appendChild(card);
                 });

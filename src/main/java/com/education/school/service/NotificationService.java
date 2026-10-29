@@ -71,7 +71,10 @@ public class NotificationService {
     /** Пометить одно как прочитанное */
     @Transactional
     public void markRead(Long id) {
-        notificationRepository.findById(id).ifPresent(n -> {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email);
+        // Только своё уведомление: чужие не трогаем и не сообщаем, что они существуют
+        notificationRepository.findById(id).filter(n -> n.getUser().getId().equals(user.getId())).ifPresent(n -> {
             n.setIsRead(true);
             notificationRepository.save(n);
         });

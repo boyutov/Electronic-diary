@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
             div.innerHTML = `
                 <input type="checkbox" id="grp-${g.id}" value="${g.id}" name="groups"
                     ${selectedIds.includes(g.id) ? "checked" : ""}>
-                <label for="grp-${g.id}">${g.name}${g.course ? " (" + g.course + " курс)" : ""}</label>
+                <label for="grp-${g.id}">${esc(g.name)}${g.course ? " (" + g.course + " курс)" : ""}</label>
             `;
             groupsContainer.appendChild(div);
         });
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
         card.className = "menu-card";
 
         const imgHtml = m.imageData
-            ? `<img src="data:${m.imageType};base64,${m.imageData}" alt="${m.title}">`
+            ? `<img src="data:${esc(m.imageType)};base64,${esc(m.imageData)}" alt="${esc(m.title)}">`
             : `<div class="img-placeholder">🍽️</div>`;
 
         const date = m.menuDate
@@ -109,9 +109,9 @@ document.addEventListener("DOMContentLoaded", () => {
         card.innerHTML = `
             ${imgHtml}
             <div class="menu-card-body">
-                <div class="menu-card-title">${m.title}</div>
+                <div class="menu-card-title">${esc(m.title)}</div>
                 <div class="menu-card-date">📅 ${date}</div>
-                ${m.description ? `<div class="menu-card-desc">${m.description}</div>` : ""}
+                ${m.description ? `<div class="menu-card-desc">${esc(m.description)}</div>` : ""}
                 <div class="menu-card-groups">${groupsHtml}</div>
                 ${actionsHtml}
             </div>

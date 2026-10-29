@@ -35,6 +35,12 @@ public class GradingService {
 
     @Transactional
     public Map<String, Object> saveSettings(String schoolName, String periodType, Integer yearStart) {
+        if (!java.util.Set.of("QUARTER", "SEMESTER", "YEAR").contains(String.valueOf(periodType))) {
+            throw new IllegalArgumentException("Тип периода должен быть QUARTER, SEMESTER или YEAR");
+        }
+        if (yearStart != null && (yearStart < 1 || yearStart > 12)) {
+            throw new IllegalArgumentException("Месяц начала учебного года должен быть от 1 до 12");
+        }
         School school = schoolRepository.findByName(schoolName)
                 .orElseThrow(() -> new IllegalArgumentException("School not found"));
         GradingSettings s = settingsRepository.findBySchoolName(schoolName).orElse(new GradingSettings());
@@ -132,7 +138,7 @@ public class GradingService {
 
         GradingSettings settings = settingsRepository.findBySchoolName(schoolName).orElse(null);
         String periodType = settings != null ? settings.getPeriodType() : "QUARTER";
-        int yearStart = settings != null ? settings.getAcademicYearStart() : 9;
+        int yearStart = settings != null && settings.getAcademicYearStart() != null && settings.getAcademicYearStart() >= 1 && settings.getAcademicYearStart() <= 12 ? settings.getAcademicYearStart() : 9 /* сохранённое ранее некорректное значение не ломает страницу */;
 
         // Все оценки студента
         List<Mark> allMarks = markRepository.findAll().stream()

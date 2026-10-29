@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
             card.innerHTML = `
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
                     <div>
-                        <h3 style="margin:0;">${groupName} · ${discName}</h3>
+                        <h3 style="margin:0;">${esc(groupName)} · ${esc(discName)}</h3>
                         <p style="color:#64748b;font-size:0.88em;margin-top:4px;">
                             Нажмите на оценку — изменить/удалить · Кнопка <strong>+</strong> — новая оценка
                         </p>
@@ -111,20 +111,20 @@ document.addEventListener("DOMContentLoaded", () => {
                         : "";
                     const tip = `${m.value} · ${date}${m.comment ? " · " + m.comment : ""}`;
                     return `<span class="badge" style="background:${c};color:${tc};cursor:pointer;margin:2px;"
-                        data-id="${m.id}" data-value="${m.value}" data-student="${s.secondName} ${s.firstName}"
-                        title="${tip}">${m.value} <span style="font-size:0.75em;opacity:0.7;">${date}</span></span>`;
+                        data-id="${m.id}" data-value="${m.value}" data-student="${esc(s.secondName)} ${esc(s.firstName)}"
+                        title="${esc(tip)}">${m.value} <span style="font-size:0.75em;opacity:0.7;">${date}</span></span>`;
                 }).join("") || `<span style="color:#cbd5e1;font-size:0.88em;">нет оценок</span>`;
 
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
-                    <td><strong>${s.secondName} ${s.firstName}${s.thirdName ? " " + s.thirdName : ""}</strong></td>
+                    <td><strong>${esc(s.secondName)} ${esc(s.firstName)}${s.thirdName ? " " + s.thirdName : ""}</strong></td>
                     <td>${chipsHtml}</td>
                     <td class="col-center">
                         <span style="font-weight:700;color:${avgColor};background:${avgBg};padding:3px 10px;border-radius:999px;">${avg}</span>
                     </td>
                     <td class="col-center">
                         <button class="button sm add-mark-btn" data-sid="${s.id}"
-                            data-name="${s.secondName} ${s.firstName}"
+                            data-name="${esc(s.secondName)} ${esc(s.firstName)}"
                             style="background:#10b981;padding:4px 12px;font-size:0.85em;">+ Оценка</button>
                     </td>
                 `;

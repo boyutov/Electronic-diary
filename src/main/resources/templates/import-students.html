@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <script src="/js/safe-html.js"></script>
     <script src="/js/i18n-ky.js"></script>
     <script src="/js/i18n.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -175,11 +176,11 @@ function showStage2() {
 
     // Превью таблица
     let html = `<table style="border-collapse:collapse;font-size:13px;min-width:100%;"><thead><tr>`;
-    previewData.headers.forEach(h => html += `<th style="border:1px solid #e2e8f0;padding:6px 10px;background:#f8fafc;">${h}</th>`);
+    previewData.headers.forEach(h => html += `<th style="border:1px solid #e2e8f0;padding:6px 10px;background:#f8fafc;">${esc(h)}</th>`);
     html += '</tr></thead><tbody>';
     (previewData.preview || []).forEach(row => {
         html += '<tr>';
-        row.forEach(cell => html += `<td style="border:1px solid #e2e8f0;padding:5px 10px;">${cell ?? ''}</td>`);
+        row.forEach(cell => html += `<td style="border:1px solid #e2e8f0;padding:5px 10px;">${esc(cell)}</td>`);
         html += '</tr>';
     });
     html += '</tbody></table>';
@@ -198,13 +199,13 @@ function showStage2() {
     mc.innerHTML = previewData.headers.map((h, i) => {
         const sug = previewData.suggestedMapping?.[h] || 'ignore';
         const opts = fields.map(([v, l]) => `<option value="${v}"${v===sug?' selected':''}>${l}</option>`).join('');
-        return `<div class="mapping-card"><label>${h}</label><select id="map_${i}">${opts}</select></div>`;
+        return `<div class="mapping-card"><label>${esc(h)}</label><select id="map_${i}">${opts}</select></div>`;
     }).join('');
 
     // Группы
     apiFetch(`/api/${sn()}/groups`).then(r => r.json()).then(groups => {
         const sel = document.getElementById('defaultGroup');
-        groups.forEach(g => sel.innerHTML += `<option value="${g.name}">${g.name}</option>`);
+        groups.forEach(g => sel.innerHTML += `<option value="${esc(g.name)}">${esc(g.name)}</option>`);
     });
 }
 
@@ -241,7 +242,7 @@ async function proceedToImport() {
         if (res.errorDetails?.length) html += `<details style="margin-top:8px;"><summary style="cursor:pointer;font-weight:600;color:#dc2626;">Ошибки</summary><ul style="margin-top:8px;">${res.errorDetails.map(e=>`<li style="color:#dc2626;">${e}</li>`).join('')}</ul></details>`;
         document.getElementById('import-result').innerHTML = html;
     } catch (e) {
-        document.getElementById('import-result').innerHTML = `<p style="color:#dc2626;">❌ Ошибка: ${e.message}</p>`;
+        document.getElementById('import-result').innerHTML = `<p style="color:#dc2626;">❌ Ошибка: ${esc(e.message)}</p>`;
     }
 }
 

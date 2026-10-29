@@ -7,8 +7,6 @@ import com.education.school.repository.DisciplineRepository;
 import com.education.school.repository.GroupRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -37,7 +35,7 @@ public class ExcelImportService {
         int rowCount = 0;
         for (Row row : sheet) {
             if (rowCount == 0) {
-                for (Cell cell : row) headers.add(getCellValue(cell));
+                headers.addAll(readHeaders(row));
             } else if (rowCount <= 5) {
                 List<String> rowData = new ArrayList<>();
                 for (int i = 0; i < headers.size(); i++) {
@@ -109,13 +107,14 @@ public class ExcelImportService {
         List<String> added = new ArrayList<>();
         List<String> errors = new ArrayList<>();
 
-        try (Workbook workbook = new XSSFWorkbook(new java.io.ByteArrayInputStream(bytes))) {
+        // WorkbookFactory сам определяет формат: и .xlsx, и старый .xls
+        try (Workbook workbook = WorkbookFactory.create(new java.io.ByteArrayInputStream(bytes))) {
             Sheet sheet = workbook.getSheetAt(0);
             List<String> headers = new ArrayList<>();
             int rowNum = 0;
             for (Row row : sheet) {
                 if (rowNum++ == 0) {
-                    for (Cell cell : row) headers.add(getCellValue(cell));
+                    headers.addAll(readHeaders(row));
                     continue;
                 }
                 Map<String, String> rowData = readRow(row, headers, mapping);
@@ -228,11 +227,22 @@ public class ExcelImportService {
     }
 
     private Workbook openWorkbook(MultipartFile file) throws Exception {
-        String name = file.getOriginalFilename() != null ? file.getOriginalFilename() : "";
-        InputStream is = file.getInputStream();
-        if (name.endsWith(".xlsx")) return new XSSFWorkbook(is);
-        if (name.endsWith(".xls"))  return new HSSFWorkbook(is);
-        // Попробуем xlsx по умолчанию
-        return new XSSFWorkbook(is);
+        // WorkbookFactory сам определяет формат: и .xlsx, и старый .xls
+        return WorkbookFactory.create(file.getInputStream());
+    }
+
+    // Заголовки по номеру колонки: перебор ячеек пропускает пустые, и после пустой колонки всё сдвигалось.
+    // Пустой заголовок получает имя "Колонка N", повторяющийся — номер, чтобы сопоставление было однозначным
+    private List<String> readHeaders(Row row) {
+        List<String> headers = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        for (int i = 0; i < Math.max(row.getLastCellNum(), 0); i++) {
+            String h = getCellValue(row.getCell(i));
+            if (h.isBlank()) h = "Колонка " + (i + 1);
+            String unique = h;
+            for (int n = 2; !seen.add(unique); n++) unique = h + " (" + n + ")";
+            headers.add(unique);
+        }
+        return headers;
     }
 }

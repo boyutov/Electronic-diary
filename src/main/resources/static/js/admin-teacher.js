@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 div.className = "checkbox-item";
                 div.innerHTML = `
                     <input type="checkbox" id="disc-${discipline.id}" value="${discipline.id}" name="disciplines">
-                    <label for="disc-${discipline.id}">${discipline.name}</label>
+                    <label for="disc-${discipline.id}">${esc(discipline.name)}</label>
                 `;
                 disciplinesContainer.appendChild(div);
             });
@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
         apiFetch(`/api/${schoolName}/teachers`)
             .then(response => {
                 if (!response.ok) {
-                    tableBody.innerHTML = `<tr><td colspan='5' class='td-error'>Ошибка загрузки (${response.status})</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan='5' class='td-error'>Ошибка загрузки (${esc(response.status)})</td></tr>`;
                     return null;
                 }
                 return response.json();
@@ -66,8 +66,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 teachers.forEach(teacher => {
                     const row = document.createElement("tr");
                     row.innerHTML = `
-                        <td>${teacher.firstName} ${teacher.secondName}</td>
-                        <td>${teacher.email}</td>
+                        <td>${esc(teacher.firstName)} ${esc(teacher.secondName)}</td>
+                        <td>${esc(teacher.email)}</td>
                         <td>${teacher.phone || "—"}</td>
                         <td>${teacher.groupName || "—"}</td>
                         <td>

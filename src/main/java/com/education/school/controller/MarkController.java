@@ -68,8 +68,14 @@ public class MarkController {
     public ResponseEntity<?> update(@PathVariable String schoolName, @PathVariable Integer id,
                                      @RequestBody Map<String, Object> body) {
         try {
-            Integer value = ((Number) body.get("value")).intValue();
-            String reason = (String) body.get("reason");
+            // Значение может прийти строкой или пустым — это ошибка ввода, а не сбой сервера
+            Integer value;
+            try {
+                value = body.get("value") == null ? null : Integer.valueOf(String.valueOf(body.get("value")).trim());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Введите оценку от 1 до 100");
+            }
+            String reason = body.get("reason") == null ? null : String.valueOf(body.get("reason"));
             return ResponseEntity.ok(service.update(id, value, reason));
         } catch (IllegalArgumentException | SecurityException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

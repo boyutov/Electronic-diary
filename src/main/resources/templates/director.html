@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <script src="/js/safe-html.js"></script>
     <script src="/js/i18n-ky.js"></script>
     <script src="/js/i18n.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -79,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <span>📅 ${date}</span>
                         <span class="badge ${c.isAnonymous ? 'gray' : 'blue'}">${c.isAnonymous ? 'Анонимно' : 'Открыто'}</span>
                     </div>
-                    <div class="complaint-text">${c.content}</div>`;
+                    <div class="complaint-text">${esc(c.content)}</div>`;
                 container.appendChild(div);
             });
         }).catch(() => {
@@ -98,8 +99,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 div.className = "schedule-item";
                 div.innerHTML = `
                     <div class="schedule-time">${(item.startTime || "").slice(0,5)} — ${(item.endTime || "").slice(0,5)}</div>
-                    <div class="schedule-subject">${item.disciplineName}</div>
-                    <div class="schedule-details">Каб. ${item.classroom || "—"} · ${item.groupName}</div>`;
+                    <div class="schedule-subject">${esc(item.disciplineName)}</div>
+                    <div class="schedule-details">Каб. ${item.classroom || "—"} · ${esc(item.groupName)}</div>`;
                 container.appendChild(div);
             });
         }).catch(() => {});

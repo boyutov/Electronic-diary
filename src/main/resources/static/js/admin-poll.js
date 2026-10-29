@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const pct = total > 0 ? Math.round(opt.voteCount / total * 100) : 0;
                 return `<div style="margin-bottom:14px;">
                     <div style="display:flex;justify-content:space-between;font-size:0.92em;margin-bottom:5px;">
-                        <span style="font-weight:500;">${opt.optionText}</span>
+                        <span style="font-weight:500;">${esc(opt.optionText)}</span>
                         <span style="color:#64748b;">${opt.voteCount} голос(ов) · ${pct}%</span>
                     </div>
                     <div style="background:#f1f5f9;border-radius:999px;height:10px;">
@@ -74,10 +74,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         : "Все";
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
-                        <td>${p.title}</td>
+                        <td>${esc(p.title)}</td>
                         <td class="col-center"><span class="badge ${p.active ? "green" : "gray"}">${p.active ? "Активно" : "Закрыто"}</span></td>
                         <td class="col-center"><strong>${total}</strong></td>
-                        <td style="color:#64748b;font-size:0.88em;">${roles}</td>
+                        <td style="color:#64748b;font-size:0.88em;">${esc(roles)}</td>
                         <td>${date}</td>
                         <td>
                             <button class="button ghost sm stats-btn">📊 Итоги</button>

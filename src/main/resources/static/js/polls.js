@@ -19,7 +19,7 @@ function initPolls(containerId, schoolName) {
                 if (poll.votedByMe) {
                     return `<div style="margin-bottom:10px;">
                         <div style="display:flex;justify-content:space-between;font-size:0.9em;margin-bottom:4px;">
-                            <span>${opt.optionText}</span>
+                            <span>${esc(opt.optionText)}</span>
                             <span style="color:#64748b;font-weight:600;">${opt.voteCount} (${pct}%)</span>
                         </div>
                         <div style="background:#f1f5f9;border-radius:999px;height:8px;">
@@ -31,20 +31,20 @@ function initPolls(containerId, schoolName) {
                     style="display:block;width:100%;text-align:left;padding:10px 14px;margin-bottom:8px;
                     border:1.5px solid var(--border);border-radius:8px;background:#f8fafc;cursor:pointer;
                     font-size:0.92em;font-family:inherit;transition:border-color 0.15s,background 0.15s;">
-                    ${opt.optionText}
+                    ${esc(opt.optionText)}
                 </button>`;
             }).join("");
 
             card.innerHTML = `
                 <div class="accordion-header" style="cursor:default;">
-                    <span class="acc-title">${poll.title}</span>
+                    <span class="acc-title">${esc(poll.title)}</span>
                     <span class="acc-meta">
                         <span style="color:#94a3b8;font-size:0.82em;">${totalVotes} голос(ов)</span>
                         ${poll.votedByMe ? '<span class="badge green" style="font-size:0.78em;">✓ Проголосовано</span>' : '<span class="badge blue" style="font-size:0.78em;">Открыто</span>'}
                     </span>
                 </div>
                 <div class="accordion-body" style="display:block;">
-                    ${poll.description ? `<p style="color:#64748b;font-size:0.88em;margin-bottom:12px;">${poll.description}</p>` : ""}
+                    ${poll.description ? `<p style="color:#64748b;font-size:0.88em;margin-bottom:12px;">${esc(poll.description)}</p>` : ""}
                     ${optionsHtml}
                 </div>
             `;

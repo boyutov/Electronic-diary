@@ -159,10 +159,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         div.innerHTML = `
                             <div class="schedule-time">${item.startTime.slice(0, 5)} - ${item.endTime.slice(0, 5)}</div>
-                            <div class="schedule-subject">${item.disciplineName}</div>
+                            <div class="schedule-subject">${esc(item.disciplineName)}</div>
                             <div class="schedule-details">
                                 Каб. ${item.classroom || "—"}<br>
-                                ${item.teacherName}
+                                ${esc(item.teacherName)}
                             </div>
                             <button class="action-btn edit-btn">Редактировать</button>
                             <button class="action-btn delete-btn" data-id="${item.id}">Удалить</button>

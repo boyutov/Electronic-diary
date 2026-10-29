@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 courses.forEach(course => {
                     const row = document.createElement("tr");
                     row.innerHTML = `
-                        <td>${course.name}</td>
+                        <td>${esc(course.name)}</td>
                         <td>${course.teacherName || "—"}</td>
                         <td>${course.description || "—"}</td>
                         <td>

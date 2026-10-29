@@ -29,7 +29,7 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public User findById(Long id) {
-        return currentSchoolService.findUser(id);
+        return currentSchoolService.findUserWithRole(id, "ADMIN");
     }
 
     // Создать нового администратора
@@ -40,9 +40,7 @@ public class AdminService {
                 .orElseThrow(() -> new IllegalStateException("Role ADMIN not found"));
 
         User user = new User();
-        user.setFirstName(request.firstName());
-        user.setSecondName(request.secondName());
-        user.setThirdName(request.thirdName());
+        PersonNames.apply(user, request.firstName(), request.secondName(), request.thirdName());
         currentSchoolService.setEmail(user, request.email());
         credentialMailService.setInitialPassword(user, request.password()); // пусто → временный пароль на почту
         user.setRole(adminRole);
@@ -56,12 +54,10 @@ public class AdminService {
     // Обновить данные администратора
     @Transactional
     public User update(Long id, AdminRequest request) {
-        User user = userRepository.findByIdAndSchoolsId(id, currentSchoolService.getId())
+        User user = userRepository.findByIdAndSchoolsIdAndRoleName(id, currentSchoolService.getId(), "ADMIN")
                 .orElseThrow(() -> new IllegalArgumentException("Admin not found"));
 
-        user.setFirstName(request.firstName());
-        user.setSecondName(request.secondName());
-        user.setThirdName(request.thirdName());
+        PersonNames.apply(user, request.firstName(), request.secondName(), request.thirdName());
         currentSchoolService.setEmail(user, request.email());
 
         // Обновляем пароль только если он передан — иначе оставляем старый
@@ -74,7 +70,7 @@ public class AdminService {
 
     @Transactional
     public void delete(Long id) {
-        User user = userRepository.findByIdAndSchoolsId(id, currentSchoolService.getId())
+        User user = userRepository.findByIdAndSchoolsIdAndRoleName(id, currentSchoolService.getId(), "ADMIN")
                 .orElseThrow(() -> new IllegalArgumentException("Admin not found"));
         currentSchoolService.removeUser(user);
     }

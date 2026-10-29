@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             return `<div class="mark-chip">
                                 <span class="chip-val ${valClass}">${m.value}</span>
                                 <span class="chip-date">${date}</span>
-                                ${m.comment ? `<span class="chip-comment">${m.comment}</span>` : ""}
+                                ${m.comment ? `<span class="chip-comment">${esc(m.comment)}</span>` : ""}
                             </div>`;
                         }).join("");
 
@@ -77,9 +77,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 card.innerHTML = `
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
                         <div>
-                            <h3 style="margin:0;">${child.secondName} ${child.firstName}${child.thirdName ? " " + child.thirdName : ""}</h3>
+                            <h3 style="margin:0;">${esc(child.secondName)} ${esc(child.firstName)}${child.thirdName ? " " + child.thirdName : ""}</h3>
                             <p style="margin-top:4px;color:#64748b;font-size:0.9em;">
-                                ${child.email} · Возраст: ${child.age} · Класс: ${child.groupName || "—"}
+                                ${esc(child.email)} · Возраст: ${child.age} · Класс: ${child.groupName || "—"}
                             </p>
                         </div>
                         <div style="text-align:right;">

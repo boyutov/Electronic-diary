@@ -37,6 +37,18 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;    // хэш BCrypt — НИКОГДА не хранится в открытом виде
 
+    // Когда пароль меняли в последний раз: токены, выданные раньше, недействительны
+    @Column(name = "password_changed_at")
+    private java.time.Instant passwordChangedAt;
+
+    // Любая смена пароля отзывает старые токены (сравнение с точностью до миллисекунды, см. JwtService)
+    public void setPassword(String password) {
+        if (this.password != null && !this.password.equals(password)) {
+            this.passwordChangedAt = java.time.Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
+        }
+        this.password = password;
+    }
+
     @Column(nullable = false)
     private String email;       // используется как логин (username)
 

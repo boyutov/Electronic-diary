@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const date = n.createdAt ? new Date(n.createdAt).toLocaleDateString('ru-RU') : "—";
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
-                        <td>${n.title}</td>
+                        <td>${esc(n.title)}</td>
                         <td>${date}</td>
                         <td>
                             <div class="action-btns">

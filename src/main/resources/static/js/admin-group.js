@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         ? `<span class="badge yellow">Контракт</span>`
                         : `<span class="badge green">Бюджет</span>`;
                     tr.innerHTML = `
-                        <td>${g.name}</td>
+                        <td>${esc(g.name)}</td>
                         <td class="col-center">${g.course || "—"}</td>
                         <td>${g.office || "—"}</td>
                         <td class="col-center">${funding}</td>
@@ -153,8 +153,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 students.forEach(s => {
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
-                        <td>${s.firstName} ${s.secondName}${s.thirdName ? ' ' + s.thirdName : ''}</td>
-                        <td>${s.email}</td>
+                        <td>${esc(s.firstName)} ${esc(s.secondName)}${s.thirdName ? ' ' + s.thirdName : ''}</td>
+                        <td>${esc(s.email)}</td>
                         <td class="col-center">${s.age}</td>
                         <td>
                             <div class="action-btns">

@@ -25,6 +25,7 @@ public class ProfileService {
     private final StudentRepository studentRepository;
     private final ParentRepository parentRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CurrentSchoolService currentSchoolService;
 
     @Transactional(readOnly = true)
     public Optional<CuratorProfileDto> getCuratorProfile() {
@@ -62,9 +63,13 @@ public class ProfileService {
         return dto;
     }
 
+    private static String blankToNull(String s) {
+        return s == null || s.isBlank() ? null : s;
+    }
+
     // Смена своего пароля: проверяем текущий, новый должен отличаться от него и от логина
     @Transactional
-    public void changePassword(PasswordChangeRequest request) {
+    public User changePassword(PasswordChangeRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email);
 
@@ -80,7 +85,7 @@ public class ProfileService {
 
         user.setPassword(passwordEncoder.encode(request.newPassword()));
         user.setMustChangePassword(false);
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 
     @Transactional
@@ -88,11 +93,19 @@ public class ProfileService {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email);
         
-        user.setFirstName(request.firstName());
-        user.setSecondName(request.secondName());
-        user.setThirdName(request.thirdName());
-        user.setEmail(request.email());
-        
+        // ФИО ученика ведёт школа (оно в журнале и документах) — сам ученик его не меняет
+        if ("STUDENT".equals(user.getRole().getName())) {
+            boolean namesChanged = !java.util.Objects.equals(user.getFirstName(), request.firstName())
+                    || !java.util.Objects.equals(user.getSecondName(), request.secondName())
+                    || !java.util.Objects.equals(blankToNull(user.getThirdName()), blankToNull(request.thirdName()));
+            if (namesChanged) {
+                throw new SecurityException("Ученик не может менять ФИО — обратитесь к классному руководителю");
+            }
+        } else {
+            PersonNames.apply(user, request.firstName(), request.secondName(), request.thirdName());
+        }
+        currentSchoolService.setEmail(user, request.email()); // занятый логин → понятная ошибка, а не 500
+
         if (request.newPassword() != null && !request.newPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(request.newPassword()));
             user.setMustChangePassword(false); // пароль сменил сам владелец

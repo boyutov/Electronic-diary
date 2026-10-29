@@ -50,12 +50,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 const card = document.createElement("div");
                 card.style.cssText = "border:1.5px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;";
                 card.innerHTML = `
-                    <div style="font-weight:700;font-size:1em;margin-bottom:10px;">📚 ${group.name}</div>
+                    <div style="font-weight:700;font-size:1em;margin-bottom:10px;">📚 ${esc(group.name)}</div>
                     <div style="display:flex;flex-wrap:wrap;gap:8px;">
                         ${group.disciplines.map(d => `
                             <button class="button sm" style="background:#0ea5e9;"
-                                onclick="openMassMarkModal(${groupId}, '${group.name}', ${d.id}, '${d.name}')">
-                                ${d.name} — Оценить
+                                onclick="openMassMarkModal(${Number(groupId)}, ${escJs(group.name)}, ${Number(d.id)}, ${escJs(d.name)})">
+                                ${esc(d.name)} — Оценить
                             </button>
                         `).join("")}
                     </div>
@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }).catch(err => {
             document.getElementById("groups-container").innerHTML =
-                `<p style='color:#ef4444;'>Ошибка: ${err}</p>`;
+                `<p style='color:#ef4444;'>Ошибка: ${esc(err)}</p>`;
         });
 
     // Расписание на сегодня
@@ -83,8 +83,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 div.className = "schedule-item";
                 div.innerHTML = `
                     <div class="schedule-time">${(item.startTime || "").slice(0,5)} — ${(item.endTime || "").slice(0,5)}</div>
-                    <div class="schedule-subject">${item.disciplineName}</div>
-                    <div class="schedule-details">Каб. ${item.classroom || "—"} · ${item.groupName}</div>
+                    <div class="schedule-subject">${esc(item.disciplineName)}</div>
+                    <div class="schedule-details">Каб. ${item.classroom || "—"} · ${esc(item.groupName)}</div>
                 `;
                 container.appendChild(div);
             });
@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const row = document.createElement("div");
                     row.className = "student-mark-row";
                     row.innerHTML = `
-                        <div style="flex:1;font-weight:500;">${student.secondName} ${student.firstName}</div>
+                        <div style="flex:1;font-weight:500;">${esc(student.secondName)} ${esc(student.firstName)}</div>
                         <input type="text" placeholder="Комментарий" class="mark-comment-input" data-student-id="${student.id}" style="width:160px;">
                         <input type="number" min="1" max="100" placeholder="Балл" class="mark-value-input" data-student-id="${student.id}" style="width:80px;text-align:center;">
                     `;

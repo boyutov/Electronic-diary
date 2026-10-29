@@ -36,6 +36,7 @@ public class AttendanceService {
     public List<AttendanceDto> saveForSchedule(Integer scheduleId, List<Map<String, Object>> records) {
         Schedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
+        checkTeacherOwnsLesson(schedule);
 
         return records.stream().map(rec -> {
             Long studentId = ((Number) rec.get("studentId")).longValue();
@@ -44,8 +45,19 @@ public class AttendanceService {
                     ? ((Number) rec.get("lateForInMinutes")).intValue() : null;
             String comment = (String) rec.get("comment");
 
+            if (status == null || !STATUSES.contains(status)) {
+                throw new IllegalArgumentException("Неизвестный статус посещаемости: " + status);
+            }
+            if (lateMinutes != null && (lateMinutes < 0 || lateMinutes > 600)) {
+                throw new IllegalArgumentException("Некорректное время опоздания");
+            }
+
             Student student = studentRepository.findById(studentId)
                     .orElseThrow(() -> new IllegalArgumentException("Student not found: " + studentId));
+            // Отметить можно только ученика класса, у которого этот урок
+            if (student.getGroup() == null || !student.getGroup().getId().equals(schedule.getGroup().getId())) {
+                throw new IllegalArgumentException("Ученик " + student.getUser().getSecondName() + " не из класса этого урока");
+            }
 
             Attendance a = attendanceRepository
                     .findByStudentIdAndScheduleId(studentId, scheduleId)
@@ -89,7 +101,29 @@ public class AttendanceService {
 
     @Transactional
     public void delete(Integer id) {
-        attendanceRepository.deleteById(id);
+        attendanceRepository.findById(id).ifPresent(a -> {
+            if (a.getSchedule() != null) checkTeacherOwnsLesson(a.getSchedule());
+            else if (isTeacher(currentUser())) throw new SecurityException("Можно менять посещаемость только своих уроков");
+            attendanceRepository.delete(a);
+        });
+    }
+
+    private static final java.util.Set<String> STATUSES = java.util.Set.of("present", "absent", "late", "reasonable");
+
+    // Учитель меняет посещаемость только своих уроков (админ и директор — любых)
+    private void checkTeacherOwnsLesson(Schedule schedule) {
+        User user = currentUser();
+        if (isTeacher(user) && !schedule.getTeacher().getUser().getId().equals(user.getId())) {
+            throw new SecurityException("Можно менять посещаемость только своих уроков");
+        }
+    }
+
+    private User currentUser() {
+        return userRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
+    }
+
+    private static boolean isTeacher(User user) {
+        return user != null && "TEACHER".equals(user.getRole().getName());
     }
 
     /** Аналитика посещаемости по всем группам за период (для админа/директора) */

@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             card.innerHTML = `
-                <div class="course-title">${c.name}</div>
+                <div class="course-title">${esc(c.name)}</div>
                 <div class="course-teacher">👨🏫 ${c.teacherName || "—"}</div>
                 <div class="course-desc">${c.description || "<span style='color:#cbd5e1;'>Описание не указано</span>"}</div>
                 <div class="course-footer">${footer}</div>
@@ -141,8 +141,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         ${course.students.map((s, i) => `
                             <tr>
                                 <td style="color:#94a3b8;">${i + 1}</td>
-                                <td><strong>${s.name}</strong></td>
-                                <td style="color:#64748b;font-size:0.88em;">${s.email}</td>
+                                <td><strong>${esc(s.name)}</strong></td>
+                                <td style="color:#64748b;font-size:0.88em;">${esc(s.email)}</td>
                             </tr>
                         `).join("")}
                     </tbody>

@@ -46,8 +46,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 html += `<tr>
                     <td style="color:#94a3b8;">${i + 1}</td>
-                    <td><strong>${s.secondName} ${s.firstName}${s.thirdName ? " " + s.thirdName : ""}</strong></td>
-                    <td style="color:#64748b;font-size:0.88em;">${s.email}</td>
+                    <td><strong>${esc(s.secondName)} ${esc(s.firstName)}${s.thirdName ? " " + s.thirdName : ""}</strong></td>
+                    <td style="color:#64748b;font-size:0.88em;">${esc(s.email)}</td>
                     <td class="col-center">${s.age}</td>
                     <td class="col-center">
                         ${avg
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             : `<span style="color:#94a3b8;font-size:0.88em;">—</span>`}
                     </td>
                     <td class="col-center">
-                        <button class="button ghost sm" data-id="${s.id}" data-name="${s.firstName} ${s.secondName}">
+                        <button class="button ghost sm" data-id="${s.id}" data-name="${esc(s.firstName)} ${esc(s.secondName)}">
                             Посмотреть
                         </button>
                     </td>
@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return `<div class="mark-chip">
                     <span class="chip-val ${valClass}">${m.value}</span>
                     <span class="chip-date">${date}</span>
-                    ${m.comment ? `<span class="chip-comment">${m.comment}</span>` : ""}
+                    ${m.comment ? `<span class="chip-comment">${esc(m.comment)}</span>` : ""}
                 </div>`;
             }).join("");
 

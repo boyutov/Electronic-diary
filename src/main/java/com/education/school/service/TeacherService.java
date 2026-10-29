@@ -55,9 +55,7 @@ public class TeacherService {
         User creator = userRepository.findByEmail(creatorEmail);
 
         User user = new User();
-        user.setFirstName(request.firstName());
-        user.setSecondName(request.secondName());
-        user.setThirdName(request.thirdName());
+        PersonNames.apply(user, request.firstName(), request.secondName(), request.thirdName());
         currentSchoolService.setEmail(user, request.email());
         credentialMailService.setInitialPassword(user, request.password()); // пусто → временный пароль на почту
         user.setRole(teacherRole);
@@ -100,9 +98,7 @@ public class TeacherService {
                 .orElseThrow(() -> new IllegalArgumentException("Teacher not found"));
         
         User user = teacher.getUser();
-        user.setFirstName(request.firstName());
-        user.setSecondName(request.secondName());
-        user.setThirdName(request.thirdName());
+        PersonNames.apply(user, request.firstName(), request.secondName(), request.thirdName());
         currentSchoolService.setEmail(user, request.email());
         
         if (request.password() != null && !request.password().isBlank()) {

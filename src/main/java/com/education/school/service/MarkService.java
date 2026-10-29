@@ -29,6 +29,7 @@ public class MarkService {
     private final TeacherRepository teacherRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final com.education.school.repository.ScheduleRepository scheduleRepository;
 
     @Transactional
     public MarkDto create(MarkRequest request) {
@@ -47,6 +48,14 @@ public class MarkService {
 
         Student student = studentRepository.findById(request.studentId())
                 .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+
+        // Оценка вне расписания допустима только с объяснением (то же правило, что в интерфейсе)
+        java.time.LocalDate markDate = request.markDate() != null ? request.markDate() : java.time.LocalDate.now();
+        boolean hasLesson = student.getGroup() != null && scheduleRepository.hasLessonOnDate(
+                teacher.getId(), student.getGroup().getId(), discipline.getId(), markDate);
+        if (!hasLesson && (request.comment() == null || request.comment().isBlank())) {
+            throw new IllegalArgumentException("Комментарий обязателен — урок не по расписанию!");
+        }
 
         Mark mark = new Mark();
         mark.setStudent(student);
@@ -94,6 +103,9 @@ public class MarkService {
     public MarkDto update(Integer id, Integer newValue, String reason) {
         if (reason == null || reason.isBlank()) {
             throw new IllegalArgumentException("Необходимо указать причину изменения");
+        }
+        if (newValue == null || newValue < 1 || newValue > 100) {
+            throw new IllegalArgumentException("Введите оценку от 1 до 100");
         }
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User currentUser = userRepository.findByEmail(email);

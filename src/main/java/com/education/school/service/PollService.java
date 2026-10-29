@@ -118,6 +118,12 @@ public class PollService {
         if (!Boolean.TRUE.equals(poll.getActive())) {
             throw new IllegalStateException("Poll is not active");
         }
+        // Голосовать могут только роли, указанные в опросе (например, опрос только для учителей)
+        String allowed = poll.getAllowedRoles();
+        if (allowed != null && !allowed.isBlank()
+                && java.util.Arrays.stream(allowed.split(",")).map(String::trim).noneMatch(user.getRole().getName()::equals)) {
+            throw new SecurityException("Этот опрос не для вашей роли");
+        }
 
         boolean alreadyVoted = poll.getVotes().stream()
                 .anyMatch(v -> v.getUser().getId().equals(user.getId()));

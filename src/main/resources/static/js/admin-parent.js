@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
             div.innerHTML = `
                 <input type="checkbox" id="st-${s.id}" value="${s.id}" name="students"
                     ${selectedIds.includes(s.id) ? "checked" : ""}>
-                <label for="st-${s.id}">${s.secondName} ${s.firstName}${s.thirdName ? " " + s.thirdName : ""} — ${s.groupName || "без класса"}</label>
+                <label for="st-${s.id}">${esc(s.secondName)} ${esc(s.firstName)}${s.thirdName ? " " + s.thirdName : ""} — ${s.groupName || "без класса"}</label>
             `;
             studentsContainer.appendChild(div);
         });
@@ -57,10 +57,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         : "—";
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
-                        <td>${p.firstName} ${p.secondName}${p.thirdName ? " " + p.thirdName : ""}</td>
-                        <td>${p.email}</td>
+                        <td>${esc(p.firstName)} ${esc(p.secondName)}${p.thirdName ? " " + p.thirdName : ""}</td>
+                        <td>${esc(p.email)}</td>
                         <td>${p.phone || "—"}</td>
-                        <td style="color:#64748b;font-size:0.88em;">${childrenText}</td>
+                        <td style="color:#64748b;font-size:0.88em;">${esc(childrenText)}</td>
                         <td>
                             <div class="action-btns">
                                 <button class="btn-edit">Редактировать</button>

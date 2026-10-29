@@ -41,6 +41,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 throw new Error(message || "Не удалось сменить пароль");
             }
 
+            // Старые токены после смены пароля не действуют — сохраняем выданный новый
+            const body = await response.json();
+            sessionStorage.setItem("jwtToken", body.token);
+
             // Пароль сменён — ведём на страницу роли, как после обычного входа
             const role = sessionStorage.getItem("userRole");
             let redirectUrl = `/${schoolName}`;

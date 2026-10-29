@@ -58,19 +58,33 @@ public class JwtService {
 
     // Строим JWT: задаём payload, subject (email), даты, подписываем ключом → compact() даёт строку
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+        long now = System.currentTimeMillis();
         return Jwts.builder()
                 .claims(extraClaims)                                         // кастомные поля (schoolName)
+                .claim("issuedAtMs", now)                                    // iat в JWT — секунды, для отзыва нужны миллисекунды
                 .subject(userDetails.getUsername())                          // email пользователя
-                .issuedAt(new Date(System.currentTimeMillis()))              // время выдачи
-                .expiration(new Date(System.currentTimeMillis() + expirationTime)) // время истечения
+                .issuedAt(new Date(now))              // время выдачи
+                .expiration(new Date(now + expirationTime)) // время истечения
                 .signWith(getSignInKey(), Jwts.SIG.HS256)                   // подписываем HMAC-SHA256
                 .compact();                                                   // сериализуем в строку xxx.yyy.zzz
     }
 
-    // Токен валиден если: email совпадает с пользователем И токен не истёк
+    // Токен валиден если: email совпадает, токен не истёк и выдан не раньше последней смены пароля
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        if (!username.equals(userDetails.getUsername()) || isTokenExpired(token)) {
+            return false;
+        }
+        if (userDetails instanceof com.education.school.entity.User user && user.getPasswordChangedAt() != null) {
+            // Старые токены без issuedAtMs сравниваем по iat (секунды)
+            Long issuedMs = extractClaim(token, c -> c.get("issuedAtMs", Long.class));
+            if (issuedMs == null) {
+                Date issuedAt = extractClaim(token, Claims::getIssuedAt);
+                issuedMs = issuedAt != null ? issuedAt.getTime() : 0L;
+            }
+            return issuedMs >= user.getPasswordChangedAt().toEpochMilli();
+        }
+        return true;
     }
 
     // Токен истёк если дата expiration раньше текущего времени

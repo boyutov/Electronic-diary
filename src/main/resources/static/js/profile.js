@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const successMsg = document.getElementById("success-msg");
     const errorMsg = document.getElementById("error-msg");
 
+    let originalEmail = "";
+
     const roleRoutes = {
         ADMIN: "/admin",
         DIRECTOR: "/director",
@@ -44,6 +46,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 phoneContainer.style.display = "block";
                 document.getElementById("phone").value = user.phone || "";
             }
+
+            // ФИО ученика меняет только школа
+            if (user.role === "STUDENT") {
+                ["firstName", "secondName", "thirdName"].forEach(id => {
+                    const input = document.getElementById(id);
+                    input.readOnly = true;
+                    input.title = "ФИО меняет классный руководитель";
+                    input.style.background = "#f1f5f9";
+                });
+            }
+            originalEmail = user.email || "";
         })
         .catch(() => {
             if (errorMsg) { errorMsg.textContent = "Ошибка загрузки профиля."; errorMsg.style.display = "block"; }
@@ -73,10 +86,19 @@ document.addEventListener("DOMContentLoaded", () => {
             if (r.ok) {
                 successMsg.textContent = "Профиль успешно обновлён!";
                 successMsg.style.display = "block";
+                // Новый пароль или логин отзывают текущий вход — входим заново
+                if (data.newPassword || data.email !== originalEmail) {
+                    alert("Пароль или логин изменён. Войдите заново.");
+                    sessionStorage.removeItem("jwtToken");
+                    window.location.href = "/login";
+                    return;
+                }
                 document.getElementById("newPassword").value = "";
             } else {
-                r.json().then(err => {
-                    errorMsg.textContent = "Ошибка: " + (err.message || JSON.stringify(err));
+                r.text().then(text => {
+                    let message = text;
+                    try { const err = JSON.parse(text); message = err.message || Object.values(err).join(", "); } catch (ignored) { }
+                    errorMsg.textContent = "Ошибка: " + message;
                     errorMsg.style.display = "block";
                 });
             }

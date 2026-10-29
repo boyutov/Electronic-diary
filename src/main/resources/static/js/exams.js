@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
             div.innerHTML = `
                 <input type="checkbox" id="grp-${g.id}" value="${g.id}" name="groups"
                     ${selectedIds.includes(g.id) ? "checked" : ""}>
-                <label for="grp-${g.id}">${g.name}${g.course ? " (" + g.course + " кл.)" : ""}</label>
+                <label for="grp-${g.id}">${esc(g.name)}${g.course ? " (" + g.course + " кл.)" : ""}</label>
             `;
             groupsContainer.appendChild(div);
         });
@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const groupsHtml = e.groupNames && e.groupNames.length
                         ? e.groupNames.map(n => `<span class="badge blue">${n}</span>`).join("")
                         : `<span class="badge gray">Все классы</span>`;
-                    const teacher = e.createdByName ? `<span>👨🏫 ${e.createdByName}</span>` : "";
+                    const teacher = e.createdByName ? `<span>👨🏫 ${esc(e.createdByName)}</span>` : "";
                     const actionsHtml = canManage ? `
                         <div style="display:flex;gap:6px;margin-top:12px;">
                             <button class="button warning sm edit-btn" data-id="${e.id}">Ред.</button>
@@ -130,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="exam-card-header">
                             <div>
                                 <span class="badge ${t.cls}" style="margin-bottom:6px;display:inline-block;">${t.icon} ${t.label}</span>
-                                <div class="exam-card-title">${e.title}</div>
+                                <div class="exam-card-title">${esc(e.title)}</div>
                             </div>
                             ${daysLeftBadge(e.examDate, e.type)}
                         </div>
@@ -139,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             ${e.disciplineName ? " · 📖 " + e.disciplineName : ""}
                         </div>
                         ${teacher ? `<div class="exam-card-meta">${teacher}</div>` : ""}
-                        ${e.description ? `<div class="exam-card-desc">${e.description}</div>` : ""}
+                        ${e.description ? `<div class="exam-card-desc">${esc(e.description)}</div>` : ""}
                         <div class="exam-card-groups">${groupsHtml}</div>
                         ${actionsHtml}
                     `;

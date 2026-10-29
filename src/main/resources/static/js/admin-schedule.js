@@ -106,8 +106,8 @@ document.addEventListener("DOMContentLoaded", () => {
             contentDiv.innerHTML = `
                 <div class="lesson-card">
                     <div class="lesson-info">
-                        <h4>${lesson.disciplineName}</h4>
-                        <p>${lesson.startTime.slice(0,5)} - ${lesson.endTime.slice(0,5)} | Каб. ${lesson.classroom || "—"} | ${lesson.teacherName}</p>
+                        <h4>${esc(lesson.disciplineName)}</h4>
+                        <p>${lesson.startTime.slice(0,5)} - ${lesson.endTime.slice(0,5)} | Каб. ${lesson.classroom || "—"} | ${esc(lesson.teacherName)}</p>
                     </div>
                     <div class="lesson-actions">
                         <div class="menu-dots" onclick="toggleMenu(${lesson.id})">⋮</div>

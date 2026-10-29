@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 div.className = "schedule-item";
                 div.innerHTML = `
                     <div class="schedule-time">${(item.startTime || "").slice(0,5)} — ${(item.endTime || "").slice(0,5)}</div>
-                    <div class="schedule-subject">${item.disciplineName}</div>
+                    <div class="schedule-subject">${esc(item.disciplineName)}</div>
                     <div class="schedule-details">Каб. ${item.classroom || "—"} · ${item.teacherName || ""}</div>
                 `;
                 c.appendChild(div);
@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     return `<div class="mark-chip">
                         <span class="chip-val ${valClass}">${m.value}</span>
                         <span class="chip-date">${date}</span>
-                        ${m.comment ? `<span class="chip-comment">${m.comment}</span>` : ""}
+                        ${m.comment ? `<span class="chip-comment">${esc(m.comment)}</span>` : ""}
                     </div>`;
                 }).join("");
 

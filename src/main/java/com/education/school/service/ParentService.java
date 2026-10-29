@@ -48,9 +48,7 @@ public class ParentService {
         User creator = userRepository.findByEmail(creatorEmail);
 
         User user = new User();
-        user.setFirstName(request.firstName());
-        user.setSecondName(request.secondName());
-        user.setThirdName(request.thirdName());
+        PersonNames.apply(user, request.firstName(), request.secondName(), request.thirdName());
         currentSchoolService.setEmail(user, request.email());
         credentialMailService.setInitialPassword(user, request.password()); // пусто → временный пароль на почту
         user.setRole(parentRole);
@@ -76,9 +74,7 @@ public class ParentService {
                 .orElseThrow(() -> new IllegalArgumentException("Parent not found"));
         
         User user = parent.getUser();
-        user.setFirstName(request.firstName());
-        user.setSecondName(request.secondName());
-        user.setThirdName(request.thirdName());
+        PersonNames.apply(user, request.firstName(), request.secondName(), request.thirdName());
         currentSchoolService.setEmail(user, request.email());
         
         if (request.password() != null && !request.password().isBlank()) {

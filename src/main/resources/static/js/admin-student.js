@@ -55,8 +55,8 @@ document.addEventListener("DOMContentLoaded", () => {
         filtered.forEach(s => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td>${s.firstName} ${s.secondName}${s.thirdName ? ' ' + s.thirdName : ''}</td>
-                <td>${s.email}</td>
+                <td>${esc(s.firstName)} ${esc(s.secondName)}${s.thirdName ? ' ' + s.thirdName : ''}</td>
+                <td>${esc(s.email)}</td>
                 <td>${s.age}</td>
                 <td>${s.groupName || "—"}</td>
                 <td>

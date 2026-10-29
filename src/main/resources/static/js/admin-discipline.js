@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
         apiFetch(`/api/${schoolName}/disciplines`)
             .then(r => {
                 if (!r.ok) {
-                    tableBody.innerHTML = `<tr><td colspan='2' class='td-error'>Ошибка загрузки (${r.status})</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan='2' class='td-error'>Ошибка загрузки (${esc(r.status)})</td></tr>`;
                     return null;
                 }
                 return r.json();
@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 disciplines.forEach(d => {
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
-                        <td>${d.name}</td>
+                        <td>${esc(d.name)}</td>
                         <td>
                             <div class="action-btns">
                                 <button class="btn-edit">Редактировать</button>

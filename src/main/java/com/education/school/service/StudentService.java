@@ -71,9 +71,7 @@ public class StudentService {
 
         // Создаём User (аккаунт для входа)
         User user = new User();
-        user.setFirstName(request.firstName());
-        user.setSecondName(request.secondName());
-        user.setThirdName(request.thirdName());
+        PersonNames.apply(user, request.firstName(), request.secondName(), request.thirdName());
         currentSchoolService.setEmail(user, request.email());
         user.setContactEmail(contactEmail);
         credentialMailService.setInitialPassword(user, request.password()); // пусто → временный пароль на почту
@@ -108,9 +106,7 @@ public class StudentService {
         }
 
         User user = student.getUser();
-        user.setFirstName(request.firstName());
-        user.setSecondName(request.secondName());
-        user.setThirdName(request.thirdName());
+        PersonNames.apply(user, request.firstName(), request.secondName(), request.thirdName());
         currentSchoolService.setEmail(user, request.email());
 
         // Меняем пароль только если передан

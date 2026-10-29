@@ -33,6 +33,7 @@ public class ScheduleService {
 
     @Transactional
     public Schedule create(ScheduleRequest request) {
+        validate(request, null);
         Discipline discipline = disciplineRepository.findById(request.disciplineId())
                 .orElseThrow(() -> new IllegalArgumentException("Discipline not found"));
         Teacher teacher = teacherRepository.findById(request.teacherId())
@@ -55,10 +56,35 @@ public class ScheduleService {
         return scheduleRepository.save(schedule);
     }
 
+    // Урок должен быть корректным и не пересекаться с другими уроками того же учителя или класса в этот день
+    private void validate(ScheduleRequest r, Integer selfId) {
+        if (!r.endTime().isAfter(r.startTime())) {
+            throw new IllegalArgumentException("Урок должен заканчиваться позже, чем начинается");
+        }
+        if (r.lessonNumber() < 1 || r.lessonNumber() > 8) {
+            throw new IllegalArgumentException("Номер урока должен быть от 1 до 8");
+        }
+        for (Schedule other : scheduleRepository.findByDate(r.date())) {
+            if (other.getId().equals(selfId)) continue;
+            boolean overlap = other.getStartTime() != null && other.getEndTime() != null
+                    && other.getStartTime().isBefore(r.endTime()) && r.startTime().isBefore(other.getEndTime());
+            if (other.getTeacher().getId().equals(r.teacherId()) && overlap) {
+                throw new IllegalArgumentException("Учитель уже ведёт урок в это время ("
+                        + other.getGroup().getName() + ", " + other.getStartTime() + "–" + other.getEndTime() + ")");
+            }
+            if (other.getGroup().getId().equals(r.groupId())
+                    && (overlap || other.getLessonNumber().equals(r.lessonNumber()))) {
+                throw new IllegalArgumentException("У класса уже есть урок в это время ("
+                        + other.getDiscipline().getName() + ", урок " + other.getLessonNumber() + ")");
+            }
+        }
+    }
+
     @Transactional
     public Schedule update(Integer id, ScheduleRequest request) {
         Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
+        validate(request, id);
 
         Discipline discipline = disciplineRepository.findById(request.disciplineId())
                 .orElseThrow(() -> new IllegalArgumentException("Discipline not found"));

@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <script src="/js/safe-html.js"></script>
     <script src="/js/i18n-ky.js"></script>
     <script src="/js/i18n.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -113,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span class="badge ${c.isAnonymous ? "gray" : "blue"}">${c.isAnonymous ? "Анонимно" : "Открыто"}</span>
                 ${canDelete ? `<button class="button danger sm" data-id="${c.id}" style="margin-left:auto;">Удалить</button>` : ""}
             </div>
-            <div class="complaint-text">${c.content}</div>
+            <div class="complaint-text">${esc(c.content)}</div>
         `;
         if (canDelete) {
             div.querySelector(".danger").addEventListener("click", () => deleteComplaint(c.id));
