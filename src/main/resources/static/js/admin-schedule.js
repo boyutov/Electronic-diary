@@ -234,7 +234,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 modal.style.display = "none";
                 loadSchedule();
             } else {
-                r.json().then(err => alert("Ошибка: " + JSON.stringify(err)));
+                // Сервер присылает причину текстом (например, «Учитель уже занят») или JSON
+                r.text().then(text => {
+                    let message = text;
+                    try { const err = JSON.parse(text); message = err.message || err.error || text; } catch (ignored) { }
+                    alert("Ошибка: " + (message || r.status));
+                });
             }
         });
     });

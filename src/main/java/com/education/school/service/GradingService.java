@@ -21,6 +21,29 @@ public class GradingService {
     private final StudentRepository studentRepository;
     private final UserRepository userRepository;
     private final MarkRepository markRepository;
+    private final CurrentSchoolService currentSchoolService;
+
+    public static final String FIVE = "FIVE";
+    public static final String HUNDRED = "HUNDRED";
+
+    /** Шкала оценок текущей школы; без настроек — 100-балльная */
+    @Transactional(readOnly = true)
+    public String currentScale() {
+        return settingsRepository.findBySchoolName(currentSchoolService.get().getName())
+                .map(GradingSettings::getMarkScale).orElse(HUNDRED);
+    }
+
+    public static int maxMark(String scale) {
+        return FIVE.equals(scale) ? 5 : 100;
+    }
+
+    /** Проверка оценки по шкале школы — и для новой, и для изменённой оценки */
+    public void validateMark(Integer value) {
+        int max = maxMark(currentScale());
+        if (value == null || value < 1 || value > max) {
+            throw new IllegalArgumentException("Введите оценку от 1 до " + max);
+        }
+    }
 
     // ── Настройки ──
 
@@ -30,28 +53,42 @@ public class GradingService {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("periodType", s != null ? s.getPeriodType() : "QUARTER");
         result.put("academicYearStart", s != null ? s.getAcademicYearStart() : 9);
+        result.put("markScale", s != null ? s.getMarkScale() : HUNDRED);
         return result;
     }
 
     @Transactional
-    public Map<String, Object> saveSettings(String schoolName, String periodType, Integer yearStart) {
+    public Map<String, Object> saveSettings(String schoolName, String periodType, Integer yearStart, String markScale) {
         if (!java.util.Set.of("QUARTER", "SEMESTER", "YEAR").contains(String.valueOf(periodType))) {
             throw new IllegalArgumentException("Тип периода должен быть QUARTER, SEMESTER или YEAR");
         }
         if (yearStart != null && (yearStart < 1 || yearStart > 12)) {
             throw new IllegalArgumentException("Месяц начала учебного года должен быть от 1 до 12");
         }
+        if (markScale != null && !java.util.Set.of(FIVE, HUNDRED).contains(markScale)) {
+            throw new IllegalArgumentException("Шкала оценок должна быть FIVE или HUNDRED");
+        }
         School school = schoolRepository.findByName(schoolName)
                 .orElseThrow(() -> new IllegalArgumentException("School not found"));
         GradingSettings s = settingsRepository.findBySchoolName(schoolName).orElse(new GradingSettings());
+        // 5-балльная шкала не может включиться, пока в журнале есть оценки выше 5 — иначе средние потеряют смысл
+        if (FIVE.equals(markScale) && !FIVE.equals(s.getMarkScale())) {
+            long above = markRepository.countByValueGreaterThanAndDeletedAtIsNull(5);
+            if (above > 0) {
+                throw new IllegalArgumentException("В журнале уже есть оценки выше 5 (" + above
+                        + "). Перейти на 5-балльную шкалу можно, когда их исправят или удалят.");
+            }
+        }
         s.setSchool(school);
         s.setPeriodType(periodType);
         s.setAcademicYearStart(yearStart != null ? yearStart : 9);
+        if (markScale != null) s.setMarkScale(markScale);
         s.setUpdatedAt(LocalDateTime.now());
         settingsRepository.save(s);
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("periodType", s.getPeriodType());
         result.put("academicYearStart", s.getAcademicYearStart());
+        result.put("markScale", s.getMarkScale());
         return result;
     }
 
@@ -203,6 +240,7 @@ public class GradingService {
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("periodType", periodType);
+        response.put("markScale", settings != null ? settings.getMarkScale() : HUNDRED);
         response.put("periods", periodsWithGrades);
         return response;
     }

@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
     // Оценки + приветствие
-    apiFetch(`/api/${schoolName}/students/me`)
+    markScaleReady.then(() => apiFetch(`/api/${schoolName}/students/me`))
         .then(r => r.ok ? r.json() : Promise.reject())
         .then(data => {
             document.getElementById("student-greeting").textContent = `Привет, ${data.firstName}!`;
@@ -57,13 +57,13 @@ document.addEventListener("DOMContentLoaded", () => {
             Object.entries(grouped).forEach(([discipline, dMarks]) => {
                 dMarks.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                 const avg = (dMarks.reduce((s, m) => s + m.value, 0) / dMarks.length).toFixed(1);
-                const avgClass = avg >= 80 ? "green" : avg >= 60 ? "yellow" : "red";
+                const avgClass = markTone(avg);
 
                 const chipsHtml = dMarks.map(m => {
                     const date = m.createdAt
                         ? new Date(m.createdAt).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })
                         : "";
-                    const valClass = m.value >= 80 ? "high" : m.value >= 60 ? "mid" : "low";
+                    const valClass = markLevel(m.value);
                     return `<div class="mark-chip">
                         <span class="chip-val ${valClass}">${m.value}</span>
                         <span class="chip-date">${date}</span>

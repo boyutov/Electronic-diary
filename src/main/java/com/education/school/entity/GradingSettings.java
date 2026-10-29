@@ -31,6 +31,10 @@ public class GradingSettings {
     @Column(name = "academic_year_start", nullable = false)
     private Integer academicYearStart = 9;
 
+    // Шкала оценок: FIVE (2–5) или HUNDRED (1–100); её выбирает директор или администратор
+    @Column(name = "mark_scale", nullable = false)
+    private String markScale = "HUNDRED";
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }

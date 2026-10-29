@@ -32,6 +32,7 @@ public class SchoolDataGeneratorService {
     private final CurrentSchoolService currentSchoolService;
     private final ObjectMapper objectMapper;
     private final OpenAiClient openAiClient;
+    private final GradingService gradingService;
 
     private final Faker faker = new Faker(new Locale("ru"));
     private final Random random = new Random();
@@ -389,6 +390,7 @@ public class SchoolDataGeneratorService {
         int count = 0;
         List<Teacher> teachers = teacherRepository.findAll();
         if (teachers.isEmpty()) return 0;
+        boolean fivePoint = GradingService.FIVE.equals(gradingService.currentScale());
         for (Long studentId : studentIds) {
             Student student = studentRepository.findById(studentId).orElse(null);
             if (student == null) continue;
@@ -397,7 +399,7 @@ public class SchoolDataGeneratorService {
                 mark.setStudent(student);
                 mark.setDiscipline(disciplineRepository.findById(
                     disciplineIds.get(random.nextInt(disciplineIds.size()))).orElse(null));
-                mark.setValue(55 + random.nextInt(46)); // 100-балльная шкала журнала
+                mark.setValue(fivePoint ? 3 + random.nextInt(3) : 55 + random.nextInt(46)); // по шкале школы
                 mark.setCreatedAt(java.time.OffsetDateTime.now().minusDays(random.nextInt(30)));
                 mark.setGivenByTeacher(teachers.get(random.nextInt(teachers.size())));
                 markRepository.save(mark);

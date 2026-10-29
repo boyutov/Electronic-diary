@@ -30,6 +30,7 @@ public class MarkService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final com.education.school.repository.ScheduleRepository scheduleRepository;
+    private final GradingService gradingService;
 
     @Transactional
     public MarkDto create(MarkRequest request) {
@@ -38,6 +39,8 @@ public class MarkService {
 
         Teacher teacher = teacherRepository.findByUserId(currentUser.getId())
                 .orElseThrow(() -> new IllegalStateException("Only teachers can give marks"));
+
+        gradingService.validateMark(request.value());
 
         Discipline discipline = disciplineRepository.findById(request.disciplineId())
                 .orElseThrow(() -> new IllegalArgumentException("Discipline not found"));
@@ -104,9 +107,7 @@ public class MarkService {
         if (reason == null || reason.isBlank()) {
             throw new IllegalArgumentException("Необходимо указать причину изменения");
         }
-        if (newValue == null || newValue < 1 || newValue > 100) {
-            throw new IllegalArgumentException("Введите оценку от 1 до 100");
-        }
+        gradingService.validateMark(newValue);
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User currentUser = userRepository.findByEmail(email);
         Teacher teacher = teacherRepository.findByUserId(currentUser.getId())

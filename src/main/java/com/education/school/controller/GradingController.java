@@ -31,7 +31,8 @@ public class GradingController {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Месяц начала учебного года должен быть от 1 до 12");
         }
-        return service.saveSettings(schoolName, periodType, yearStart);
+        String markScale = body.get("markScale") == null ? null : String.valueOf(body.get("markScale"));
+        return service.saveSettings(schoolName, periodType, yearStart, markScale);
     }
 
     @GetMapping("/my-grades")

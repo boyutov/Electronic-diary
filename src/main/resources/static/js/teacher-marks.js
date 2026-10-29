@@ -10,6 +10,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const addMarkModal    = document.getElementById("add-mark-modal");
     const addMarkValue    = document.getElementById("add-mark-value");
+    // Поля оценки — по шкале школы (5 или 100 баллов)
+    markScaleReady.then(() => {
+        for (const input of [addMarkValue, newValueInput]) if (input) input.max = markMax();
+        if (addMarkValue) addMarkValue.placeholder = `1–${markMax()}`;
+    });
     const addMarkDate     = document.getElementById("add-mark-date");
     const addMarkComment  = document.getElementById("add-mark-comment");
     const addMarkError    = document.getElementById("add-mark-error");
@@ -215,8 +220,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const comment = addMarkComment.value.trim();
         const date    = addMarkDate.value;
 
-        if (!value || value < 1 || value > 100) {
-            addMarkError.textContent = "Введите оценку от 1 до 100";
+        if (!value || value < 1 || value > markMax()) {
+            addMarkError.textContent = `Введите оценку от 1 до ${markMax()}`;
             addMarkError.style.display = "block"; return;
         }
         if (addMarkComment.required && !comment) {
@@ -303,8 +308,8 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         } else {
             const newVal = parseInt(newValueInput.value);
-            if (!newVal || newVal < 1 || newVal > 100) {
-                reasonError.textContent = "Введите корректную оценку (1–100)";
+            if (!newVal || newVal < 1 || newVal > markMax()) {
+                reasonError.textContent = `Введите корректную оценку (1–${markMax()})`;
                 reasonError.style.display = "block"; return;
             }
             apiFetch(`/api/${schoolName}/marks/${currentMarkId}`, {

@@ -33,3 +33,29 @@ window.apiFetch = function(url, options = {}) {
 window.safeJson = function(response) {
     return response.json().catch(() => null);
 };
+
+// Шкала оценок школы: FIVE (2–5) или HUNDRED (1–100). Выбирает директор/администратор в «Оценивании».
+// Загружается один раз; страницы ждут markScaleReady, прежде чем раскрашивать оценки.
+// Обычный fetch, а не apiFetch: на странице смены пароля apiFetch увёл бы в бесконечный редирект
+window.MARK_SCALE = "HUNDRED";
+window.markScaleReady = (function () {
+    const token = sessionStorage.getItem("jwtToken");
+    const sn = sessionStorage.getItem("schoolName");
+    if (!token || !sn || window.location.pathname.endsWith("/change-password")) return Promise.resolve(window.MARK_SCALE);
+    return fetch(`/api/${sn}/grading/settings`, { headers: { "Authorization": `Bearer ${token}` } })
+        // тело читаем всегда: непрочитанный ответ с ошибкой браузер держит открытым
+        .then(r => r.json().then(body => r.ok ? body : null, () => null))
+        .then(s => { if (s && s.markScale) window.MARK_SCALE = s.markScale; return window.MARK_SCALE; })
+        .catch(() => window.MARK_SCALE);
+})();
+window.markMax = () => window.MARK_SCALE === "FIVE" ? 5 : 100;
+// high / mid / low — для оценки и для среднего балла
+window.markLevel = function (value) {
+    const v = Number(value);
+    if (window.MARK_SCALE === "FIVE") return v >= 4 ? "high" : v >= 3 ? "mid" : "low";
+    return v >= 80 ? "high" : v >= 60 ? "mid" : "low";
+};
+window.markTone = (value) => ({ high: "green", mid: "yellow", low: "red" })[window.markLevel(value)];
+window.markColors = (value) => ({
+    high: { fg: "#15803d", bg: "#dcfce7" }, mid: { fg: "#854d0e", bg: "#fef9c3" }, low: { fg: "#b91c1c", bg: "#fee2e2" }
+})[window.markLevel(value)];

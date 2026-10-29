@@ -48,6 +48,7 @@ public class AiAssistantService {
     private final CurrentSchoolService currentSchoolService;
     private final CredentialMailService credentialMailService;
     private final StudentEnrollmentService enrollmentService;
+    private final GradingService gradingService;
 
     private final Map<Long, List<Map<String, String>>> conversationHistory = new HashMap<>();
     private final Random random = new Random();
@@ -827,6 +828,8 @@ public class AiAssistantService {
                     List<String> top = new ArrayList<>();
                     List<String> low = new ArrayList<>();
 
+                    boolean fivePoint = GradingService.FIVE.equals(gradingService.currentScale());
+                    double topLimit = fivePoint ? 4.5 : 85, lowLimit = fivePoint ? 3.5 : 65;
                     for (Student st : students) {
                         List<Integer> marks = st.getMarks().stream()
                             .filter(m -> m.getDeletedAt() == null)
@@ -836,8 +839,9 @@ public class AiAssistantService {
                         String fullName = st.getUser().getSecondName() + " " + st.getUser().getFirstName();
                         String grpName = st.getGroup() != null ? st.getGroup().getName() : "?";
                         avgByGroup.merge(grpName, avg, (a, b) -> (a + b) / 2);
-                        if (avg >= 4.5) top.add(fullName + "(" + String.format("%.1f", avg) + ")");
-                        if (avg < 3.5) low.add(fullName + "(" + String.format("%.1f", avg) + ")");
+                        // Пороги «лучших» и «отстающих» — по шкале школы
+                        if (avg >= topLimit) top.add(fullName + "(" + String.format("%.1f", avg) + ")");
+                        if (avg < lowLimit) low.add(fullName + "(" + String.format("%.1f", avg) + ")");
 
                         st.getMarks().stream().filter(m -> m.getDeletedAt() == null).forEach(m -> {
                             String disc = m.getDiscipline().getName();

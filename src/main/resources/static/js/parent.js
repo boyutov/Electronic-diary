@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const container = document.getElementById("children-container");
 
-    apiFetch(`/api/${schoolName}/parents/my/children`)
+    markScaleReady.then(() => apiFetch(`/api/${schoolName}/parents/my/children`))
         .then(r => r.ok ? r.json() : [])
         .then(children => {
             container.innerHTML = "";
@@ -41,13 +41,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     marksHtml = Object.entries(grouped).map(([discipline, dMarks]) => {
                         dMarks.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                         const avg = (dMarks.reduce((s, m) => s + m.value, 0) / dMarks.length).toFixed(1);
-                        const avgClass = avg >= 80 ? "green" : avg >= 60 ? "yellow" : "red";
+                        const avgClass = markTone(avg);
 
                         const chipsHtml = dMarks.map(m => {
                             const date = m.createdAt
                                 ? new Date(m.createdAt).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })
                                 : "";
-                            const valClass = m.value >= 80 ? "high" : m.value >= 60 ? "mid" : "low";
+                            const valClass = markLevel(m.value);
                             return `<div class="mark-chip">
                                 <span class="chip-val ${valClass}">${m.value}</span>
                                 <span class="chip-date">${date}</span>
@@ -77,14 +77,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 card.innerHTML = `
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
                         <div>
-                            <h3 style="margin:0;">${esc(child.secondName)} ${esc(child.firstName)}${child.thirdName ? " " + child.thirdName : ""}</h3>
+                            <h3 style="margin:0;">${esc(child.secondName)} ${esc(child.firstName)}${child.thirdName ? " " + esc(child.thirdName) : ""}</h3>
                             <p style="margin-top:4px;color:#64748b;font-size:0.9em;">
-                                ${esc(child.email)} · Возраст: ${child.age} · Класс: ${child.groupName || "—"}
+                                ${esc(child.email)} · Возраст: ${child.age} · Класс: ${esc(child.groupName || "—")}
                             </p>
                         </div>
                         <div style="text-align:right;">
                             ${totalAvg
-                                ? `<span style="font-size:1.4em;font-weight:700;color:${totalAvg >= 80 ? '#15803d' : totalAvg >= 60 ? '#854d0e' : '#b91c1c'};">${totalAvg}</span>
+                                ? `<span style="font-size:1.4em;font-weight:700;color:${markColors(totalAvg).fg};">${totalAvg}</span>
                                    <div style="font-size:0.75em;color:#94a3b8;">средний балл</div>`
                                 : `<span class="badge gray">Нет оценок</span>`}
                         </div>

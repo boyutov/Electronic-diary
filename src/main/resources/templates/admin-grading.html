@@ -25,8 +25,24 @@
 
     <div class="card" style="max-width:560px;">
         <div id="success-msg" class="alert-success" style="display:none;">Настройки сохранены!</div>
+        <div id="error-msg" class="alert-error" style="display:none;"></div>
 
         <form id="grading-form">
+            <div class="form-group">
+                <label>Шкала оценок</label>
+                <div class="form-row" style="margin-top:8px;">
+                    <label class="scale-option" id="opt-five">
+                        <input type="radio" name="markScale" value="FIVE">
+                        <div><div class="scale-title">5-балльная</div><div class="scale-desc">Оценки от 2 до 5, как в большинстве школ</div></div>
+                    </label>
+                    <label class="scale-option" id="opt-hundred">
+                        <input type="radio" name="markScale" value="HUNDRED">
+                        <div><div class="scale-title">100-балльная</div><div class="scale-desc">Оценки от 1 до 100 баллов</div></div>
+                    </label>
+                </div>
+                <div class="hint">Шкала действует для всей школы: журнал учителя, оценки учеников и родителей, средний балл.</div>
+            </div>
+
             <div class="form-group">
                 <label>Тип периода оценивания</label>
                 <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px;">
@@ -81,15 +97,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Загружаем текущие настройки
     apiFetch(`/api/${schoolName}/grading/settings`)
-        .then(r => r.ok ? r.json() : { periodType: "QUARTER", academicYearStart: 9 })
+        .then(r => r.ok ? r.json() : { periodType: "QUARTER", academicYearStart: 9, markScale: "HUNDRED" })
         .then(s => {
             document.querySelector(`input[value="${s.periodType}"]`).checked = true;
+            const scale = s.markScale || "HUNDRED";
+            document.querySelector(`input[name="markScale"][value="${scale}"]`).checked = true;
+            highlightScale(scale);
             document.getElementById("academicYearStart").value = s.academicYearStart;
             highlightSelected(s.periodType);
             updatePreview(s.periodType, s.academicYearStart);
         });
 
     // Подсветка выбранного варианта
+    function highlightScale(val) {
+        document.getElementById("opt-five").classList.toggle("selected", val === "FIVE");
+        document.getElementById("opt-hundred").classList.toggle("selected", val === "HUNDRED");
+    }
+    document.querySelectorAll("input[name='markScale']").forEach(r => r.addEventListener("change", () => highlightScale(r.value)));
+
     function highlightSelected(val) {
         ["QUARTER","SEMESTER","YEAR"].forEach(v => {
             const el = document.getElementById("opt-" + v.toLowerCase());
@@ -147,16 +172,26 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("grading-form").addEventListener("submit", e => {
         e.preventDefault();
         const periodType = document.querySelector("input[name='periodType']:checked")?.value;
+        const markScale = document.querySelector("input[name='markScale']:checked")?.value;
         const yearStart = parseInt(document.getElementById("academicYearStart").value);
         apiFetch(`/api/${schoolName}/grading/settings`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ periodType, academicYearStart: yearStart })
-        }).then(r => {
+            body: JSON.stringify({ periodType, academicYearStart: yearStart, markScale })
+        }).then(async r => {
+            const errorMsg = document.getElementById("error-msg");
+            errorMsg.style.display = "none";
             if (r.ok) {
                 const msg = document.getElementById("success-msg");
                 msg.style.display = "block";
                 setTimeout(() => msg.style.display = "none", 3000);
+            } else {
+                // Сервер отвечает текстом или JSON — показываем то, что пришло
+                const text = await r.text().catch(() => "");
+                let message = text;
+                try { const body = JSON.parse(text); message = body.message || body.error || text; } catch (ignored) { }
+                errorMsg.textContent = message || "Не удалось сохранить настройки";
+                errorMsg.style.display = "block";
             }
         });
     });

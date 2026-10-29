@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("marks-modal-close").onclick = () => marksModal.classList.remove("open");
     marksModal.addEventListener("click", e => { if (e.target === marksModal) marksModal.classList.remove("open"); });
 
-    apiFetch(`/api/${schoolName}/profile/curator`)
+    markScaleReady.then(() => apiFetch(`/api/${schoolName}/profile/curator`))
         .then(res => res.status === 200 ? res.json() : Promise.reject("no curator"))
         .then(profile => {
             groupNameDisplay.textContent = profile.groupName;
@@ -41,12 +41,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 const avg = marks.length
                     ? (marks.reduce((a, m) => a + m.value, 0) / marks.length).toFixed(1)
                     : null;
-                const avgColor = !avg ? "#94a3b8" : avg >= 80 ? "#15803d" : avg >= 60 ? "#854d0e" : "#b91c1c";
-                const avgBg   = !avg ? "#f1f5f9" : avg >= 80 ? "#dcfce7" : avg >= 60 ? "#fef9c3" : "#fee2e2";
+                const avgColor = !avg ? "#94a3b8" : markColors(avg).fg;
+                const avgBg   = !avg ? "#f1f5f9" : markColors(avg).bg;
 
                 html += `<tr>
                     <td style="color:#94a3b8;">${i + 1}</td>
-                    <td><strong>${esc(s.secondName)} ${esc(s.firstName)}${s.thirdName ? " " + s.thirdName : ""}</strong></td>
+                    <td><strong>${esc(s.secondName)} ${esc(s.firstName)}${s.thirdName ? " " + esc(s.thirdName) : ""}</strong></td>
                     <td style="color:#64748b;font-size:0.88em;">${esc(s.email)}</td>
                     <td class="col-center">${s.age}</td>
                     <td class="col-center">
@@ -99,13 +99,13 @@ document.addEventListener("DOMContentLoaded", () => {
         Object.entries(grouped).forEach(([discipline, dMarks]) => {
             dMarks.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             const avg = (dMarks.reduce((s, m) => s + m.value, 0) / dMarks.length).toFixed(1);
-            const avgClass = avg >= 80 ? "green" : avg >= 60 ? "yellow" : "red";
+            const avgClass = markTone(avg);
 
             const chipsHtml = dMarks.map(m => {
                 const date = m.createdAt
                     ? new Date(m.createdAt).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })
                     : "";
-                const valClass = m.value >= 80 ? "high" : m.value >= 60 ? "mid" : "low";
+                const valClass = markLevel(m.value);
                 return `<div class="mark-chip">
                     <span class="chip-val ${valClass}">${m.value}</span>
                     <span class="chip-date">${date}</span>

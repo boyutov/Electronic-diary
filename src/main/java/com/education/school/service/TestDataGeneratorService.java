@@ -22,6 +22,8 @@ public class TestDataGeneratorService {
     private final com.education.school.repository.StudentRepository studentRepository;
     private final com.education.school.repository.TeacherRepository teacherRepository;
     private final com.education.school.repository.DisciplineRepository disciplineRepository;
+    private final GradingService gradingService;
+    private final com.education.school.repository.UserRepository userRepository;
 
     private final Random random = new Random();
 
@@ -68,7 +70,7 @@ public class TestDataGeneratorService {
 
                 teacherService.create(new TeacherRequest(
                     teacher.firstName, teacher.lastName, teacher.middleName,
-                    teacher.email, "password123", 
+                    uniqueEmail(teacher.email, schoolName), "password123", 
                     "+7900" + (1000000 + random.nextInt(9000000)),
                     "Опытный преподаватель",
                     false, null, false, null,
@@ -96,7 +98,7 @@ public class TestDataGeneratorService {
                     String firstName = isBoy ? firstNamesBoys.get(random.nextInt(firstNamesBoys.size())) : firstNamesGirls.get(random.nextInt(firstNamesGirls.size()));
                     String middleName = isBoy ? middleNamesBoys.get(random.nextInt(middleNamesBoys.size())) : middleNamesGirls.get(random.nextInt(middleNamesGirls.size()));
                     // Только латиница: браузерное поле type=email не принимает кириллицу, и ученик не смог бы войти
-                    String email = "student" + studentCount + "@student.com";
+                    String email = uniqueEmail("student" + studentCount + "@student.com", schoolName);
 
                     studentService.create(new StudentRequest(
                         firstName, lastName, middleName, email, "password123", 
@@ -120,7 +122,7 @@ public class TestDataGeneratorService {
                 String surname = student.getSecondName().endsWith("а")
                         ? student.getSecondName().substring(0, student.getSecondName().length() - 1)
                         : student.getSecondName();
-                String parentEmail = "parent" + parentCount + "@parent.com";
+                String parentEmail = uniqueEmail("parent" + parentCount + "@parent.com", schoolName);
                 
                 parentService.create(new ParentRequest(
                     isFather ? "Сергей" : "Елена", isFather ? surname : surname + "а",
@@ -135,13 +137,15 @@ public class TestDataGeneratorService {
             // 6. Создаем оценки
             result.append("\n6. Создаю оценки...\n");
             var allTeachers = teacherService.findAll();
+            boolean fivePoint = GradingService.FIVE.equals(gradingService.currentScale());
             int markCount = 0;
             for (var student : students) {
                 // Создаем 3-5 оценок для каждого ученика
                 int marksPerStudent = 3 + random.nextInt(3);
                 for (int i = 0; i < marksPerStudent; i++) {
                     var teacher = allTeachers.get(random.nextInt(allTeachers.size()));
-                    int mark = 55 + random.nextInt(46); // 100-балльная шкала, как в журнале учителя: от 55 до 100
+                    // По шкале школы: 3–5 или 55–100
+                    int mark = fivePoint ? 3 + random.nextInt(3) : 55 + random.nextInt(46);
                     
                     // MarkService.create ставит оценку от имени текущего учителя, а генерацию запускает админ —
                     // поэтому сохраняем напрямую от имени случайного учителя
@@ -192,6 +196,12 @@ public class TestDataGeneratorService {
         }
 
         return result.toString();
+    }
+
+    // Логины общие для всех школ: во второй школе те же демо-адреса уже заняты — добавляем название школы
+    private String uniqueEmail(String email, String schoolName) {
+        if (!userRepository.existsByEmailIgnoreCase(email)) return email;
+        return email.replace("@", "." + schoolName.replaceAll("[^a-z0-9-]", "") + "@");
     }
 
     private record TeacherData(String lastName, String firstName, String middleName, String email, String subject) {}

@@ -76,8 +76,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
+            if (data.markScale) window.MARK_SCALE = data.markScale;
             document.getElementById("period-type-label").textContent =
-                "Система оценивания: " + (TYPE_LABELS[data.periodType] || data.periodType);
+                "Система оценивания: " + (TYPE_LABELS[data.periodType] || data.periodType) + " · "
+                + (data.markScale === "FIVE" ? "5-балльная шкала" : "100-балльная шкала");
 
             allPeriods = data.periods; // уже отсортированы: новые сверху
 
@@ -139,8 +141,8 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const avgColor = p.overallAvg >= 80 ? "#15803d" : p.overallAvg >= 60 ? "#854d0e" : "#b91c1c";
-        const avgBg    = p.overallAvg >= 80 ? "#dcfce7" : p.overallAvg >= 60 ? "#fef9c3" : "#fee2e2";
+        const avgColor = markColors(p.overallAvg).fg;
+        const avgBg    = markColors(p.overallAvg).bg;
 
         const statusBadge = isCurrent
             ? `<span class="badge green">Текущий период</span>`
@@ -149,11 +151,11 @@ document.addEventListener("DOMContentLoaded", () => {
             : `<span class="badge blue">Предстоящий</span>`;
 
         const rows = p.disciplines.map(d => {
-            const dColor = d.avg >= 80 ? "#15803d" : d.avg >= 60 ? "#854d0e" : "#b91c1c";
-            const dBg    = d.avg >= 80 ? "#dcfce7" : d.avg >= 60 ? "#fef9c3" : "#fee2e2";
+            const dColor = markColors(d.avg).fg;
+            const dBg    = markColors(d.avg).bg;
             const chips  = d.marks.map(v => {
-                const c  = v >= 80 ? "#dcfce7" : v >= 60 ? "#fef9c3" : "#fee2e2";
-                const tc = v >= 80 ? "#15803d" : v >= 60 ? "#854d0e" : "#b91c1c";
+                const c  = markColors(v).bg;
+                const tc = markColors(v).fg;
                 return `<span class="mark-chip" style="background:${c};color:${tc};">${v}</span>`;
             }).join("");
             return `<tr>

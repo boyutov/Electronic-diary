@@ -9,6 +9,9 @@ import java.util.List;
 
 public interface MarkRepository extends JpaRepository<Mark, Integer> {
 
+    long countByValueGreaterThanAndDeletedAtIsNull(Integer value);
+
+
     @Query("SELECT m FROM Mark m WHERE m.student.group.id = :groupId AND m.discipline.id = :disciplineId AND m.deletedAt IS NULL ORDER BY m.student.user.secondName, m.createdAt")
     List<Mark> findByGroupAndDiscipline(@Param("groupId") Integer groupId, @Param("disciplineId") Integer disciplineId);
 
