@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             let html = `<div class="table-wrap"><table>
                 <thead><tr>
-                    <th>#</th>
+                    <th class="col-num">№</th>
                     <th>ФИО</th>
                     <th>Email</th>
                     <th class="col-center">Возраст</th>
@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const avgBg   = !avg ? "#f1f5f9" : markColors(avg).bg;
 
                 html += `<tr>
-                    <td style="color:#94a3b8;">${i + 1}</td>
+                    <td class="col-num">${i + 1}</td>
                     <td><strong>${esc(s.secondName)} ${esc(s.firstName)}${s.thirdName ? " " + esc(s.thirdName) : ""}</strong></td>
                     <td style="color:#64748b;font-size:0.88em;">${esc(s.email)}</td>
                     <td class="col-center">${s.age}</td>

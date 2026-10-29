@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
         apiFetch(`/api/${schoolName}/admins`)
             .then(r => {
                 if (!r.ok) {
-                    tableBody.innerHTML = `<tr><td colspan='3' class='td-error'>Ошибка загрузки (${esc(r.status)})</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan='4' class='td-error'>Ошибка загрузки (${esc(r.status)})</td></tr>`;
                     return null;
                 }
                 return r.json();
@@ -21,13 +21,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!admins) return;
                 tableBody.innerHTML = "";
                 if (!admins.length) {
-                    tableBody.innerHTML = "<tr><td colspan='3' class='td-empty'>Администраторов нет</td></tr>";
+                    tableBody.innerHTML = "<tr><td colspan='4' class='td-empty'>Администраторов нет</td></tr>";
                     return;
                 }
-                admins.forEach(a => {
+                admins.forEach((a, idx) => {
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
-                        <td>${esc(a.firstName)} ${esc(a.secondName)}${a.thirdName ? ' ' + a.thirdName : ''}</td>
+                        <td class="col-num">${idx + 1}</td>
+                        <td>${esc(a.firstName)} ${esc(a.secondName)}${a.thirdName ? ' ' + esc(a.thirdName) : ''}</td>
                         <td>${esc(a.email)}</td>
                         <td>
                             <div class="action-btns">
@@ -43,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .catch(err => {
                 if (err !== "Unauthorized")
-                    tableBody.innerHTML = `<tr><td colspan='3' class='td-error'>Ошибка: ${err}</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan='4' class='td-error'>Ошибка: ${err}</td></tr>`;
             });
     }
 

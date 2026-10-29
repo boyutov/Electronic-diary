@@ -664,7 +664,7 @@ public class AiAssistantService {
                         if (realTeacher) {
                             credentialMailService.issueTemporaryPassword(user); // пароль знает только сам учитель
                         } else {
-                            user.setPassword(passwordEncoder.encode(email)); // демо-данные: пароль = email
+                            generatorService.setDemoPassword(user); // демо-учитель: password123, сменить при первом входе
                         }
                         user.setRole(teacherRole);
                         currentSchoolService.attach(user);

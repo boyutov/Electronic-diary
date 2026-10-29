@@ -48,13 +48,14 @@ document.addEventListener("DOMContentLoaded", () => {
         studentsCount.textContent = `Найдено: ${filtered.length} из ${allStudents.length}`;
 
         if (filtered.length === 0) {
-            tableBody.innerHTML = "<tr><td colspan='5' style='text-align:center;color:#64748b;padding:24px;'>Ничего не найдено</td></tr>";
+            tableBody.innerHTML = "<tr><td colspan='6' class='td-empty'>Ничего не найдено</td></tr>";
             return;
         }
 
-        filtered.forEach(s => {
+        filtered.forEach((s, idx) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
+                <td class="col-num">${idx + 1}</td>
                 <td>${esc(s.firstName)} ${esc(s.secondName)}${s.thirdName ? ' ' + esc(s.thirdName) : ''}</td>
                 <td>${esc(s.email)}</td>
                 <td>${s.age}</td>

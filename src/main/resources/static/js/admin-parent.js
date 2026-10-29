@@ -48,16 +48,17 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(parents => {
                 tableBody.innerHTML = "";
                 if (!parents.length) {
-                    tableBody.innerHTML = "<tr><td colspan='5' class='td-empty'>Родителей нет</td></tr>";
+                    tableBody.innerHTML = "<tr><td colspan='6' class='td-empty'>Родителей нет</td></tr>";
                     return;
                 }
-                parents.forEach(p => {
+                parents.forEach((p, idx) => {
                     const childrenText = p.children && p.children.length
                         ? p.children.map(c => `${c.firstName} ${c.secondName}`).join(", ")
                         : "—";
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
-                        <td>${esc(p.firstName)} ${esc(p.secondName)}${p.thirdName ? " " + p.thirdName : ""}</td>
+                        <td class="col-num">${idx + 1}</td>
+                        <td>${esc(p.firstName)} ${esc(p.secondName)}${p.thirdName ? " " + esc(p.thirdName) : ""}</td>
                         <td>${esc(p.email)}</td>
                         <td>${p.phone || "—"}</td>
                         <td style="color:#64748b;font-size:0.88em;">${esc(childrenText)}</td>
@@ -74,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             })
             .catch(() => {
-                tableBody.innerHTML = "<tr><td colspan='5' class='td-error'>Ошибка загрузки</td></tr>";
+                tableBody.innerHTML = "<tr><td colspan='6' class='td-error'>Ошибка загрузки</td></tr>";
             });
     }
 

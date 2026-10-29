@@ -141,19 +141,20 @@ document.addEventListener("DOMContentLoaded", () => {
     studentFormModal.addEventListener("click", e => { if (e.target === studentFormModal) studentFormModal.classList.remove("open"); });
 
     function loadStudents(groupId) {
-        studentsTableBody.innerHTML = "<tr><td colspan='4' class='td-empty'>Загрузка...</td></tr>";
+        studentsTableBody.innerHTML = "<tr><td colspan='5' class='td-empty'>Загрузка...</td></tr>";
         apiFetch(`/api/${schoolName}/groups/${groupId}/students`)
             .then(r => r.ok ? r.json() : [])
             .then(students => {
                 studentsTableBody.innerHTML = "";
                 if (!students.length) {
-                    studentsTableBody.innerHTML = "<tr><td colspan='4' class='td-empty'>Учеников нет</td></tr>";
+                    studentsTableBody.innerHTML = "<tr><td colspan='5' class='td-empty'>Учеников нет</td></tr>";
                     return;
                 }
-                students.forEach(s => {
+                students.forEach((s, idx) => {
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
-                        <td>${esc(s.firstName)} ${esc(s.secondName)}${s.thirdName ? ' ' + s.thirdName : ''}</td>
+                        <td class="col-num">${idx + 1}</td>
+                        <td>${esc(s.firstName)} ${esc(s.secondName)}${s.thirdName ? ' ' + esc(s.thirdName) : ''}</td>
                         <td>${esc(s.email)}</td>
                         <td class="col-center">${s.age}</td>
                         <td>
@@ -169,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             })
             .catch(() => {
-                studentsTableBody.innerHTML = "<tr><td colspan='4' class='td-error'>Ошибка загрузки</td></tr>";
+                studentsTableBody.innerHTML = "<tr><td colspan='5' class='td-error'>Ошибка загрузки</td></tr>";
             });
     }
 

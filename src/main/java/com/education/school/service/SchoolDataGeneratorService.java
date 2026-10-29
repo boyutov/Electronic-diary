@@ -142,7 +142,7 @@ public class SchoolDataGeneratorService {
                     user.setSecondName(lastName);
                     user.setThirdName(patronymic);
                     user.setEmail(email);
-                    user.setPassword(passwordEncoder.encode(email));
+                    setDemoPassword(user);
                     user.setRole(teacherRole);
                     currentSchoolService.attach(user);
                     user = userRepository.save(user);
@@ -199,7 +199,7 @@ public class SchoolDataGeneratorService {
                         user.setSecondName(lastName);
                         user.setThirdName(patronymic);
                         user.setEmail(email);
-                        user.setPassword(passwordEncoder.encode(email));
+                        setDemoPassword(user);
                         user.setRole(studentRole);
                         currentSchoolService.attach(user);
                         user = userRepository.save(user);
@@ -284,7 +284,7 @@ public class SchoolDataGeneratorService {
                 user.setSecondName(lastName);
                 user.setThirdName(russianPatronymic(female));
                 user.setEmail(email);
-                user.setPassword(passwordEncoder.encode(email));
+                setDemoPassword(user);
                 user.setRole(studentRole);
                 currentSchoolService.attach(user);
                 user = userRepository.save(user);
@@ -335,7 +335,7 @@ public class SchoolDataGeneratorService {
             user.setSecondName(lastName);
             user.setThirdName(russianPatronymic(female));
             user.setEmail(email);
-            user.setPassword(passwordEncoder.encode(email));
+            setDemoPassword(user);
             user.setRole(studentRole);
             currentSchoolService.attach(user);
             user = userRepository.save(user);
@@ -366,7 +366,7 @@ public class SchoolDataGeneratorService {
             user.setSecondName(lastName);
             user.setThirdName(russianPatronymic(female));
             user.setEmail(email);
-            user.setPassword(passwordEncoder.encode(email));
+            setDemoPassword(user);
             user.setRole(parentRole);
             currentSchoolService.attach(user);
             user = userRepository.save(user);
@@ -502,6 +502,15 @@ public class SchoolDataGeneratorService {
     }
 
     private final Set<String> usedEmails = new HashSet<>();
+
+    // Пароль демо-пользователей: общий и известный, поэтому при первом входе его обязательно меняют.
+    // Раньше пароль совпадал с логином — войти мог любой, кто знает почту
+    public static final String DEMO_PASSWORD = "password123";
+
+    void setDemoPassword(User user) {
+        user.setPassword(passwordEncoder.encode(DEMO_PASSWORD));
+        user.setMustChangePassword(true);
+    }
 
     private String uniqueEmail(String firstName, String lastName, int index, String domain) {
         Map<Character, String> tr = Map.ofEntries(

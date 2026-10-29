@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
         apiFetch(`/api/${schoolName}/teachers`)
             .then(response => {
                 if (!response.ok) {
-                    tableBody.innerHTML = `<tr><td colspan='5' class='td-error'>Ошибка загрузки (${esc(response.status)})</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan='6' class='td-error'>Ошибка загрузки (${esc(response.status)})</td></tr>`;
                     return null;
                 }
                 return response.json();
@@ -60,12 +60,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!teachers) return;
                 tableBody.innerHTML = "";
                 if (!teachers.length) {
-                    tableBody.innerHTML = "<tr><td colspan='5' class='td-empty'>Учителей нет</td></tr>";
+                    tableBody.innerHTML = "<tr><td colspan='6' class='td-empty'>Учителей нет</td></tr>";
                     return;
                 }
-                teachers.forEach(teacher => {
+                teachers.forEach((teacher, idx) => {
                     const row = document.createElement("tr");
                     row.innerHTML = `
+                        <td class="col-num">${idx + 1}</td>
                         <td>${esc(teacher.firstName)} ${esc(teacher.secondName)}</td>
                         <td>${esc(teacher.email)}</td>
                         <td>${teacher.phone || "—"}</td>
@@ -84,7 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .catch(err => {
                 if (err !== "Unauthorized")
-                    tableBody.innerHTML = `<tr><td colspan='5' class='td-error'>Ошибка: ${err}</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan='6' class='td-error'>Ошибка: ${err}</td></tr>`;
             });
     }
 

@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const rateB = b.filter(r => r.status === "present").length / b.length;
                     return rateA - rateB;
                 })
-                .map(([key, recs]) => {
+                .map(([key, recs], idx) => {
                     const name = key.split("|")[1] || "Ученик";
                     const sTotal   = recs.length;
                     const sPresent = recs.filter(r => r.status === "present").length;
@@ -148,13 +148,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     return `
                         <div class="student-row">
-                            <div class="student-name">${esc(name)}</div>
+                            <div class="student-name"><span class="row-num">${idx + 1}.</span>${esc(name)}</div>
                             <div class="student-stats">
                                 <span class="status-badge status-present">✅ ${sPresent}</span>
                                 <span class="status-badge status-absent">❌ ${sAbsent}</span>
                                 ${sLate > 0 ? `<span class="status-badge status-late">⏰ ${sLate}${lateDetails ? " · " + lateDetails : ""}</span>` : ""}
                                 ${sReason > 0 ? `<span class="status-badge status-reasonable">📄 ${sReason}</span>` : ""}
-                                ${absentDetails ? `<span style="color:#94a3b8;font-size:0.8em;margin-left:4px;">${absentDetails}</span>` : ""}
+                                ${absentDetails ? `<span style="color:#94a3b8;font-size:0.8em;margin-left:4px;">${esc(absentDetails)}</span>` : ""}
                             </div>
                             <div class="student-rate" style="color:${sColor};">${sRate}%</div>
                         </div>

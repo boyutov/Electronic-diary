@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
         `;
 
-        students.forEach(s => {
+        students.forEach((s, idx) => {
             const ex = existingMap[s.id] || {};
             const status = ex.status || "present";
 
@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
             row.dataset.studentId = s.id;
             row.style.cssText = "display:grid;grid-template-columns:1fr 170px 100px 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);";
             row.innerHTML = `
-                <div style="font-weight:500;font-size:0.92em;">${esc(s.secondName)} ${esc(s.firstName)}${s.thirdName ? " " + s.thirdName : ""}</div>
+                <div style="font-weight:500;font-size:0.92em;"><span class="row-num">${idx + 1}.</span>${esc(s.secondName)} ${esc(s.firstName)}${s.thirdName ? " " + esc(s.thirdName) : ""}</div>
                 <select class="status-select" style="padding:6px 8px;border-radius:8px;border:1.5px solid var(--border);font-size:0.88em;font-family:inherit;">
                     <option value="present"    ${status === "present"    ? "selected" : ""}>✅ Присутствует</option>
                     <option value="absent"     ${status === "absent"     ? "selected" : ""}>❌ Отсутствует</option>

@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div class="table-wrap">
                     <table>
-                        <thead><tr><th>Ученик</th><th>Оценки</th><th class="col-center">Средний</th><th class="col-center">Добавить</th></tr></thead>
+                        <thead><tr><th class="col-num">№</th><th>Ученик</th><th>Оценки</th><th class="col-center">Средний</th><th class="col-center">Добавить</th></tr></thead>
                         <tbody id="marks-tbody"></tbody>
                     </table>
                 </div>
@@ -105,11 +105,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const tbody = document.getElementById("marks-tbody");
 
             if (!students.length) {
-                tbody.innerHTML = "<tr><td colspan='4' class='td-empty'>Учеников нет</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='5' class='td-empty'>Учеников нет</td></tr>";
                 return;
             }
 
-            students.forEach(s => {
+            students.forEach((s, idx) => {
                 const sMarks = marksByStudent[s.id] || [];
                 const avg = sMarks.length
                     ? (sMarks.reduce((sum, m) => sum + m.value, 0) / sMarks.length).toFixed(1)
@@ -131,7 +131,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
-                    <td><strong>${esc(s.secondName)} ${esc(s.firstName)}${s.thirdName ? " " + s.thirdName : ""}</strong></td>
+                    <td class="col-num">${idx + 1}</td>
+                    <td><strong>${esc(s.secondName)} ${esc(s.firstName)}${s.thirdName ? " " + esc(s.thirdName) : ""}</strong></td>
                     <td>${chipsHtml}</td>
                     <td class="col-center">
                         <span style="font-weight:700;color:${avgColor};background:${avgBg};padding:3px 10px;border-radius:999px;">${avg}</span>

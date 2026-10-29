@@ -109,11 +109,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     markStudentsContainer.innerHTML = "<p style='color:#64748b;'>В этом классе нет учеников.</p>";
                     return;
                 }
-                students.forEach(student => {
+                students.forEach((student, idx) => {
                     const row = document.createElement("div");
                     row.className = "student-mark-row";
                     row.innerHTML = `
-                        <div style="flex:1;font-weight:500;">${esc(student.secondName)} ${esc(student.firstName)}</div>
+                        <div style="flex:1;font-weight:500;"><span class="row-num">${idx + 1}.</span>${esc(student.secondName)} ${esc(student.firstName)}</div>
                         <input type="text" placeholder="Комментарий" class="mark-comment-input" data-student-id="${student.id}" style="width:160px;">
                         <input type="number" min="1" max="${markMax()}" placeholder="1–${markMax()}" class="mark-value-input" data-student-id="${student.id}" style="width:80px;text-align:center;">
                     `;
