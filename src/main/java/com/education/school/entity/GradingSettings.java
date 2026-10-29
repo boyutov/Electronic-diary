@@ -35,6 +35,10 @@ public class GradingSettings {
     @Column(name = "mark_scale", nullable = false)
     private String markScale = "HUNDRED";
 
+    // Даты периодов, заданные школой (JSON «месяц-день» по типам периодов); null — школьный календарь по умолчанию
+    @Column(name = "custom_periods", columnDefinition = "TEXT")
+    private String customPeriods;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }

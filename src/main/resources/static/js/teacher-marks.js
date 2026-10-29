@@ -48,6 +48,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("load-btn").addEventListener("click", loadMarks);
 
     // ── Загрузка оценок ──
+    // Журнал показывает оценки выбранного периода (по умолчанию — текущего)
+    let currentPeriod = null;
+    let journalShown = false; // журнал уже открыт — при смене периода перерисовываем его
+    loadPeriods().then(data => renderPeriodPicker(document.getElementById("period-picker"), data.periods || [], period => {
+        currentPeriod = period;
+        if (journalShown) loadMarks();
+    }));
+
     function loadMarks() {
         const groupId      = groupSelect.value;
         const disciplineId = disciplineSelect.value;
@@ -55,6 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const content = document.getElementById("marks-content");
         content.innerHTML = "<p style='color:#64748b;'>Загрузка...</p>";
+        journalShown = true;
 
         // Загружаем учеников группы и оценки параллельно
         Promise.all([
@@ -68,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Индекс оценок по studentId
             const marksByStudent = {};
-            marks.forEach(m => {
+            marks.filter(m => markInPeriod(m, currentPeriod)).forEach(m => {
                 if (!marksByStudent[m.studentId]) marksByStudent[m.studentId] = [];
                 marksByStudent[m.studentId].push(m);
             });

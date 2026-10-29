@@ -4,7 +4,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const container = document.getElementById("children-container");
 
-    markScaleReady.then(() => apiFetch(`/api/${schoolName}/parents/my/children`))
+    let periods = [];
+    Promise.all([markScaleReady, loadPeriods()])
+        .then(([, data]) => { periods = data.periods || []; return apiFetch(`/api/${schoolName}/parents/my/children`); })
         .then(r => r.ok ? r.json() : [])
         .then(children => {
             container.innerHTML = "";
@@ -19,8 +21,13 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("parent-info").textContent =
                 `Детей: ${children.length}`;
 
+            // Оценки показываем за выбранный период (по умолчанию — текущая четверть / полугодие)
+            renderPeriodPicker(document.getElementById("period-picker"), periods, period => draw(period));
+
+            function draw(period) {
+            container.innerHTML = "";
             children.forEach(child => {
-                const marks = child.marks || [];
+                const marks = (child.marks || []).filter(m => markInPeriod(m, period));
                 const allVals = marks.map(m => m.value);
                 const totalAvg = allVals.length
                     ? (allVals.reduce((a, b) => a + b, 0) / allVals.length).toFixed(1)
@@ -36,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Строим аккордеоны оценок
                 let marksHtml = "";
                 if (!marks.length) {
-                    marksHtml = "<p style='color:#64748b;font-size:0.9em;margin-top:12px;'>Оценок пока нет.</p>";
+                    marksHtml = `<p class='empty-inline' style='margin-top:12px;'>${period ? "Оценок за этот период нет." : "Оценок пока нет."}</p>`;
                 } else {
                     marksHtml = Object.entries(grouped).map(([discipline, dMarks]) => {
                         dMarks.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -90,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         </div>
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <h4 style="font-size:0.88em;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin:0;">📊 Оценки</h4>
+                        <h4 style="font-size:0.88em;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin:0;">Оценки</h4>
                     </div>
                     ${marksHtml}
                 `;
@@ -102,6 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 container.appendChild(card);
             });
+            }
         })
         .catch(() => {
             container.innerHTML = "<div class='card'><p style='color:#ef4444;'>Ошибка загрузки данных.</p></div>";

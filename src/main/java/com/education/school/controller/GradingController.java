@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -24,15 +25,24 @@ public class GradingController {
     public Map<String, Object> saveSettings(@PathVariable String schoolName,
                                              @RequestBody Map<String, Object> body) {
         String periodType = body.get("periodType") == null ? null : String.valueOf(body.get("periodType"));
-        Integer yearStart;
-        try {
-            yearStart = body.get("academicYearStart") != null
-                    ? Integer.valueOf(String.valueOf(body.get("academicYearStart")).trim()) : 9;
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Месяц начала учебного года должен быть от 1 до 12");
-        }
         String markScale = body.get("markScale") == null ? null : String.valueOf(body.get("markScale"));
-        return service.saveSettings(schoolName, periodType, yearStart, markScale);
+        // periods: [["09-01","10-31"], ...] — даты периодов выбранного типа; [] — вернуть школьный календарь
+        List<String[]> periods = null;
+        if (body.get("periods") instanceof List<?> list) {
+            periods = new java.util.ArrayList<>();
+            for (Object item : list) {
+                if (!(item instanceof List<?> pair) || pair.size() != 2) {
+                    throw new IllegalArgumentException("Каждый период — пара дат «начало, конец»");
+                }
+                periods.add(new String[]{String.valueOf(pair.get(0)), String.valueOf(pair.get(1))});
+            }
+        }
+        return service.saveSettings(schoolName, periodType, markScale, periods);
+    }
+
+    @GetMapping("/periods")
+    public Map<String, Object> getPeriods(@PathVariable String schoolName) {
+        return service.currentPeriods();
     }
 
     @GetMapping("/my-grades")

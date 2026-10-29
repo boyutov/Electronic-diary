@@ -59,3 +59,31 @@ window.markTone = (value) => ({ high: "green", mid: "yellow", low: "red" })[wind
 window.markColors = (value) => ({
     high: { fg: "#15803d", bg: "#dcfce7" }, mid: { fg: "#854d0e", bg: "#fef9c3" }, low: { fg: "#b91c1c", bg: "#fee2e2" }
 })[window.markLevel(value)];
+
+// Учебные периоды школы (четверти / полугодия / год) с датами — их задаёт директор в «Оценивании»
+window.loadPeriods = function () {
+    const sn = sessionStorage.getItem("schoolName") || window.location.pathname.split('/')[1];
+    return apiFetch(`/api/${sn}/grading/periods`)
+        .then(r => r.ok ? r.json() : { periods: [] })
+        .catch(() => ({ periods: [] }));
+};
+// Оценка попадает в период по дате выставления; period = null — все оценки
+window.markInPeriod = function (mark, period) {
+    if (!period) return true;
+    const date = String(mark.createdAt || mark.date || "").slice(0, 10);
+    return date >= period.from && date <= period.to;
+};
+// Выпадающий список периодов. По умолчанию — текущий период (или последний прошедший)
+window.renderPeriodPicker = function (host, periods, onChange) {
+    const today = new Date().toISOString().slice(0, 10);
+    const current = periods.findIndex(p => today >= p.from && today <= p.to);
+    const selected = current >= 0 ? current : (periods.length ? 0 : -1);
+    const label = p => `${p.name} (${new Date(p.from).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })} — ${new Date(p.to).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })})`;
+    host.innerHTML = `<label class="period-picker"><span>Период</span><select>
+        ${periods.map((p, i) => `<option value="${i}"${i === selected ? " selected" : ""}>${esc(label(p))}</option>`).join("")}
+        <option value="all"${selected < 0 ? " selected" : ""}>Все оценки</option></select></label>`;
+    const select = host.querySelector("select");
+    const fire = () => onChange(select.value === "all" ? null : periods[Number(select.value)]);
+    select.addEventListener("change", fire);
+    fire();
+};

@@ -12,7 +12,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("marks-modal-close").onclick = () => marksModal.classList.remove("open");
     marksModal.addEventListener("click", e => { if (e.target === marksModal) marksModal.classList.remove("open"); });
 
-    markScaleReady.then(() => apiFetch(`/api/${schoolName}/profile/curator`))
+    let currentPeriod = null;
+    let periods = [];
+    Promise.all([markScaleReady, loadPeriods()])
+        .then(([, data]) => { periods = data.periods || []; return apiFetch(`/api/${schoolName}/profile/curator`); })
         .then(res => res.status === 200 ? res.json() : Promise.reject("no curator"))
         .then(profile => {
             groupNameDisplay.textContent = profile.groupName;
@@ -20,6 +23,18 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .then(res => res.ok ? res.json() : [])
         .then(students => {
+            // Средний балл и оценки — за выбранный период (по умолчанию текущий)
+            renderPeriodPicker(document.getElementById("period-picker"), periods, period => {
+                currentPeriod = period;
+                drawStudents(students);
+            });
+        })
+        .catch(() => {
+            studentsContainer.innerHTML = "<p style='color:#ef4444;'>Ошибка загрузки. Убедитесь, что вы являетесь куратором.</p>";
+        });
+
+    function drawStudents(students) {
+        {
             if (!students.length) {
                 studentsContainer.innerHTML = "<p style='color:#64748b;'>В вашей группе пока нет учеников.</p>";
                 return;
@@ -37,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <tbody>`;
 
             students.forEach((s, i) => {
-                const marks = s.marks || [];
+                const marks = (s.marks || []).filter(m => markInPeriod(m, currentPeriod));
                 const avg = marks.length
                     ? (marks.reduce((a, m) => a + m.value, 0) / marks.length).toFixed(1)
                     : null;
@@ -73,19 +88,17 @@ document.addEventListener("DOMContentLoaded", () => {
                     openMarksModal(sid, name, students);
                 });
             });
-        })
-        .catch(() => {
-            studentsContainer.innerHTML = "<p style='color:#ef4444;'>Ошибка загрузки. Убедитесь, что вы являетесь куратором.</p>";
-        });
+        }
+    }
 
     function openMarksModal(studentId, studentName, students) {
         const student = students.find(s => String(s.id) === String(studentId));
         marksModalTitle.textContent = `Оценки — ${studentName}`;
         marksModalBody.innerHTML = "";
 
-        const marks = student?.marks || [];
+        const marks = (student?.marks || []).filter(m => markInPeriod(m, currentPeriod));
         if (!marks.length) {
-            marksModalBody.innerHTML = "<p style='color:#64748b;'>Оценок пока нет.</p>";
+            marksModalBody.innerHTML = `<p class='empty-inline'>${currentPeriod ? "Оценок за этот период нет." : "Оценок пока нет."}</p>`;
             marksModal.classList.add("open");
             return;
         }
