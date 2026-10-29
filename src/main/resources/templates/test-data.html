@@ -29,6 +29,15 @@
         <p style="color:#64748b;margin-top:4px;">Опишите что нужно создать — AI сгенерирует данные автоматически</p>
     </div>
 
+    <div class="card fill-school">
+        <div>
+            <h3>Заполнить школу тестовыми данными</h3>
+            <p>Одним нажатием: 6 предметов, классы 9А, 10Б, 11В, 6 учителей, 37 учеников с родителями, оценки, новости и жалобы. Данные создаются на сервере, без ИИ.</p>
+        </div>
+        <button class="button lg" id="fill-school-btn" type="button">Заполнить школу</button>
+    </div>
+    <div id="fill-result" class="result-box" style="white-space:pre-wrap;margin:-8px 0 20px;"></div>
+
     <div class="card" style="margin-bottom:20px;">
         <h3 style="margin-bottom:12px;">Быстрые действия</h3>
         <div style="display:flex;flex-wrap:wrap;gap:8px;">
@@ -39,7 +48,7 @@
             <button class="chip-btn" onclick="setPrompt('Создай родителей для всех учеников')">Родители</button>
             <button class="chip-btn" onclick="setPrompt('Поставь случайные оценки всем ученикам по всем предметам')">Оценки</button>
             <button class="chip-btn" onclick="setPrompt('Создай расписание на 2 недели для всех классов')">Расписание</button>
-            <button class="chip-btn" onclick="setPrompt('Создай предметы, 8 учителей и расписание на 2 недели для существующих классов')" style="background:#dbeafe;color:#1d4ed8;border-color:#93c5fd;">+👨🏫+📅 Предметы+Учителя+Расписание</button>
+            <button class="chip-btn" onclick="setPrompt('Создай предметы, 8 учителей и расписание на 2 недели для существующих классов')" style="background:#dbeafe;color:#1d4ed8;border-color:#93c5fd;">Предметы + Учителя + Расписание</button>
             <button class="chip-btn" onclick="setPrompt('Создай полную школу: предметы математика физика история русский английский, классы 9А 10А 11А, 8 учителей, 25 учеников в каждом классе, родителей, оценки и расписание на 2 недели')" style="background:#dcfce7;color:#15803d;border-color:#86efac;">Всё сразу</button>
         </div>
     </div>
@@ -70,6 +79,28 @@
 <script>
 const sn = () => sessionStorage.getItem('schoolName') || location.pathname.split('/')[1];
 const token = () => sessionStorage.getItem('jwtToken');
+
+// Встроенный генератор: создаёт полный набор тестовых данных без внешнего ИИ
+document.getElementById('fill-school-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('fill-school-btn');
+    const box = document.getElementById('fill-result');
+    if (!confirm('Создать в школе тестовые предметы, классы, учителей, учеников, родителей и оценки?')) return;
+    btn.disabled = true;
+    btn.textContent = 'Создаём данные...';
+    try {
+        const r = await apiFetch(`/api/${sn()}/test-data/generate`, { method: 'POST' });
+        const data = await r.json().catch(() => ({}));
+        const text = data.result || data.error || 'Не удалось создать данные';
+        const failed = !r.ok || text.includes('❌');
+        box.style.display = 'block';
+        box.style.background = failed ? '#fee2e2' : '';
+        box.style.color = failed ? '#991b1b' : '';
+        box.textContent = text + (failed ? '' : '\n\nВход для всех созданных пользователей: пароль password123, при первом входе система попросит его сменить. Логины — в разделах «Учителя», «Ученики», «Родители».');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Заполнить школу';
+    }
+});
 
 function setPrompt(text) { document.getElementById('aiPrompt').value = text; }
 
